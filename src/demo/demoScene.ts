@@ -324,7 +324,6 @@ const VIDEO_AOIS: DemoAoi[] = [
   { key: 'face', type: 'face', x: 0.37, y: 0.12, w: 0.26, h: 0.56, t0: 36, t1: 48 },
   { key: 'captions', type: 'subtitle', x: 0.25, y: 0.86, w: 0.5, h: 0.08, t0: 36, t1: 48, words: 6 },
   { key: 'cta', type: 'cta', x: 0.36, y: 0.56, w: 0.28, h: 0.12, t0: 48, t1: 60, words: 2 },
-  { key: 'logo', type: 'logo', x: 0.45, y: 0.23, w: 0.1, h: 0.18, t0: 48, t1: 60 },
 ];
 
 function videoTarget(t: number): GazeTarget {

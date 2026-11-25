@@ -12,7 +12,7 @@ Pełna specyfikacja produktu: [`docs/prompt-startowy.md`](docs/prompt-startowy.m
 |---|---|---|
 | M0 | Narzędzia, marka, platformy, tokeny, `kit.tsx`, i18n pl/en, router, ErrorBoundary, diagnostyka startu, CI | gotowe |
 | M1 | Rdzeń pomiaru (port z KidAttention, progi dla dorosłych w `src/core/config.ts`), laboratorium `#/lab` | gotowe |
-| M2 | Warstwa badań (krzywa, spadki, A/B/n, wnioski, symulator) | w kolejce |
+| M2 | Warstwa badań: krzywa 0,5 s / 1 s, spadki, segmenty, heat mapy, strefy, czytelność, moment marki, A/B/n (Welch, proporcje, Holm), MDE, jakość sesji, wnioski z reguł, symulator panelu | gotowe |
 | M3 | Przebieg widza | w kolejce |
 | M4 | Studio (tryb lokalny) i strona publiczna | w kolejce |
 | M5 | Tryb serwerowy, Docker | w kolejce |
@@ -65,6 +65,17 @@ W GitHub Actions te same wartości ustawia się jako zmienne repozytorium `ATTN_
 - **Progi dla dorosłych** są w jednym miejscu: `src/core/config.ts` (rozstaw źrenic 6,3 cm, progi kalibracji GOOD ≤ 6%/8%, FAIR ≤ 13%/15%, harmonogram dla komputera i telefonu, odległości). To wartości startowe — **do strojenia na pilotażu** (20–30 dorosłych, 3 urządzenia, 2 warunki światła).
 - **Laboratorium** (`#/lab`): podgląd kamery z punktami oczu i diagnostyką, kalibracja na pełnym ekranie, oglądanie z markerem wzroku (kamera, symulacja albo mysz), heat mapa (paleta sekwencyjna inferno/viridis, nie tęczowa), ścieżka wzroku z fiksacjami, statystyki, eksport JSON/CSV/PNG. Sesje laboratorium zostają w bazie `attn-lab` tej przeglądarki.
 - **Klipy demo** (`src/demo/demoScene.ts`): rolka 9:16 w dwóch wersjach początku (A: plansza z logo, B: mocny hook), film 16:9 z 5 scenami, 5 wypełniaczy feedu i 6 miniatur — rysowane na canvasie, deterministyczne, z pseudotekstem zamiast słów (działają w każdym języku).
+
+## Warstwa badań (M2)
+
+Kod w `src/research/` działa w przeglądarce i na serwerze (ten sam raport).
+
+- **Format kolumnowy** (`compact.ts`): `tc, vt, seg, it, vx, vy, cf, un, st` — bez współrzędnych ekranu i bez obrazu; walidacja z kodami błędów.
+- **Krzywa uwagi** (`attention.ts`): stan widza w przedziałach 0,5 s (do 60 s) albo 1 s, większość rozstrzygających próbek, krótka luka przejmuje stan; przedział Wilsona; spadki (odrzucamy < 8 pp i wolniejsze niż 1,5 pp/s); segmenty i ranking „do poprawy”; utrzymanie hooka @3 s.
+- **Strefy** (`aoi.ts`): zasięg probabilistyczny z niepewnością, pierwsze spojrzenie, czytelność napisów (słowa / 3 na s + 0,5 s), strefy zasłonięte przez interfejs platformy, moment marki.
+- **Porównanie wersji** (`report.ts`, `statsMath.ts`): Welch na średniej uwadze widza, test dwóch proporcji dla hooka, przy > 2 wersjach każda kontra A z korektą Holma; werdykt tylko przy p < 0,05 i ≥ 15 widzach w każdej wersji; kalkulator MDE.
+- **Wnioski** (`insights.ts`): fakt → obserwacja → hipoteza → rekomendacja; teksty w `src/i18n/<język>/research.ts`.
+- **Symulator** (`panelSim.ts`): profile uwagi (hazard/recovery), raporty demo z 31 ważnymi widzami na wersję. Sesje symulowane są domyślnie poza raportem.
 
 ## Wdrożenie
 

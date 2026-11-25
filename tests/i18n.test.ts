@@ -82,3 +82,29 @@ describe('formatowanie', () => {
     expect(formatClock(3727)).toBe('1:02:07');
   });
 });
+
+describe('raport w innych językach (§18)', () => {
+  for (const locale of OTHER) {
+    it(`${locale}: wnioski, zdanie otwierające i porównanie A/B bez polskich tekstów`, async () => {
+      const { RESEARCH_TEXT } = await import('../src/i18n/research');
+      const { demoProject } = await import('../src/research/panelSim');
+      const { buildVariantReport, compareVariants, headline } = await import('../src/research/report');
+      const tx = RESEARCH_TEXT[locale];
+      for (const id of ['reel', 'video'] as const) {
+        const { project, sessions } = demoProject(id, tx, { createdAt: '2026-11-20T10:00:00.000Z' });
+        const reps = project.variants.map((v) => buildVariantReport(project, v, sessions, tx, { includeSimulated: true }));
+        const texts = [
+          project.name,
+          project.creatorName,
+          ...project.variants.flatMap((v) => [v.label, v.mediaName, ...v.aois.map((a) => a.name)]),
+          ...reps.flatMap((r) => r.findings.flatMap((f) => [f.title, f.fact, f.observation, f.hypothesis, f.recommendation])),
+          ...reps.flatMap((r) => r.segments.map((s) => s.label)),
+          ...reps.flatMap((r) => Object.values(headline(r, tx))),
+          ...(reps.length > 1 ? [compareVariants(reps, tx, { sharedFrom: 3 }).summary] : []),
+        ].filter((s): s is string => typeof s === 'string');
+        expect(texts.length).toBeGreaterThan(8);
+        for (const s of texts) expect(s, s).not.toMatch(POLISH);
+      }
+    });
+  }
+});
