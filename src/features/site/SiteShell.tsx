@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
+import { pathOf } from '../../app/router';
 import { COMPANY, salesEmail } from '../../config/company';
 import { useT } from '../../i18n';
 import { BrandMark } from '../../ui/BrandMark';
@@ -14,8 +15,15 @@ export interface NavItem {
  * Przełącznik języka w nagłówku od 640 px, na telefonie w menu. Poniżej 370 px przycisk główny
  * tylko w menu (lekcja §24.8). Kontener 1152 px, marginesy 16 px (telefon) / 24 px.
  */
-export function SiteShell({ children, nav = [], cta }: { children: ReactNode; nav?: NavItem[]; cta?: NavItem | null }) {
+export function SiteShell({ children, nav: navProp, cta: ctaProp }: { children: ReactNode; nav?: NavItem[]; cta?: NavItem | null }) {
   const t = useT();
+  const nav = navProp ?? [
+    { href: pathOf({ name: 'sample', sample: 'reel' }), label: t.site.nav.sample },
+    { href: pathOf({ name: 'pricing' }), label: t.site.nav.pricing },
+    { href: pathOf({ name: 'privacy' }), label: t.site.nav.privacy },
+    { href: pathOf({ name: 'projects' }), label: t.site.nav.studio },
+  ];
+  const cta = ctaProp === undefined ? { href: pathOf({ name: 'new-project' }), label: t.site.nav.startFree } : ctaProp;
   const [open, setOpen] = useState(false);
   useEffect(() => {
     const close = () => setOpen(false);
@@ -45,9 +53,12 @@ export function SiteShell({ children, nav = [], cta }: { children: ReactNode; na
           <div className="flex shrink-0 items-center gap-2">
             <LanguageSelect className="hidden sm:inline-flex" />
             {cta && (
-              <a href={cta.href} className={btnClass('primary', 'md', 'hidden min-[370px]:inline-flex')}>
-                {cta.label}
-              </a>
+              // Otoczka steruje widocznością: `hidden` obok `inline-flex` z btnClass przegrywa w kolejności CSS.
+              <span className="hidden min-[370px]:inline-flex">
+                <a href={cta.href} className={btnClass('primary', 'md')}>
+                  {cta.label}
+                </a>
+              </span>
             )}
             <button
               type="button"

@@ -1,11 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useI18n } from '../../i18n';
+import { SCREENER_FREQUENCIES as FREQUENCIES, SCREENER_PLATFORMS } from '../../research/audience';
 import { BigButton, Screen, Title } from './parts';
 
 /** Kraje do wyboru (kody ISO) — nazwy z Intl w języku badania. */
 const COUNTRIES = ['PL', 'DE', 'GB', 'US', 'FR', 'ES', 'IT', 'NL', 'CZ', 'SK', 'UA', 'IE', 'SE', 'AT', 'CH', 'BE', 'PT', 'CA', 'AU'];
-export const SCREENER_PLATFORMS = ['tiktok', 'reels', 'shorts', 'youtube'] as const;
-const FREQUENCIES = ['daily', 'weekly', 'rarely', 'never'] as const;
 
 /**
  * Pytania przesiewowe (§10.3): tylko listy wyboru, bez pól tekstowych. Nigdy nie pytamy o zdrowie,

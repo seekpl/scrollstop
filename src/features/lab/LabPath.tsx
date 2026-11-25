@@ -82,7 +82,7 @@ export function LabPath() {
       {fixations.length > 0 && (
         <Surface>
           <h2 className="mb-3 text-[17px] font-semibold">{p.fixTitle}</h2>
-          <div className="overflow-x-auto">
+          <div className="relative overflow-x-auto">
             <table className="w-full text-left text-[14px]">
               <caption className="sr-only">{p.fixTitle}</caption>
               <thead className="text-muted">

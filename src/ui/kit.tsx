@@ -222,7 +222,7 @@ export function Segmented<T extends string>({ value, options, onChange, label }:
 /** Kroki projektu (Przygotuj, Zbierz, Raport…) z licznikiem. */
 export function Stepper({ steps, current, label }: { steps: Array<{ id: string; title: string; href?: string; count?: ReactNode }>; current: string; label: string }) {
   return (
-    <nav aria-label={label} className="-mx-1 overflow-x-auto">
+    <nav aria-label={label} className="-mx-1 relative overflow-x-auto">
       <ol className="flex min-w-max gap-1 px-1">
         {steps.map((s, i) => {
           const on = s.id === current;

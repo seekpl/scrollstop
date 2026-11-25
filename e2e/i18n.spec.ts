@@ -14,10 +14,11 @@ test.describe('języki', () => {
 
   for (const locale of LOCALES) {
     test(`${locale}: brak poziomego przewijania przy 320–390 px`, async ({ page }) => {
+      test.setTimeout(180_000);
       for (const width of PHONE_WIDTHS) {
         await page.setViewportSize({ width, height: 800 });
-        for (const path of ['/', '/#/nie-ma']) {
-          await page.goto(`${path}${path.includes('#') ? '?' : '?'}lang=${locale}`);
+        for (const path of ['/', '/#/pricing', '/#/privacy', '/#/sample/reel', '/#/sample/video', '/#/app', '/#/app/new', '/#/app/account', '/#/nie-ma']) {
+          await page.goto(`${path}?lang=${locale}`);
           await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
           await expectNoHorizontalScroll(page);
         }

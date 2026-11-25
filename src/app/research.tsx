@@ -1,11 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Account, ResearchApi } from '../api/types';
+import { entitlements, type Entitlements } from '../research/plans';
 
 interface ResearchValue {
   api: ResearchApi;
   /** null = niezalogowany (tryb serwerowy); undefined = wczytywanie. */
   account: Account | null | undefined;
   refreshAccount(): Promise<void>;
+  /** Uprawnienia planu zalogowanego konta (Free, gdy brak konta). */
+  can: Entitlements;
 }
 
 const Ctx = createContext<ResearchValue | null>(null);
@@ -23,7 +26,7 @@ export function ResearchProvider({ api, children }: { api: ResearchApi; children
   useEffect(() => {
     void refreshAccount();
   }, [refreshAccount]);
-  const value = useMemo(() => ({ api, account, refreshAccount }), [api, account, refreshAccount]);
+  const value = useMemo(() => ({ api, account, refreshAccount, can: entitlements(account?.plan ?? 'free') }), [api, account, refreshAccount]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

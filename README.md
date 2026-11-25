@@ -14,7 +14,7 @@ Pełna specyfikacja produktu: [`docs/prompt-startowy.md`](docs/prompt-startowy.m
 | M1 | Rdzeń pomiaru (port z KidAttention, progi dla dorosłych w `src/core/config.ts`), laboratorium `#/lab` | gotowe |
 | M2 | Warstwa badań: krzywa 0,5 s / 1 s, spadki, segmenty, heat mapy, strefy, czytelność, moment marki, A/B/n (Welch, proporcje, Holm), MDE, jakość sesji, wnioski z reguł, symulator panelu | gotowe |
 | M3 | Przebieg widza: zgoda 18+, pytania przesiewowe, przygotowanie, kamera, dźwięk, kalibracja, pełny ekran z ochroną przebiegu, pytania po, zakończenie, kolejka wysyłki, kod usunięcia, link samowystarczalny, plik sesji, `?sim=1` | gotowe |
-| M4 | Studio (tryb lokalny) i strona publiczna | w kolejce |
+| M4 | Studio (tryb lokalny: projekty, kreator, przygotowanie testu, zbieranie widzów z importem plików, raport, analiza techniczna, konto) i strona publiczna (główna z żywą krzywą, cennik z zamówieniem e-mailem, prywatność, przykładowe raporty) | gotowe |
 | M5 | Tryb serwerowy, Docker | w kolejce |
 | M6–M9 | Feed, miniatura, karuzela; plany i płatności; AI, grafika, PDF; szlif | w kolejce |
 
@@ -84,6 +84,17 @@ Kod w `src/research/` działa w przeglądarce i na serwerze (ten sam raport).
 - **Oglądanie:** bez kontrolek i bez znacznika wzroku; panel pauzy po przytrzymaniu 1,5 s (Esc na komputerze) z „Zgłoś treść”; blokada wygaszania ekranu, ostrzeżenie przy wyjściu, Wstecz → panel, ukrycie karty → pauza, obrót telefonu przy materiale pionowym → prośba o pion.
 - **Zakończenie:** przerwane → wybór, czy wysłać; ukończone → wysyłka automatyczna, a przy błędzie sieci kolejka w IndexedDB `attn-outbox`; link samowystarczalny → plik `scrollstop-sesja-<id>.json` przez Web Share API albo pobranie.
 - **Tryb testowy** `?sim=1`: bez kamery, wzrok symulowany, sesja oznaczona jako symulacja (poza raportem i limitami).
+
+## Studio i strona publiczna (M4)
+
+- **Adresy studia:** `#/app` (projekty), `#/app/new` (kreator), `#/app/p/<id>/prepare|collect|report|technical`, `#/app/account`, `#/app/workspace` (zespół — w trybie serwerowym, M5).
+- **Kreator** (6 kroków): rodzaj badania (film, hook, wersje A–D; feed, miniatura i karuzela oznaczone „wkrótce” do M6), platforma, materiał każdej wersji (plik, YouTube, link HTTPS, klip demo), warunki, widzowie z kalkulatorem MDE, nazwy i język badania.
+- **Przygotuj test:** w trybie lokalnym „Rozpocznij badanie tutaj” (sesja od razu w projekcie) i **link bez serwera** z kodem QR (osobny link na wersję; plik z komputera twórcy nie trafi do widzów — komunikat). Gotowe wiadomości w języku badania, próba bez kamery (`?sim=1`), status zbierania, sceny (wykrywanie, odcinki, cięcia ręczne), strefy, ustawienia, usunięcie projektu. Przy widzach z panelu — zamówienie e-mailem z podsumowaniem projektu.
+- **Zbierz widzów:** postęp do celu (sesje symulowane się nie liczą), liczniki, paywall po limicie planu, **import plików sesji** (`.json` od widzów; każdy przechodzi sanityzację i kontrolę jakości, duplikaty i limit planu są pomijane), tabela sesji (na telefonie karty) z odrzucaniem, przywracaniem i usuwaniem.
+- **Raport:** ten sam komponent co raporty przykładowe; segmenty widzów (regularni użytkownicy platformy publikacji według pytań przesiewowych, panel / społeczność od 10 sesji w każdej grupie, §4.9); PDF przez drukowanie (znak wodny w planie Free); surowe dane JSON/CSV w planie z `rawExport`.
+- **Analiza techniczna:** urządzenie, ekran, błąd kalibracji x/y, liczba próbek, wiarygodne sekundy; „Otwórz w laboratorium” przenosi sesję do `#/lab`.
+- **Strona publiczna:** główna (żywa krzywa uwagi nad pionowym klipem demo — liczona z symulowanego panelu, nie wpisana na sztywno), `#/pricing` (waluta według języka, en: USD/EUR, okres roczny = 10 × miesięczna; zamówienie przez `mailto:` — płatności online w M7), `#/privacy` (§17.8, dane operatora z `company.ts`), `#/sample/reel|video` (feed w M6).
+- **Uczciwy cennik:** pozycje cennika, których jeszcze nie ma w kodzie, są w `PRICING_SOON` (`src/research/plans.ts`) i pokazują się z etykietą „wkrótce”. Usuń klucz z tej listy w kamieniu milowym, który dostarcza funkcję.
 
 ## Wdrożenie
 

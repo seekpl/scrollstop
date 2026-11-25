@@ -114,3 +114,33 @@ export const PANEL = {
   from: { PLN: 590, EUR: 139 } as const,
   days: '2–5',
 };
+
+/** Uprawnienia do interfejsu (paywall w raporcie i studiu). */
+export interface Entitlements extends Record<Feature, boolean> {
+  plan: PlanId;
+  maxVariants: 1 | 2 | 4;
+  watermark: boolean;
+}
+
+export function entitlements(plan: PlanId): Entitlements {
+  const p = PLANS[plan];
+  return { ...p.features, plan, maxVariants: p.maxVariants, watermark: p.watermark };
+}
+
+/** Raporty przykładowe pokazują pełne możliwości niezależnie od planu oglądającego (§23). */
+export const FULL_ACCESS: Entitlements = { ...entitlements('agency'), watermark: false };
+
+/** Pozycje cennika (klucze słownika `billing.pricing.features`) — co plan dodaje do poprzedniego. */
+export type PricingItem = 'curve' | 'hook' | 'samples' | 'pdfWatermark' | 'heatmaps' | 'findings' | 'ab' | 'pdfClean' | 'shareImage' | 'abcd' | 'formats' | 'aoi' | 'ai' | 'shareLink' | 'folders' | 'logo' | 'raw' | 'contract';
+export const PRICING_ITEMS: Record<PlanId, PricingItem[]> = {
+  free: ['curve', 'hook', 'samples', 'pdfWatermark'],
+  creator: ['heatmaps', 'findings', 'ab', 'pdfClean', 'shareImage'],
+  pro: ['abcd', 'formats', 'aoi', 'ai', 'shareLink'],
+  agency: ['folders', 'logo', 'raw', 'contract'],
+};
+
+/**
+ * Pozycje, których jeszcze nie ma w kodzie — cennik oznacza je „wkrótce” (§0: strona nie obiecuje
+ * funkcji, których nie ma). Usuwaj klucz z listy w kamieniu milowym, który dostarcza funkcję.
+ */
+export const PRICING_SOON: ReadonlySet<PricingItem> = new Set<PricingItem>(['shareImage', 'formats', 'ai', 'shareLink', 'folders']);

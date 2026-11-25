@@ -7,6 +7,7 @@ import { PLATFORMS } from '../config/platforms';
 import { CodedError } from '../core/errors';
 import { isDemoId } from '../demo/demoScene';
 import { isLocale } from '../i18n/locales';
+import { SCREENER_FREQUENCIES, SCREENER_PLATFORMS } from './audience';
 import { validateCompact } from './compact';
 import {
   AGE_BANDS,
@@ -82,6 +83,17 @@ function choiceMap(x: unknown, maxKeys = 10): Record<string, string> {
   return out;
 }
 
+/** Pytania przesiewowe: tylko klucze `platform_<platforma>` i częstotliwości z listy (§10.3). */
+function screenerMap(x: unknown): Record<string, string> {
+  if (!isObj(x)) return {};
+  const out: Record<string, string> = {};
+  for (const p of SCREENER_PLATFORMS) {
+    const v = x[`platform_${p}`];
+    if (typeof v === 'string' && (SCREENER_FREQUENCIES as readonly string[]).includes(v)) out[`platform_${p}`] = v;
+  }
+  return out;
+}
+
 function items(x: unknown): ItemLog[] | undefined {
   if (!Array.isArray(x)) return undefined;
   return x.slice(0, LIMITS.maxItems).flatMap((it, i): ItemLog[] => {
@@ -132,7 +144,7 @@ export function sanitizeSession(raw: unknown, opts: { now?: number; trustCreated
     participantId: raw.participantId,
     ageBand,
     country: typeof raw.country === 'string' && /^[A-Z]{2}$/.test(raw.country) ? raw.country : null,
-    screener: choiceMap(raw.screener),
+    screener: screenerMap(raw.screener),
     device: device(raw.device),
     consent: {
       version: c.version as string,

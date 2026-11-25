@@ -1,6 +1,7 @@
 import { BRAND } from '../../config/brand';
+import { plural } from '../../core/math/util';
 
-/** Strona publiczna: nagłówek, stopka, strona główna, „w budowie”, 404. */
+/** Strona publiczna: nagłówek, stopka, strona główna, cennik, prywatność, przykłady, 404. */
 export const site = {
   meta: {
     title: `${BRAND.name} — w której sekundzie widzowie przestają patrzeć?`,
@@ -23,16 +24,93 @@ export const site = {
     ctaSample: 'Zobacz przykładowy raport',
     freeNote: 'Za darmo: 1 projekt i 5 widzów. Bez karty.',
   },
-  building: {
-    badge: 'W budowie',
-    title: 'Pracujemy nad pierwszą wersją',
-    body: 'Budujemy narzędzie do badania uwagi widzów przed publikacją: krzywą uwagi, wynik hooka, test w feedzie i mapy spojrzeń. Strona zmienia się z każdym etapem prac.',
-    points: [
-      'Widzowie oglądają w przeglądarce, bez instalowania aplikacji.',
-      'Kamera tylko szacuje, gdzie patrzy widz. Obraz nie opuszcza urządzenia.',
-      'Badamy materiał, a nie ludzi. Tylko dorośli widzowie, za ich zgodą.',
+  landing: {
+    demoLabel: (viewers: number) => `Przykład: krzywa uwagi rolki demo, symulowany panel ${viewers} ${plural(viewers, 'widza', 'widzów', 'widzów')}`,
+    demoNow: (pct: string) => `Patrzy ${pct}`,
+    demoAlt: 'Pionowy klip demo z krzywą uwagi widzów rysowaną na bieżąco',
+    demoLink: 'Zobacz cały raport tego przykładu',
+    howTitle: 'Jak to działa',
+    how: [
+      { title: 'Dodaj materiał i wyślij link', body: 'Wgraj rolkę, wklej link z YouTube albo wybierz kilka wersji hooka. Link wysyłasz swojej społeczności w relacji, poście albo wiadomości.' },
+      { title: 'Widzowie oglądają u siebie', body: 'Na telefonie lub komputerze, w przeglądarce, bez instalowania aplikacji. Krótka kalibracja i oglądanie jak w aplikacji.' },
+      { title: 'Dostajesz krzywą uwagi i poprawki', body: 'Sekunda po sekundzie widzisz, ilu widzów patrzy na ekran, gdzie patrzą i który fragment warto przemontować.' },
     ],
-    contact: 'Chcesz przetestować wcześniej? Napisz do nas',
+    reportTitle: 'Co jest w raporcie',
+    report: [
+      { title: 'Krzywa uwagi', body: 'Udział patrzących w każdej pół sekundzie, z przedziałem niepewności i zaznaczonymi spadkami.' },
+      { title: 'Wynik hooka', body: 'Ilu widzów patrzy po 3 sekundach i jak długo hook trzyma ich wzrok.' },
+      { title: 'Mapy spojrzeń', body: 'Heat mapa każdej sceny i moment marki: kiedy widzowie naprawdę widzą logo i produkt.' },
+      { title: 'Napisy i strefy', body: 'Czy napisy są czytane, czy coś zasłania interfejs platformy i ile uwagi dostaje każda strefa.' },
+      { title: 'Wersje A/B/C/D', body: 'Ta sama miara dla każdej wersji, test istotności i informacja, ilu widzów brakuje do werdyktu.' },
+      { title: 'Wnioski w języku montażu', body: 'Hook, cięcie, napis, CTA: konkretna scena do poprawy, wyliczona z danych, nie zgadywana.' },
+    ],
+    feedSoon: 'Test w feedzie (zatrzymanie scrolla) i test miniatury — wkrótce.',
+    privacyTitle: 'Obraz z kamery nie opuszcza telefonu widza',
+    privacyBody: 'Kamera w przeglądarce tylko szacuje, czy i gdzie widz patrzy. Do Ciebie trafiają współrzędne na obrazie, bez zdjęć, nagrań i punktów twarzy. Badamy wyłącznie dorosłych, za ich zgodą.',
+    privacyLink: 'Prywatność i zasady etyczne',
+    notTitle: 'Czym nie jesteśmy',
+    not: ['Nie przewidujemy viralności ani wyświetleń.', 'Nie rozpoznajemy emocji i nie oceniamy ludzi.', 'Nie zastępujemy analityki platform: działamy przed publikacją.'],
+    accuracyNote: 'Kamera internetowa szacuje wzrok z dokładnością kilku procent szerokości ekranu. Dlatego raport mówi o fragmentach i strefach, a nie o pojedynczych słowach.',
+    ctaTitle: 'Sprawdź następną rolkę, zanim zobaczy ją algorytm',
+  },
+  pricingPage: {
+    faqTitle: 'Najczęstsze pytania',
+    faq: [
+      { q: 'Kto płaci za badanie?', a: 'Tylko Ty. Widzowie oglądają za darmo i nie zakładają konta.' },
+      { q: 'Czy mogę zrezygnować?', a: 'Tak, plan miesięczny kończy się z końcem opłaconego okresu. Dane możesz wcześniej usunąć sam.' },
+      { q: 'Ilu widzów potrzebuję?', a: 'Pierwszy kształt krzywej widać po kilku osobach. Wiarygodna krzywa zaczyna się od 30 widzów, a porównanie wersji od 15 na wersję.' },
+    ],
+  },
+  privacy: {
+    title: 'Prywatność i zasady etyczne',
+    lead: `${BRAND.name} bada materiały, a nie ludzi. Mierzymy, czy fragment rolki przyciąga wzrok, a nie to, jaki jest widz.`,
+    draft: 'Wersja robocza do przeglądu prawnego.',
+    cameraTitle: 'Obraz z kamery',
+    camera: 'Obraz z kamery jest przetwarzany wyłącznie w przeglądarce widza. Model szacuje położenie oczu i kierunek wzroku, a obraz od razu znika. Nie wysyłamy, nie nagrywamy i nie zapisujemy zdjęć, filmów ani punktów twarzy.',
+    savedTitle: 'Co zapisujemy',
+    saved: [
+      { term: 'Identyfikatory', def: 'losowy identyfikator uczestnika i sesji, bez imienia, e-maila i telefonu' },
+      { term: 'Odpowiedzi', def: 'przedział wieku, kraj (opcjonalnie) i odpowiedzi wybrane z list' },
+      { term: 'Kierunek wzroku', def: 'punkt na obrazie (0–1) ok. 30 razy na sekundę, z pewnością i jakością pomiaru, oraz czas materiału' },
+      { term: 'Urządzenie', def: 'typ urządzenia, orientacja i rozmiar okna' },
+      { term: 'Zgoda', def: 'wersja zgody, czas i język' },
+    ],
+    notSavedTitle: 'Czego nie zapisujemy',
+    notSaved: ['obrazu i nagrań z kamery', 'punktów twarzy i danych biometrycznych', 'imienia, nazwiska, e-maila i telefonu widza', 'lokalizacji ani adresu IP w sesji (IP jest przetwarzany chwilowo do limitów zapytań)', 'emocji ani ocen osoby'],
+    accessTitle: 'Kto ma dostęp i jak długo',
+    access: [
+      'Wyniki widzi twórca lub marka wskazana na ekranie zgody. To ona jest administratorem danych z badania, a operator serwisu przetwarza je w jej imieniu.',
+      'Raport pokazuje wyniki zbiorcze. Pojedyncze sesje są anonimowe i służą do kontroli jakości pomiaru.',
+      'Sesje są usuwane automatycznie po 30, 90, 180 albo 365 dniach (domyślnie 90). Usunięcie projektu lub konta usuwa sesje i pliki od razu.',
+      'W trybie lokalnym wszystko zostaje w przeglądarce twórcy, a widz przekazuje plik z wynikami sam.',
+    ],
+    rightsTitle: 'Prawa widza',
+    rights: [
+      'Udział jest dobrowolny i tylko dla osób pełnoletnich. Badanie można przerwać w każdej chwili; przerwana sesja nie jest wysyłana.',
+      'Po badaniu widz dostaje kod usunięcia. Z nim może usunąć swoją sesję bez podawania danych.',
+      'Widz nie dostaje wyniku o sobie, bo nie oceniamy ludzi.',
+    ],
+    deleteLink: 'Usuń swoją sesję',
+    cookiesTitle: 'Cookies i analityka',
+    cookies: 'Nie używamy cookies śledzących. W pamięci przeglądarki zapisujemy tylko wybrany język i (w trybie z kontem) token logowania. Na stronach badania nie ma żadnej zewnętrznej analityki.',
+    aiTitle: 'Bez rozpoznawania emocji',
+    ai: 'Nie rozpoznajemy emocji, nie identyfikujemy osób i nie tworzymy profili. Punkty twarzy służą tylko do oszacowania kierunku wzroku, lokalnie i bez zapisu. Teksty wygenerowane przez AI są tak oznaczone.',
+    ethicsTitle: 'Zasady etyczne',
+    ethicsLead: `${BRAND.name} pomaga tworzyć materiały, które widzowie rzeczywiście oglądają. Nie obsługujemy zastosowań, które:`,
+    ethics: ['badają osoby poniżej 18 lat,', 'oceniają, profilują albo porównują pojedynczych widzów, sugerują diagnozy lub stany psychiczne,', 'rozpoznają emocje,', 'badają widzów bez ich wiedzy albo w miejscu pracy i szkole,', 'sprzedają dane albo kontakty widzów,', 'testują treści wprowadzające w błąd lub szkodliwe.'],
+    contentTitle: 'Zasady treści',
+    content: 'Twórca oświadcza, że ma prawa do materiału i że materiał nie zawiera treści seksualnych, przemocy, mowy nienawiści, oszustw ani reklam politycznych. Widz może zgłosić treść w panelu pauzy; projekt zostaje wtedy wstrzymany do wyjaśnienia.',
+    contactTitle: 'Kontakt i operator serwisu',
+    operator: (name: string, address: string, nip: string) => `Operator: ${name}, ${address}, NIP ${nip}.`,
+    contact: 'W sprawach danych osobowych napisz na',
+  },
+  samplePage: {
+    title: 'Przykładowe raporty',
+    lead: 'Tak wygląda raport po badaniu. Dane pochodzą z symulowanego panelu widzów, a nie z prawdziwego badania.',
+    tabs: { reel: 'Rolka: test hooka A/B', video: 'Film na YouTube', feed: 'Rolka w feedzie' },
+    tabsLabel: 'Wybierz przykład',
+    feedSoon: 'Przykład testu w feedzie pojawi się razem z tym rodzajem badania.',
+    cta: 'Przetestuj swoją rolkę',
   },
   footer: {
     operator: (name: string, address: string, nip: string) => `Serwis prowadzi ${name}, ${address}, NIP ${nip}.`,

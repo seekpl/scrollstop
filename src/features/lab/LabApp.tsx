@@ -51,7 +51,7 @@ function Shell() {
               {t.lab.studioLink}
             </a>
           </div>
-          <nav aria-label={t.lab.navLabel} className="-mx-1 flex w-full gap-1 overflow-x-auto px-1">
+          <nav aria-label={t.lab.navLabel} className="-mx-1 flex w-full gap-1 relative overflow-x-auto px-1">
             {NAV.map((v) => {
               const active = lab.view === v;
               return (

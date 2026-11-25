@@ -8,8 +8,8 @@ import { aspectFits, defaultDeviceFor, overlapsUnsafe } from '../src/config/plat
 import { I18nProvider } from '../src/i18n';
 import { Btn, ChoiceCards, Dialog } from '../src/ui/kit';
 
-describe('strona w budowie', () => {
-  it('pokazuje hasło produktu i kontakt po polsku', () => {
+describe('strona główna', () => {
+  it('pokazuje hasło produktu, przyciski i kontakt po polsku', () => {
     window.history.replaceState(null, '', '/#/');
     render(
       <I18nProvider>
@@ -17,7 +17,8 @@ describe('strona w budowie', () => {
       </I18nProvider>,
     );
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('W której sekundzie widzowie przestają patrzeć na Twoją rolkę?');
-    expect(screen.getByText('W budowie')).toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: 'Przetestuj rolkę za darmo' })[0]).toHaveAttribute('href', '#/app/new');
+    expect(screen.getByRole('link', { name: 'Zobacz przykładowy raport' })).toHaveAttribute('href', '#/sample/reel');
     expect(screen.getAllByRole('link', { name: /sebastian\.biel@me\.com/ }).length).toBeGreaterThan(0);
   });
 

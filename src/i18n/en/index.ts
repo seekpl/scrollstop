@@ -1,9 +1,12 @@
 import type { Messages } from '..';
+import { billing } from './billing';
 import { common } from './common';
 import { errors } from './errors';
 import { lab } from './lab';
+import { report } from './report';
 import { site } from './site';
+import { studio } from './studio';
 import { ui } from './ui';
 import { viewer } from './viewer';
 
-export const en: Messages = { common, errors, ui, site, lab, viewer };
+export const en: Messages = { common, errors, ui, site, lab, viewer, report, billing, studio };
