@@ -5,6 +5,7 @@ import { SCHEMA_VERSION, type Session } from '../../core/contracts/types';
 import { downloadText } from '../../export/exporters';
 import { useI18n } from '../../i18n';
 import { expandSamples } from '../../research/compact';
+import { feedFocus } from '../../research/feed';
 import type { ViewerSession } from '../../research/model';
 import { planFor } from '../../research/plans';
 import { assessSession } from '../../research/sessions';
@@ -41,7 +42,10 @@ export function Technical({ project, sessions }: ProjectCtx) {
   const x = t.studio.technical;
   const { can } = useResearch();
   const nf = (v: number, d = 1) => new Intl.NumberFormat(locale === 'pl' ? 'pl-PL' : 'en-US', { maximumFractionDigits: d }).format(v);
-  const open = async (s: ViewerSession) => {
+  // Laboratorium pokazuje jeden materiał: w feedzie badany klip; siatka i karuzela — tylko raport.
+  const canOpen = project.kind !== 'thumbnail' && project.kind !== 'carousel' && project.kind !== 'slides';
+  const open = async (raw: ViewerSession) => {
+    const s = project.kind === 'feed' ? feedFocus(raw) : raw;
     const v = project.variants.find((q) => q.id === s.variantId) ?? project.variants[0];
     const lab = toLabSession(s, v.media?.kind === 'demo' ? v.media.demo : v.mediaName, v.width, v.height);
     if (v.media?.kind === 'demo') lab.meta.video = { ...lab.meta.video, kind: 'demo', name: v.media.demo };
@@ -99,9 +103,11 @@ export function Technical({ project, sessions }: ProjectCtx) {
                       <td className="tabular px-4 py-3">{s.data.tc.length.toLocaleString(locale === 'pl' ? 'pl-PL' : 'en-US')}</td>
                       <td className="tabular px-4 py-3">{x.reliable(nf(a.playedSeconds * a.determinateShare, 0))}</td>
                       <td className="px-4 py-3 text-right">
-                        <Btn size="sm" variant="quiet" onClick={() => void open(s)}>
-                          {x.openLab}
-                        </Btn>
+                        {canOpen && (
+                          <Btn size="sm" variant="quiet" onClick={() => void open(s)}>
+                            {x.openLab}
+                          </Btn>
+                        )}
                       </td>
                     </tr>
                   );

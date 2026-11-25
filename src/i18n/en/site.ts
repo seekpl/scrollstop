@@ -42,8 +42,8 @@ export const site: Messages['site'] = {
       { title: 'Captions and areas', body: 'Whether captions get read, whether the platform interface covers anything and how much attention each area gets.' },
       { title: 'Versions A/B/C/D', body: 'The same measure for every version, a significance test and how many viewers are missing for a verdict.' },
       { title: 'Findings in editing terms', body: 'Hook, cut, caption, CTA: a specific scene to fix, calculated from the data, not guessed.' },
+      { title: 'Feed, thumbnails and carousels', body: 'Whether viewers stop scrolling on your clip among others, whether their eyes land on your thumbnail in a grid and how far they get in a carousel.' },
     ],
-    feedSoon: 'Feed test (scroll stopping) and thumbnail test — coming soon.',
     privacyTitle: 'The camera image never leaves the viewer’s phone',
     privacyBody: 'The browser camera only estimates whether and where the viewer looks. You receive coordinates on the frame, with no photos, recordings or face points. Adults only, with their consent.',
     privacyLink: 'Privacy and ethics',
@@ -108,7 +108,6 @@ export const site: Messages['site'] = {
     lead: 'This is what a report looks like after a study. The data comes from a simulated viewer panel, not a real study.',
     tabs: { reel: 'Reel: A/B hook test', video: 'YouTube video', feed: 'Reel in the feed' },
     tabsLabel: 'Choose an example',
-    feedSoon: 'The feed test example will appear together with that study type.',
     cta: 'Test your reel',
   },
   auth: {

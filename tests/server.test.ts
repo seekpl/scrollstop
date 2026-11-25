@@ -136,7 +136,7 @@ describe('serwer: projekty, plany i izolacja', () => {
   it('Free: jeden aktywny projekt, potem 402; płatne funkcje jako 402 feature_*', async () => {
     const a = await account();
     expect(errCode(await call('POST', '/api/projects', projectInput({ kind: 'abn', variants: [projectInput().variants[0], projectInput().variants[0]] }), a.token))).toBe('feature_variants');
-    expect(errCode(await call('POST', '/api/projects', projectInput({ kind: 'feed' }), a.token))).toBe('kind_unavailable');
+    expect(errCode(await call('POST', '/api/projects', projectInput({ kind: 'feed' }), a.token))).toBe('feature_feed');
     expect(errCode(await call('POST', '/api/projects', projectInput({ variants: [{ media: { kind: 'local', fileName: 'a.mp4', fileSize: 10 } }] }), a.token))).toBe('local_media');
     const p = await project(a.token);
     expect(p).toMatchObject({ workspaceId: a.workspaceId, status: 'collecting', retentionDays: 90 });

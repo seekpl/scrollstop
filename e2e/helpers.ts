@@ -50,3 +50,12 @@ export async function acceptConsent(page: Page, age = '25-34'): Promise<void> {
   await page.getByLabel(/Zgadzam się na zapisanie/).check();
   await page.getByRole('button', { name: 'Zgadzam się i przechodzę dalej' }).click();
 }
+
+/** Plik sesji z ekranu podziękowania (link samowystarczalny) jako obiekt. */
+export async function downloadSession(page: Page): Promise<{ kind: string; session: Record<string, unknown> & { items?: Array<Record<string, unknown>>; data: Record<string, number[]>; choice?: { itemId: string | null } } }> {
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Wyślij wyniki do Studio E2E' }).click();
+  const file = await download;
+  const text = await (await file.createReadStream())!.toArray().then((c) => Buffer.concat(c as Buffer[]).toString('utf8'));
+  return JSON.parse(text);
+}

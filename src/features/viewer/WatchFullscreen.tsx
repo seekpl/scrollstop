@@ -9,7 +9,7 @@ import { DEMO_SPECS } from '../../demo/demoScene';
 import { wanderingTarget } from '../../demo/simulator';
 import { useT } from '../../i18n';
 import { detectDevice } from '../../research/link';
-import type { DeviceInfo, StudyConfig } from '../../research/model';
+import type { DeviceInfo, ItemLog, StudyConfig } from '../../research/model';
 import { SimulatedGazeSource, WebcamGazeSource, type GazeSource } from '../../sources/sources';
 import { createDemoController, createVideoController, createYouTubeController, type MediaController } from '../shared/mediaController';
 import { playableUrl } from '../shared/mediaLibrary';
@@ -26,6 +26,11 @@ export interface WatchResult {
   device: DeviceInfo;
   /** Widz zgłosił treść w panelu pauzy (§17.6). */
   reported: boolean;
+  /** Feed, siatka, karuzela: wizyty pozycji i pozycja każdej próbki (kolumna `it`). */
+  items?: ItemLog[];
+  itemOf?: (s: GazeSample) => number;
+  /** Test miniatury: wybór widza (deklaracja). */
+  choice?: { itemId: string | null };
 }
 
 const LONG_PRESS_MS = 1500;

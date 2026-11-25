@@ -20,11 +20,18 @@ export type DemoId =
   | 'thumb_3'
   | 'thumb_4'
   | 'thumb_5'
-  | 'thumb_6';
+  | 'thumb_6'
+  | 'slide_1'
+  | 'slide_2'
+  | 'slide_3'
+  | 'slide_4'
+  | 'slide_5';
 
-export const DEMO_IDS: DemoId[] = ['reel', 'reel_b', 'video', 'filler_1', 'filler_2', 'filler_3', 'filler_4', 'filler_5', 'thumb_1', 'thumb_2', 'thumb_3', 'thumb_4', 'thumb_5', 'thumb_6'];
+export const DEMO_IDS: DemoId[] = ['reel', 'reel_b', 'video', 'filler_1', 'filler_2', 'filler_3', 'filler_4', 'filler_5', 'thumb_1', 'thumb_2', 'thumb_3', 'thumb_4', 'thumb_5', 'thumb_6', 'slide_1', 'slide_2', 'slide_3', 'slide_4', 'slide_5'];
 export const FILLER_IDS: DemoId[] = ['filler_1', 'filler_2', 'filler_3', 'filler_4', 'filler_5'];
 export const THUMB_IDS: DemoId[] = ['thumb_1', 'thumb_2', 'thumb_3', 'thumb_4', 'thumb_5', 'thumb_6'];
+/** Karuzela demo 4:5: okładka, trzy plansze z tekstem i wykresem, plansza z CTA. */
+export const SLIDE_IDS: DemoId[] = ['slide_1', 'slide_2', 'slide_3', 'slide_4', 'slide_5'];
 
 /** Strefa demo: `key` tłumaczony przy budowie projektu demo (słownik `research.demo.aoi`). */
 export interface DemoAoi {
@@ -419,6 +426,60 @@ function drawThumb(ctx: CanvasRenderingContext2D, w: number, h: number, th: (typ
   }
 }
 
+// ——— karuzela demo ———
+
+const SLIDES: Array<{ id: DemoId; bg: [string, string]; layout: 'cover' | 'text' | 'chart' | 'cta' }> = [
+  { id: 'slide_1', bg: ['#1F2A44', '#3B4C77'], layout: 'cover' },
+  { id: 'slide_2', bg: ['#F4F6F9', '#E3E8F0'], layout: 'text' },
+  { id: 'slide_3', bg: ['#F4F6F9', '#E3E8F0'], layout: 'chart' },
+  { id: 'slide_4', bg: ['#F4F6F9', '#E3E8F0'], layout: 'text' },
+  { id: 'slide_5', bg: ['#2747D6', '#5B78F0'], layout: 'cta' },
+];
+
+function drawSlide(ctx: CanvasRenderingContext2D, w: number, h: number, sl: (typeof SLIDES)[number]): void {
+  gradient(ctx, w, h, sl.bg[0], sl.bg[1]);
+  const u = w / 100;
+  const seed = Number(sl.id.slice(-1));
+  const dark = sl.layout === 'cover' || sl.layout === 'cta';
+  const ink = dark ? '#FFFFFF' : '#1F2A44';
+  if (sl.layout === 'cover') {
+    pseudoText(ctx, w * 0.08, h * 0.3, w * 0.84, u * 12, [3, 4, 2], ink, seed);
+    ctx.fillStyle = '#F2B705';
+    rr(ctx, w * 0.08, h * 0.62, w * 0.3, u * 2.4, u);
+    ctx.fill();
+  } else if (sl.layout === 'text') {
+    pseudoText(ctx, w * 0.08, h * 0.1, w * 0.84, u * 8, [3, 3], ink, seed);
+    pseudoText(ctx, w * 0.08, h * 0.32, w * 0.84, u * 5, [6, 5, 6, 4, 5, 3], '#5B6478', seed + 3);
+  } else if (sl.layout === 'chart') {
+    pseudoText(ctx, w * 0.08, h * 0.1, w * 0.84, u * 8, [4, 2], ink, seed);
+    const bars = [0.35, 0.55, 0.42, 0.8, 0.62];
+    bars.forEach((b, i) => {
+      ctx.fillStyle = i === 3 ? '#2747D6' : '#9AA8C7';
+      rr(ctx, w * (0.12 + i * 0.16), h * (0.85 - b * 0.5), w * 0.1, h * b * 0.5, u);
+      ctx.fill();
+    });
+  } else {
+    pseudoText(ctx, w * 0.08, h * 0.22, w * 0.84, u * 10, [3, 3], ink, seed);
+    ctx.fillStyle = '#FFFFFF';
+    rr(ctx, w * 0.2, h * 0.62, w * 0.6, h * 0.1, h * 0.05);
+    ctx.fill();
+    pseudoText(ctx, w * 0.3, h * 0.645, w * 0.4, u * 5, [2], '#2747D6', seed);
+  }
+  // Kropki postępu karuzeli.
+  SLIDES.forEach((x, i) => {
+    ctx.fillStyle = x.id === sl.id ? (dark ? '#FFFFFF' : '#1F2A44') : dark ? 'rgba(255,255,255,0.35)' : 'rgba(31,42,68,0.25)';
+    ctx.beginPath();
+    ctx.arc(w * 0.5 + (i - 2) * u * 3.2, h * 0.95, u * 0.9, 0, TAU);
+    ctx.fill();
+  });
+}
+
+const slideTarget = (layout: (typeof SLIDES)[number]['layout']) => (t: number): GazeTarget => {
+  if (layout === 'chart') return t < 1.2 ? { x: 0.45, y: 0.14, key: 'title' } : { x: 0.6 + 0.05 * Math.sin(t * 2), y: 0.62, key: 'chart' };
+  if (layout === 'cta') return t < 1 ? { x: 0.5, y: 0.26, key: 'title' } : { x: 0.5, y: 0.67, key: 'cta' };
+  return t < 1.5 ? { x: 0.45, y: layout === 'cover' ? 0.36 : 0.14, key: 'title' } : { x: 0.45 + 0.08 * Math.sin(t * 1.7), y: 0.42 + ((t * 0.08) % 0.35), key: 'title' };
+};
+
 // ——— rejestr ———
 
 const reelSpec = (id: 'reel' | 'reel_b'): DemoSpec => ({
@@ -451,6 +512,22 @@ export const DEMO_SPECS = {
         aois: [],
         draw: (ctx: CanvasRenderingContext2D, t: number, w: number, h: number) => drawFiller(ctx, t, w, h, f),
         target: (t: number): GazeTarget => ({ x: 0.5 + 0.15 * Math.sin(t), y: 0.45, key: 'background' }),
+      } satisfies DemoSpec,
+    ]),
+  ) as Record<string, DemoSpec>),
+  ...(Object.fromEntries(
+    SLIDES.map((sl) => [
+      sl.id,
+      {
+        id: sl.id,
+        kind: 'image',
+        duration: 0,
+        w: 1080,
+        h: 1350,
+        cuts: [0],
+        aois: sl.layout === 'cta' ? [{ key: 'cta', type: 'cta', x: 0.2, y: 0.62, w: 0.6, h: 0.1, t0: 0, t1: 3600 }] : [{ key: 'title', type: 'text', x: 0.08, y: sl.layout === 'cover' ? 0.28 : 0.08, w: 0.84, h: 0.2, t0: 0, t1: 3600, words: 6 }],
+        draw: (ctx: CanvasRenderingContext2D, _t: number, w: number, h: number) => drawSlide(ctx, w, h, sl),
+        target: slideTarget(sl.layout),
       } satisfies DemoSpec,
     ]),
   ) as Record<string, DemoSpec>),

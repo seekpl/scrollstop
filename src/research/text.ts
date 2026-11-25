@@ -30,6 +30,15 @@ export interface ResearchText {
     dropDetail(p: { fromPct: number; toPct: number; deltaPp: number; meanPct: number }): string;
     stable(p: { meanPct: number }): string;
     stableDetail: string;
+    /** Feed: zatrzymanie scrolla wobec pozostałych klipów. */
+    feed(p: { stopPct: number; fillerPct: number | null; significant: boolean }): string;
+    feedDetail(p: { dwell: number | null; meanPct: number | null }): string;
+    /** Test miniatury: spojrzenia na badaną miniaturę. */
+    grid(p: { lookedPct: number; firstLook: number | null }): string;
+    gridDetail(p: { chosenPct: number | null; positionIndex: number | null }): string;
+    /** Karuzela: ilu dochodzi do końca i gdzie odpada najwięcej. */
+    carousel(p: { completedPct: number; slides: number }): string;
+    carouselDetail(p: { worst: number | null; lost: number }): string;
   };
   findings: {
     drop: {
@@ -88,6 +97,9 @@ export interface ResearchText {
     reelProject: string;
     videoProject: string;
     feedProject: string;
+    gridProject: string;
+    carouselProject: string;
+    thumbTitle: string;
     creator: string;
     reelA: string;
     reelB: string;

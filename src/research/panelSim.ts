@@ -15,7 +15,7 @@ export interface AttentionProfile {
   recovery(t: number): number;
 }
 
-const seededId = (rng: () => number, len: number) => {
+export const seededId = (rng: () => number, len: number) => {
   const abc = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-';
   let s = '';
   for (let i = 0; i < len; i++) s += abc[Math.floor(rng() * abc.length)];
@@ -94,12 +94,12 @@ export const PROFILES = {
   },
 } satisfies Record<string, AttentionProfile>;
 
-const PHONE: DeviceInfo = { type: 'mobile', orientation: 'portrait', screenW: 390, screenH: 844, dpr: 3, touch: true };
-const DESKTOPS: DeviceInfo[] = [
+export const PHONE: DeviceInfo = { type: 'mobile', orientation: 'portrait', screenW: 390, screenH: 844, dpr: 3, touch: true };
+export const DESKTOPS: DeviceInfo[] = [
   { type: 'desktop', orientation: 'landscape', screenW: 1440, screenH: 900, dpr: 2, touch: false },
   { type: 'desktop', orientation: 'landscape', screenW: 1920, screenH: 1080, dpr: 1, touch: false },
 ];
-const AGES: AgeBand[] = ['18-24', '25-34'];
+export const AGES: AgeBand[] = ['18-24', '25-34'];
 
 export interface SimulationOptions {
   projectId: string;

@@ -2,7 +2,7 @@
  * Kontrola jakości sesji (§5.17) i poziom próby (§5.18). Powody odrzucenia zapisujemy jako kody.
  */
 import { binSize, playedBins, viewerBins } from './attention';
-import type { CalibrationInfo, CompactSamples, RejectCode, ViewerSession } from './model';
+import { GazeCode, type CalibrationInfo, type CompactSamples, type RejectCode, type ViewerSession } from './model';
 
 /** Poniżej tego udziału przedziałów z rozstrzygniętym stanem sesja nie wchodzi do raportu. */
 export const MIN_DETERMINATE_SHARE = 0.5;
@@ -36,23 +36,47 @@ export interface Assessment {
   playedSeconds: number;
 }
 
+/** Pełny ekran: przedziały materiału z rozstrzygniętym stanem. */
+function singleMedia(data: CompactSamples, duration: number) {
+  const bin = binSize(duration);
+  const det = viewerBins(data, duration, bin).filter((x) => x !== null).length;
+  const played = playedBins(data, duration, bin);
+  return { determinateShare: played ? det / played : 0, playedSeconds: played * bin };
+}
+
+/**
+ * Feed, siatka, karuzela (sesje z `items`): ocena całej sesji, nie jednej pozycji — przewinięcie
+ * badanego klipu po sekundzie to wynik, a nie powód odrzucenia.
+ */
+function wholeSession(data: CompactSamples) {
+  let active = 0;
+  let det = 0;
+  let first = -1;
+  let last = -1;
+  for (let i = 0; i < data.st.length; i++) {
+    const code = data.st[i];
+    if (code === GazeCode.NOT_PLAYING) continue;
+    active++;
+    if (first < 0) first = data.tc[i];
+    last = data.tc[i];
+    if (code === GazeCode.LOOK || code === GazeCode.LOOK_OFF_MEDIA || code === GazeCode.AWAY) det++;
+  }
+  return { determinateShare: active ? det / active : 0, playedSeconds: active ? (last - first) / 1000 : 0 };
+}
+
 /**
  * Automatyczna kontrola jakości. Widz, który przerwał albo przewinął dalej, NIE jest odrzucany —
  * moment odejścia to też wynik. Sesje symulowane oceniamy jak z kamery (do raportów demo).
  */
-export function assessSession(s: { source: ViewerSession['source']; calibration: CalibrationInfo | null; data: CompactSamples; mediaDuration: number }, opts: { treatSimulatedAsWebcam?: boolean } = {}): Assessment {
-  const bin = binSize(s.mediaDuration);
-  const states = viewerBins(s.data, s.mediaDuration, bin);
-  const det = states.filter((x) => x !== null).length;
-  const played = playedBins(s.data, s.mediaDuration, bin);
-  const share = played ? det / played : 0;
-  const base = { determinateShare: share, playedSeconds: played * bin };
+export function assessSession(s: { source: ViewerSession['source']; calibration: CalibrationInfo | null; data: CompactSamples; mediaDuration: number; items?: ViewerSession['items'] }, opts: { treatSimulatedAsWebcam?: boolean } = {}): Assessment {
+  const base = s.items?.length ? wholeSession(s.data) : singleMedia(s.data, s.mediaDuration);
+  const share = base.determinateShare;
   const webcam = s.source === 'webcam' || opts.treatSimulatedAsWebcam;
   if (webcam) {
     if (!s.calibration) return { status: 'rejected', rejectCode: 'no_calibration', ...base };
     if (s.calibration.quality === 'POOR') return { status: 'rejected', rejectCode: 'poor_calibration', ...base };
   }
-  if (played * bin < MIN_WATCHED_S) return { status: 'rejected', rejectCode: 'too_short', ...base };
+  if (base.playedSeconds < MIN_WATCHED_S) return { status: 'rejected', rejectCode: 'too_short', ...base };
   if (share < MIN_DETERMINATE_SHARE) return { status: 'rejected', rejectCode: 'low_data', ...base };
   return { status: 'valid', rejectCode: null, ...base };
 }

@@ -5,6 +5,7 @@ function seg(s: SegmentRef, form: SegForm): string {
   if (s.kind === 'scene') return form === 'nom' ? `Scena ${s.n}` : form === 'gen' ? `sceny ${s.n}` : `w scenie ${s.n}`;
   return form === 'nom' ? `Fragment ${s.range}` : form === 'gen' ? `fragmentu ${s.range}` : `we fragmencie ${s.range}`;
 }
+const dec = (v: number, digits = 1) => v.toFixed(digits).replace('.', ',');
 const lower = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 
 /** Teksty analityczne po polsku (§8.3). */
@@ -24,6 +25,12 @@ export const research: ResearchText = {
     dropDetail: (p) => `Odsetek patrzących spada z ${p.fromPct}% do ${p.toPct}%, czyli o ${p.deltaPp} pp. Średnio przez cały materiał patrzy ${p.meanPct}% widzów.`,
     stable: (p) => `Uwaga utrzymuje się stabilnie: średnio patrzy ${p.meanPct}% widzów.`,
     stableDetail: 'Krzywa nie ma spadków większych niż 10 pp.',
+    feed: (p) => `Na klipie zatrzymało się ${p.stopPct}% widzów${p.fillerPct !== null ? ` (pozostałe klipy feedu: ${p.fillerPct}%)` : ''}.`,
+    feedDetail: (p) => [p.dwell !== null ? `Mediana czasu na klipie: ${dec(p.dwell)} s.` : null, p.meanPct !== null ? `Kiedy zostają, patrzy średnio ${p.meanPct}% z nich.` : null].filter(Boolean).join(' '),
+    grid: (p) => `Na badaną miniaturę spojrzało ${p.lookedPct}% widzów${p.firstLook !== null ? `, zwykle po ${dec(p.firstLook)} s` : ''}.`,
+    gridDetail: (p) => [p.chosenPct !== null ? `Ten film wybrało ${p.chosenPct}% widzów (deklaracja).` : null, p.positionIndex !== null ? `Wskaźnik względem miniatur na tej samej pozycji: ${dec(p.positionIndex, 2)}× (1× = przeciętnie).` : null].filter(Boolean).join(' '),
+    carousel: (p) => `Do ostatniego slajdu (z ${p.slides}) doszło ${p.completedPct}% widzów.`,
+    carouselDetail: (p) => (p.worst === null ? 'Żaden slajd nie wyróżnia się porzuceniami.' : `Najwięcej widzów kończy na slajdzie ${p.worst}: ${p.lost} ${p.lost === 1 ? 'osoba' : 'osób'}.`),
   },
   findings: {
     drop: {
@@ -124,6 +131,9 @@ export const research: ResearchText = {
     reelProject: 'Rolka demo: test hooka',
     videoProject: 'Film demo na YouTube',
     feedProject: 'Rolka demo w feedzie',
+    gridProject: 'Miniatura demo w siatce YouTube',
+    carouselProject: 'Karuzela demo (5 slajdów)',
+    thumbTitle: 'Trzy rzeczy, które sprawdzam przed publikacją',
     creator: 'Studio demo',
     reelA: 'Rolka demo A (15 s, 9:16)',
     reelB: 'Rolka demo B (15 s, 9:16)',

@@ -20,6 +20,9 @@ import { BigButton, Screen, Steps, Title } from './parts';
 import { QuestionsScreen } from './Questions';
 import { ScreenerScreen } from './Screener';
 import { SoundCheck } from './SoundCheck';
+import { WatchCarousel } from './WatchCarousel';
+import { WatchFeed } from './WatchFeed';
+import { WatchGrid } from './WatchGrid';
 import { WatchFullscreen, type WatchResult } from './WatchFullscreen';
 
 type Stage = 'device' | 'consent' | 'underage' | 'screenout' | 'screener' | 'prepare' | 'check' | 'sound' | 'calibrate' | 'watch' | 'questions' | 'finish';
@@ -135,7 +138,9 @@ function Study({ config, simulated }: { config: StudyConfig; simulated: boolean 
       status: 'valid',
       rejectCode: null,
       manual: false,
-      data: compactSamples(r.samples, { t0: r.t0 }),
+      ...(r.items ? { items: r.items } : {}),
+      ...(r.choice ? { choice: r.choice } : {}),
+      data: compactSamples(r.samples, { t0: r.t0, item: r.itemOf }),
     };
   };
 
@@ -234,26 +239,26 @@ function Study({ config, simulated }: { config: StudyConfig; simulated: boolean 
           }}
         />
       );
-    case 'watch':
-      return (
-        <WatchFullscreen
-          config={config}
-          calibration={calibration}
-          simulated={simulated}
-          muted={!(audio.mode === 'on' && audio.confirmed)}
-          onFinish={(r) => {
-            setResult(r);
-            exitFullscreen();
-            if (!simulated) trackingHub.stop();
-            const qs = config.questions.filter((q) => q === 'finish' || q === 'brand_recall');
-            if (r.completed && !r.reported && qs.length) setStage('questions');
-            else {
-              setSession(buildSession(r, {}));
-              setStage('finish');
-            }
-          }}
-        />
-      );
+    case 'watch': {
+      const done = (r: WatchResult) => {
+        setResult(r);
+        exitFullscreen();
+        if (!simulated) trackingHub.stop();
+        // Feed i siatka to badania ślepe — pytania o „ten materiał” zdradziłyby badany element.
+        const blind = config.kind === 'feed' || config.kind === 'thumbnail';
+        const qs = blind ? [] : config.questions.filter((q) => q === 'finish' || q === 'brand_recall');
+        if (r.completed && !r.reported && qs.length) setStage('questions');
+        else {
+          setSession(buildSession(r, {}));
+          setStage('finish');
+        }
+      };
+      const muted = !(audio.mode === 'on' && audio.confirmed);
+      if (config.kind === 'feed') return <WatchFeed config={config} calibration={calibration} simulated={simulated} muted={muted} onFinish={done} />;
+      if (config.kind === 'thumbnail') return <WatchGrid config={config} calibration={calibration} simulated={simulated} onFinish={done} />;
+      if (config.kind === 'carousel' || config.kind === 'slides') return <WatchCarousel config={config} calibration={calibration} simulated={simulated} onFinish={done} />;
+      return <WatchFullscreen config={config} calibration={calibration} simulated={simulated} muted={muted} onFinish={done} />;
+    }
     case 'questions':
       return (
         <QuestionsScreen

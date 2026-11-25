@@ -48,6 +48,27 @@ export function compactSamples(samples: readonly GazeSample[], opts: { t0?: numb
   return out;
 }
 
+/**
+ * Próbki jednej pozycji (feed, karuzela) jako zapis „pełnoekranowy” (`it` = 0): krzywa, hook, sceny,
+ * strefy i heat mapy liczą się wtedy tym samym kodem co dla pełnego ekranu.
+ */
+export function focusItem(c: CompactSamples, item: number): CompactSamples {
+  const out = emptyCompact();
+  for (let i = 0; i < c.tc.length; i++) {
+    if (c.it[i] !== item) continue;
+    out.tc.push(c.tc[i]);
+    out.vt.push(c.vt[i]);
+    out.seg.push(c.seg[i]);
+    out.it.push(0);
+    out.vx.push(c.vx[i]);
+    out.vy.push(c.vy[i]);
+    out.cf.push(c.cf[i]);
+    out.un.push(c.un[i]);
+    out.st.push(c.st[i]);
+  }
+  return out;
+}
+
 /** Dokleja próbki (np. kolejna pozycja feedu) do istniejącego zapisu. */
 export function appendCompact(target: CompactSamples, more: CompactSamples): void {
   for (const k of COMPACT_KEYS) (target[k] as number[]).push(...more[k]);

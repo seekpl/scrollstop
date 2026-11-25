@@ -20,6 +20,9 @@ import {
   type IntervalStat,
 } from './attention';
 import { buildFindings, type FindingContext, type Finding } from './insights';
+import { carouselMetrics, type CarouselMetrics } from './carousel';
+import { DEFAULT_FEED, feedFocus, feedMetrics, type FeedMetrics } from './feed';
+import { gridMetrics, type GridMetrics } from './grid';
 import type { AgeBand, DeviceType, Project, RejectCode, Variant, VariantId, ViewerSession } from './model';
 import { MIN_VERDICT_SAMPLE, reportSessions, sampleLevel, type SampleLevel } from './sessions';
 import { holm, twoProportionTest, welch, type ProportionTestResult, type WelchResult } from './statsMath';
@@ -95,6 +98,12 @@ export interface VariantReport {
   aois: AoiResult[];
   brand: BrandMoment | null;
   findings: Finding[];
+  /** Test w feedzie (§6 pkt 7–11). */
+  feed?: FeedMetrics;
+  /** Test miniatury (§6 pkt 16). */
+  grid?: GridMetrics;
+  /** Karuzela i slajdy (§6 pkt 17). */
+  carousel?: CarouselMetrics;
   /** Średnia uwaga każdego widza (do testów A/B). */
   perViewer: number[];
   /** Stany widzów w przedziałach (do porównań w oknach). */
@@ -155,13 +164,16 @@ export interface ReportOptions {
 }
 
 export function buildVariantReport(
-  project: Pick<Project, 'platform' | 'kind'>,
+  project: Pick<Project, 'platform' | 'kind'> & Partial<Pick<Project, 'feed'>>,
   variant: Variant,
   allSessions: readonly ViewerSession[],
   tx: ResearchText,
   opts: ReportOptions = {},
 ): VariantReport {
-  const own = allSessions.filter((s) => s.variantId === variant.id);
+  const raw = allSessions.filter((s) => s.variantId === variant.id);
+  // Feed: krzywa, hook, sceny i strefy liczone na badanym klipie (pozostałe pozycje to wypełniacze).
+  const feed = project.kind === 'feed';
+  const own = feed ? raw.map(feedFocus) : raw;
   const valid = reportSessions(own, { includeSimulated: opts.includeSimulated });
   const duration = variantDuration(variant, own);
   const bin = binSize(duration);
@@ -221,7 +233,11 @@ export function buildVariantReport(
     perViewer: states.map((st) => viewerMean(st, bin)).filter((v): v is number => v !== null),
     states,
   };
-  report.findings = buildFindings(report, { vertical, platform: project.platform, feed: opts.feed ?? null }, tx);
+  if (feed) report.feed = feedMetrics(raw, { stopSeconds: project.feed?.stopSeconds ?? DEFAULT_FEED.stopSeconds, duration, bin, includeSimulated: opts.includeSimulated });
+  if (project.kind === 'thumbnail') report.grid = gridMetrics(raw, { includeSimulated: opts.includeSimulated });
+  if (project.kind === 'carousel' || project.kind === 'slides') report.carousel = carouselMetrics(raw, { slides: variant.slides?.length ?? Math.max(1, ...raw.flatMap((s) => (s.items ?? []).map((i) => i.index + 1))), includeSimulated: opts.includeSimulated });
+  const feedCtx = report.feed && report.feed.stop !== null && report.feed.fillerStop !== null ? { stop: report.feed.stop, fillerStop: report.feed.fillerStop, significant: report.feed.significant, stopSeconds: report.feed.stopSeconds } : (opts.feed ?? null);
+  report.findings = buildFindings(report, { vertical, platform: project.platform, feed: feedCtx }, tx);
   return report;
 }
 
@@ -229,7 +245,24 @@ const P = (v: number | null) => (v === null ? '–' : `${Math.round(v * 100)}%`)
 const pp = (v: number) => Math.abs(Math.round(v * 100));
 
 /** Zdanie otwierające raportu (§7 pkt 2), też na stronie głównej. */
-export function headline(r: Pick<VariantReport, 'viewers' | 'meanAttention' | 'drops'> | null, tx: ResearchText): { lead: string; detail: string | null } {
+export function headline(r: (Pick<VariantReport, 'viewers' | 'meanAttention' | 'drops'> & Partial<Pick<VariantReport, 'feed' | 'grid' | 'carousel'>>) | null, tx: ResearchText): { lead: string; detail: string | null } {
+  const pct = (v: number) => Math.round(v * 100);
+  // Miniatura i karuzela: wynik formatu zamiast krzywej; feed: zatrzymanie scrolla na początku.
+  if (r?.grid) {
+    const g = r.grid;
+    if (!g.viewers) return { lead: tx.headline.empty, detail: null };
+    return { lead: tx.headline.grid({ lookedPct: pct(g.looked ?? 0), firstLook: g.firstLookMedian }), detail: tx.headline.gridDetail({ chosenPct: g.choice.asked ? pct(g.choice.tested / g.choice.asked) : null, positionIndex: g.positionIndex }) || null };
+  }
+  if (r?.carousel) {
+    const c = r.carousel;
+    if (!c.viewers) return { lead: tx.headline.empty, detail: null };
+    const worst = c.dropOff.reduce((best, n, i) => (n > (c.dropOff[best] ?? 0) ? i : best), 0);
+    return { lead: tx.headline.carousel({ completedPct: pct(c.completed ?? 0), slides: c.slides }), detail: tx.headline.carouselDetail({ worst: c.dropOff[worst] ? worst + 1 : null, lost: c.dropOff[worst] ?? 0 }) };
+  }
+  if (r?.feed && r.feed.viewers && r.feed.stop !== null) {
+    const f = r.feed;
+    return { lead: tx.headline.feed({ stopPct: pct(f.stop as number), fillerPct: f.fillerStop === null ? null : pct(f.fillerStop), significant: f.significant }), detail: tx.headline.feedDetail({ dwell: f.dwellMedian, meanPct: r.meanAttention === null ? null : pct(r.meanAttention) }) || null };
+  }
   if (!r || !r.viewers || r.meanAttention === null) return { lead: tx.headline.empty, detail: null };
   const d = r.drops.filter((x) => x.delta >= 0.1)[0];
   if (!d) return { lead: tx.headline.stable({ meanPct: Math.round(r.meanAttention * 100) }), detail: tx.headline.stableDetail };

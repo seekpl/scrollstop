@@ -205,6 +205,8 @@ export interface ItemLog {
   exitType: ItemExit | null;
   loops: number;
   events: Array<{ t: number; type: ItemEventType }>;
+  /** Siatka miniatur: położenie komórki na ekranie (0..1), do przypisania spojrzeń. */
+  rect?: { x: number; y: number; w: number; h: number };
 }
 
 export interface ConsentRecord {

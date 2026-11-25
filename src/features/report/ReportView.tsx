@@ -9,12 +9,14 @@ import { planFor, type Entitlements } from '../../research/plans';
 import { buildVariantReport, compareVariants, headline, type VariantReport } from '../../research/report';
 import { MIN_VERDICT_SAMPLE, RELIABLE_SAMPLE, reportSessions } from '../../research/sessions';
 import { Badge, Callout, Section, Segmented } from '../../ui/kit';
-import { SERIES } from '../../ui/tokens';
+import { SERIES, TOKENS } from '../../ui/tokens';
 import { Locked } from '../billing/Locked';
+import { feedFocus } from '../../research/feed';
 import { AoiPanel } from './AoiPanel';
 import { AttentionChart, type ChartSeries } from './AttentionChart';
 import { Compare } from './Compare';
 import { Findings } from './Findings';
+import { CarouselPanel, FeedPanel, GridPanel } from './FormatSections';
 import { useVariantFrames } from './frames';
 import { HookCard } from './HookCard';
 import { SegmentsTable } from './SegmentsTable';
@@ -93,7 +95,11 @@ export function ReportView({
   const withData = reports.filter((r) => r.viewers > 0);
   const cmp = withData.length >= 2 && withData.length === reports.length ? compareVariants(reports, rt, { sharedFrom: project.kind === 'hook' ? variant.sharedFrom : undefined, formatP: (p) => (p < 0.001 ? `< ${formatNumber(0.001, locale, 3)}` : formatNumber(p, locale, 3)) }) : null;
   const src = useVariantFrames(variant);
-  const validData = useMemo(() => reportSessions(sessions.filter((s) => s.variantId === variant.id), { includeSimulated: sample }).map((s) => s.data), [sessions, variant.id, sample]);
+  const kind = project.kind;
+  const isGrid = kind === 'thumbnail';
+  const isCarousel = kind === 'carousel' || kind === 'slides';
+  // Feed: heat mapy i chwile wykresu z próbek badanego klipu; karuzela: wszystkie slajdy (filtr w panelu).
+  const validData = useMemo(() => reportSessions(sessions.filter((s) => s.variantId === variant.id), { includeSimulated: sample }).map((s) => (kind === 'feed' ? feedFocus(s) : s).data), [sessions, variant.id, sample, kind]);
   const head = headline(report, rt);
   const vertical = variant.height > variant.width;
   const [showUnsafe, setShowUnsafe] = useState(false);
@@ -111,7 +117,15 @@ export function ReportView({
     setSelected(Math.floor(sec / report.bin) * report.bin);
     document.getElementById('report-chart')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
-  const series: ChartSeries[] = [{ id: report.variantId, label: labels[report.variantId], curve: report.curve, color: SERIES[report.variantId] }];
+  const series: ChartSeries[] = [{ id: report.variantId, label: report.feed ? tr.feed.attention : labels[report.variantId], curve: report.curve, color: SERIES[report.variantId] }];
+  if (report.feed)
+    series.push({
+      id: 'retention',
+      label: tr.feed.retention,
+      dashed: true,
+      color: TOKENS.ink,
+      curve: report.feed.retention.map((p) => ({ t: p.t, value: p.value, lo: null, hi: null, n: p.n, watching: p.value === null ? 0 : Math.round(p.value * p.n) })),
+    });
   const answers = useMemo(() => {
     const own = reportSessions(sessions.filter((s) => s.variantId === variant.id), { includeSimulated: sample });
     const out: Record<string, Record<string, number>> = {};
@@ -157,79 +171,138 @@ export function ReportView({
         {actions}
       </header>
 
-      {report.viewers > 0 && (
+      {isGrid && report.grid && report.grid.viewers > 0 && (
+        <Section title={tr.grid.title} aside={tr.grid.aside}>
+          <GridPanel grid={report.grid} />
+        </Section>
+      )}
+
+      {isCarousel && report.carousel && report.carousel.viewers > 0 && (
+        <Section title={tr.carousel.title} aside={tr.carousel.aside}>
+          <CarouselPanel carousel={report.carousel} slides={variant.slides ?? []} width={variant.width} height={variant.height} sessions={validData} heatmaps={can.aggregateHeatmaps} />
+        </Section>
+      )}
+
+      {!isGrid && !isCarousel && report.viewers > 0 && (
         <Section title={tr.hook.title} aside={tr.hook.aside}>
-          <HookCard hook={report.hook} />
+          <HookCard hook={report.hook} stopRate={report.feed?.stop ?? null} />
         </Section>
       )}
 
-      <Section id="report-chart" title={tr.chart.title} aside={tr.chart.aside}>
-        <div className="min-w-0 space-y-5">
-          <div className="min-w-0 rounded-2xl bg-surface p-4 ring-1 ring-line sm:p-5">
-            <AttentionChart series={series} duration={report.duration} segments={report.segments} drops={report.drops} selected={selected} onSelect={setSelected} ariaLabel={tr.chart.aria(labels[report.variantId])} />
-            <p className="mt-3 text-[12.5px] text-muted">{tr.chart.note}</p>
-          </div>
-          {selected !== null && <MomentPanel src={src} sessions={validData} t={selected} point={report.curve[Math.round(selected / report.bin)]} width={variant.width} height={variant.height} onClose={() => setSelected(null)} />}
-          <dl className="grid grid-cols-2 gap-x-6 gap-y-5 lg:grid-cols-4">
-            <Stat label={tr.numbers.mean} value={P(report.meanAttention)} />
-            <Stat label={tr.numbers.after3} value={P(report.hook.at3)} hint={tr.numbers.after3Hint} />
-            <Stat label={tr.numbers.last3} value={P(report.endAttention)} />
-            <Stat label={tr.numbers.biggestDrop} value={biggest ? `−${Math.round(biggest.delta * 100)} pp` : '–'} hint={biggest ? `${formatTime(Math.floor(biggest.start), 0)}–${formatTime(Math.ceil(biggest.end), 0)}` : tr.numbers.noDrop} />
-          </dl>
-        </div>
-      </Section>
-
-      <Section title={tr.findings.title} aside={report.findings.some((f) => f.preliminary) ? tr.findings.preliminaryAside : undefined}>
-        <Findings findings={report.findings} onJump={jump} projectId={sample ? undefined : project.id} variantId={sample ? undefined : variant.id} can={can} />
-      </Section>
-
-      {report.segments.length > 0 && report.viewers > 0 && (
-        <Section title={report.segments[0].source === 'scene' ? tr.segments.titleScenes : tr.segments.titleIntervals}>
-          <SegmentsTable segments={report.segments} onJump={jump} />
+      {report.feed && report.feed.viewers > 0 && (
+        <Section title={tr.feed.title} aside={tr.feed.aside}>
+          <FeedPanel feed={report.feed} />
         </Section>
       )}
 
-      {report.viewers > 0 && (
-        <Section title={tr.visuals.title} aside={tr.visuals.aside}>
-          {can.aggregateHeatmaps ? (
-            <div className="space-y-4">
-              <div className="no-print flex flex-wrap items-center justify-between gap-3">
-                <HeatLegend />
-                <label className="flex items-center gap-2 text-[13.5px] font-semibold">
-                  <input type="checkbox" className="h-4 w-4 accent-cobalt" checked={showUnsafe} onChange={(e) => setShowUnsafe(e.target.checked)} />
-                  {tr.visuals.showUnsafe}
-                </label>
+      {!isGrid && !isCarousel && (
+        <>
+          <Section id="report-chart" title={report.feed ? tr.feed.chartTitle : tr.chart.title} aside={tr.chart.aside}>
+            <div className="min-w-0 space-y-5">
+              <div className="min-w-0 rounded-2xl bg-surface p-4 ring-1 ring-line sm:p-5">
+                <AttentionChart series={series} duration={report.duration} segments={report.segments} drops={report.drops} selected={selected} onSelect={setSelected} ariaLabel={tr.chart.aria(labels[report.variantId])} />
+                <p className="mt-3 text-[12.5px] text-muted">{tr.chart.note}</p>
               </div>
-              {src?.kind === 'image' && <Callout>{tr.visuals.youtubeNote}</Callout>}
-              {src?.kind === 'placeholder' && variant.media?.kind === 'url' && <Callout>{tr.visuals.corsNote}</Callout>}
-              <div className={`grid gap-5 ${vertical ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5' : 'sm:grid-cols-2 lg:grid-cols-3'}`}>
-                {report.segments.map((s) => (
-                  <SceneHeatmap key={s.index} src={src} sessions={validData} t0={s.t0} t1={s.t1} label={s.label} mean={s.mean} width={variant.width} height={variant.height} aois={variant.aois} unsafe={showUnsafe ? project.platform : null} />
-                ))}
-              </div>
+              {selected !== null && <MomentPanel src={src} sessions={validData} t={selected} point={report.curve[Math.round(selected / report.bin)]} width={variant.width} height={variant.height} onClose={() => setSelected(null)} />}
+              <dl className="grid grid-cols-2 gap-x-6 gap-y-5 lg:grid-cols-4">
+                <Stat label={tr.numbers.mean} value={P(report.meanAttention)} />
+                <Stat label={tr.numbers.after3} value={P(report.hook.at3)} hint={tr.numbers.after3Hint} />
+                <Stat label={tr.numbers.last3} value={P(report.endAttention)} />
+                <Stat label={tr.numbers.biggestDrop} value={biggest ? `−${Math.round(biggest.delta * 100)} pp` : '–'} hint={biggest ? `${formatTime(Math.floor(biggest.start), 0)}–${formatTime(Math.ceil(biggest.end), 0)}` : tr.numbers.noDrop} />
+              </dl>
             </div>
-          ) : (
-            <Locked plan={planFor('aggregateHeatmaps')} title={tr.visuals.locked} />
+          </Section>
+
+          <Section title={tr.findings.title} aside={report.findings.some((f) => f.preliminary) ? tr.findings.preliminaryAside : undefined}>
+            <Findings findings={report.findings} onJump={jump} projectId={sample ? undefined : project.id} variantId={sample ? undefined : variant.id} can={can} />
+          </Section>
+
+          {report.segments.length > 0 && report.viewers > 0 && (
+            <Section title={report.segments[0].source === 'scene' ? tr.segments.titleScenes : tr.segments.titleIntervals}>
+              <SegmentsTable segments={report.segments} onJump={jump} />
+            </Section>
           )}
-        </Section>
+
+          {report.viewers > 0 && (
+            <Section title={tr.visuals.title} aside={tr.visuals.aside}>
+              {can.aggregateHeatmaps ? (
+                <div className="space-y-4">
+                  <div className="no-print flex flex-wrap items-center justify-between gap-3">
+                    <HeatLegend />
+                    <label className="flex items-center gap-2 text-[13.5px] font-semibold">
+                      <input type="checkbox" className="h-4 w-4 accent-cobalt" checked={showUnsafe} onChange={(e) => setShowUnsafe(e.target.checked)} />
+                      {tr.visuals.showUnsafe}
+                    </label>
+                  </div>
+                  {src?.kind === 'image' && <Callout>{tr.visuals.youtubeNote}</Callout>}
+                  {src?.kind === 'placeholder' && variant.media?.kind === 'url' && <Callout>{tr.visuals.corsNote}</Callout>}
+                  <div className={`grid gap-5 ${vertical ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5' : 'sm:grid-cols-2 lg:grid-cols-3'}`}>
+                    {report.segments.map((s) => (
+                      <SceneHeatmap key={s.index} src={src} sessions={validData} t0={s.t0} t1={s.t1} label={s.label} mean={s.mean} width={variant.width} height={variant.height} aois={variant.aois} unsafe={showUnsafe ? project.platform : null} />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <Locked plan={planFor('aggregateHeatmaps')} title={tr.visuals.locked} />
+              )}
+            </Section>
+          )}
+
+          {report.viewers > 0 && (
+            <Section title={tr.aoi.title} aside={tr.aoi.aside}>
+              {can.aoi || variant.aois.length > 0 ? (
+                <AoiPanel results={report.aois} aois={variant.aois} src={src} duration={report.duration} width={variant.width} height={variant.height} platform={project.platform} onSave={can.aoi && onSaveAois ? (a) => onSaveAois(variant.id, a) : undefined} />
+              ) : (
+                <Locked plan={planFor('aoi')} title={tr.aoi.locked} />
+              )}
+              {report.brand && report.brand.n > 0 && (
+                <p className="mt-4 text-[14px] text-ink">{tr.aoi.brandLine(report.brand.firstLookMedian === null ? null : formatNumber(report.brand.firstLookMedian, locale, 1), P(report.brand.by3s), P(report.brand.reach))}</p>
+              )}
+            </Section>
+          )}
+
+          {cmp && (
+            <Section title={tr.compare.title(reports.length)} aside={tr.compare.aside(MIN_VERDICT_SAMPLE)}>
+              {can.maxVariants >= reports.length || sample ? <Compare cmp={cmp} labels={labels} /> : <Locked plan={planFor(reports.length > 2 ? 'variants4' : 'variants2')} title={tr.compare.title(reports.length)} />}
+            </Section>
+          )}
+
+        </>
       )}
 
-      {report.viewers > 0 && (
-        <Section title={tr.aoi.title} aside={tr.aoi.aside}>
-          {can.aoi || variant.aois.length > 0 ? (
-            <AoiPanel results={report.aois} aois={variant.aois} src={src} duration={report.duration} width={variant.width} height={variant.height} platform={project.platform} onSave={can.aoi && onSaveAois ? (a) => onSaveAois(variant.id, a) : undefined} />
-          ) : (
-            <Locked plan={planFor('aoi')} title={tr.aoi.locked} />
-          )}
-          {report.brand && report.brand.n > 0 && (
-            <p className="mt-4 text-[14px] text-ink">{tr.aoi.brandLine(report.brand.firstLookMedian === null ? null : formatNumber(report.brand.firstLookMedian, locale, 1), P(report.brand.by3s), P(report.brand.reach))}</p>
-          )}
-        </Section>
-      )}
-
-      {cmp && (
-        <Section title={tr.compare.title(reports.length)} aside={tr.compare.aside(MIN_VERDICT_SAMPLE)}>
-          {can.maxVariants >= reports.length || sample ? <Compare cmp={cmp} labels={labels} /> : <Locked plan={planFor(reports.length > 2 ? 'variants4' : 'variants2')} title={tr.compare.title(reports.length)} />}
+      {isGrid && reports.length > 1 && reports.every((r) => r.grid) && (
+        <Section title={tr.grid.compareTitle}>
+          <div className="relative overflow-x-auto rounded-2xl bg-surface ring-1 ring-line">
+            <table className="w-full min-w-[560px] text-left text-[14px]">
+              <caption className="sr-only">{tr.grid.compareTitle}</caption>
+              <thead className="text-[12.5px] text-muted">
+                <tr className="border-b border-line">
+                  {[tr.compare.version, tr.grid.looked, tr.grid.firstLook, tr.grid.position, tr.grid.choice].map((h) => (
+                    <th key={h} className="px-4 py-3 font-semibold">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {reports.map((r) => {
+                  const g = r.grid!;
+                  return (
+                    <tr key={r.variantId} className="border-b border-line last:border-0">
+                      <td className="px-4 py-3 font-semibold">
+                        <span className="mr-2 inline-block h-2.5 w-2.5 rounded-full" style={{ background: SERIES[r.variantId] }} aria-hidden />
+                        {labels[r.variantId]}
+                      </td>
+                      <td className="tabular px-4 py-3">{P(g.looked)}</td>
+                      <td className="tabular px-4 py-3">{g.firstLookMedian === null ? '–' : `${formatNumber(g.firstLookMedian, locale, 1)} s`}</td>
+                      <td className="tabular px-4 py-3">{g.positionIndex === null ? '–' : `${formatNumber(g.positionIndex, locale, 2)}×`}</td>
+                      <td className="tabular px-4 py-3">{g.choice.asked ? P(g.choice.tested / g.choice.asked) : '–'}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </Section>
       )}
 

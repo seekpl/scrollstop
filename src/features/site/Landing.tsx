@@ -58,8 +58,7 @@ export function LandingPage() {
               </div>
             ))}
           </dl>
-          <p className="mt-8 text-[14px] text-muted">{l.feedSoon}</p>
-          <p className="mt-2 max-w-[80ch] text-[14px] text-muted">{l.accuracyNote}</p>
+          <p className="mt-8 max-w-[80ch] text-[14px] text-muted">{l.accuracyNote}</p>
         </div>
       </section>
 

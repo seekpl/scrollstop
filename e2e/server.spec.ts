@@ -193,3 +193,46 @@ test('ekrany trybu serwerowego bez poziomego przewijania przy 320–390 px (pl i
     }
   }
 });
+
+test('feed z kreatora (Pro): klipy demo jako wypełniacze, widz przewija na telefonie', async ({ page, browser, request }) => {
+  test.setTimeout(150_000);
+  const email = uniqueEmail('feed');
+  await registerUi(page, email);
+  await setPlan(request, email, 'pro');
+  await page.reload();
+  await expect(page.getByRole('link', { name: 'Plan Pro' })).toBeVisible();
+  await page.goto('/#/app/new');
+  await page.getByRole('radio', { name: /Test w feedzie/ }).click();
+  await expect(page.getByRole('tab', { name: 'YouTube' })).toHaveCount(0);
+  await page.getByRole('tab', { name: 'Klip demo' }).click();
+  await page.getByRole('button', { name: 'Użyj: Rolka demo B (15 s, 9:16)' }).click();
+  await expect(page.getByText(/^Domyślnie 5 klipów demo/)).toBeVisible();
+  await page.getByLabel('Podpis pod klipem').fill('Trzy rzeczy przed publikacją');
+  await page.getByLabel('Nazwa projektu').fill('Rolka w feedzie');
+  await page.getByLabel('Nazwa twórcy').fill('Studio E2E');
+  await page.getByRole('button', { name: 'Utwórz projekt' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Rolka w feedzie' })).toBeVisible();
+  const link = await page.getByLabel('Link dla widzów', { exact: true }).inputValue();
+  const collect = `/${new URL(page.url()).hash.replace(/prepare$/, 'collect')}`;
+
+  const phone = await browser.newContext({ ...devices['iPhone 13'], serviceWorkers: 'block', locale: 'pl-PL' });
+  const p = await phone.newPage();
+  await p.goto(`${link}?sim=1`);
+  await acceptConsent(p);
+  await p.getByRole('button', { name: 'Zaczynam' }).click();
+  await expect(p.getByText('@studio_e2e').or(p.getByText('@kadr.dnia')).first()).toBeVisible();
+  const vp = p.viewportSize()!;
+  for (let k = 1; k <= 6; k++) {
+    await expect(p.getByLabel(`Klip ${k} z 6`)).toBeVisible();
+    await p.waitForTimeout(500);
+    await p.mouse.move(vp.width / 2, vp.height * 0.75);
+    await p.mouse.down();
+    await p.mouse.move(vp.width / 2, vp.height * 0.5, { steps: 4 });
+    await p.mouse.move(vp.width / 2, vp.height * 0.3, { steps: 4 });
+    await p.mouse.up();
+  }
+  await expect(p.getByRole('heading', { name: 'Dziękujemy!' })).toBeVisible();
+  await page.goto(collect);
+  await expect(page.getByRole('table').getByText('Symulacja')).toBeVisible();
+  await phone.close();
+});

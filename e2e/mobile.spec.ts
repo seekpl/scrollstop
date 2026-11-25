@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
-import { acceptConsent, expectNoHorizontalScroll, reelStudyLink } from './helpers';
+import { DEMO_SPECS, FILLER_IDS } from '../src/demo/demoScene';
+import { acceptConsent, downloadSession, expectNoHorizontalScroll, reelStudyLink } from './helpers';
 
 /** Telefon w pionie (iPhone 13, Chromium): badanie rolki 9:16 (§22.2). */
 test.describe('widz na telefonie', () => {
@@ -101,5 +102,40 @@ test.describe('widz na telefonie', () => {
     await expect(page.getByText('Obróć telefon pionowo')).toBeVisible();
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(page.getByText('Obróć telefon pionowo')).toBeHidden();
+  });
+
+  test('feed na telefonie: przesunięcie w górę i w dół zmienia klip', async ({ page }) => {
+    const fillers = FILLER_IDS.map((id) => ({ id, media: { kind: 'demo' as const, demo: id }, duration: DEMO_SPECS[id].duration, width: 1080, height: 1920 }));
+    await page.goto(`${reelStudyLink({ kind: 'feed', context: 'feed', platformUi: 'generic', fillers, feed: { items: 4, stopSeconds: 2, capSeconds: 60 }, questions: [] })}?sim=1`);
+    await acceptConsent(page);
+    await expect(page.getByText('Przesuń w górę, aby zobaczyć następny klip. Dotknij, aby zatrzymać.')).toBeVisible();
+    await page.getByRole('button', { name: 'Zaczynam' }).click();
+    const vp = page.viewportSize()!;
+    const swipe = async (from: number, to: number) => {
+      await page.mouse.move(vp.width / 2, from);
+      await page.mouse.down();
+      await page.mouse.move(vp.width / 2, (from + to) / 2, { steps: 4 });
+      await page.mouse.move(vp.width / 2, to, { steps: 4 });
+      await page.mouse.up();
+    };
+    await expect(page.getByLabel('Klip 1 z 4')).toBeVisible();
+    await page.waitForTimeout(500);
+    await swipe(vp.height * 0.75, vp.height * 0.3);
+    await expect(page.getByLabel('Klip 2 z 4')).toBeVisible();
+    await page.waitForTimeout(500);
+    await swipe(vp.height * 0.3, vp.height * 0.75);
+    await expect(page.getByLabel('Klip 1 z 4')).toBeVisible();
+    for (const k of [2, 3, 4]) {
+      await page.waitForTimeout(450);
+      await swipe(vp.height * 0.75, vp.height * 0.3);
+      await expect(page.getByLabel(`Klip ${k} z 4`)).toBeVisible();
+    }
+    await page.waitForTimeout(450);
+    await swipe(vp.height * 0.75, vp.height * 0.3);
+    await expect(page.getByRole('heading', { name: 'Dziękujemy!' })).toBeVisible();
+    const pkg = await downloadSession(page);
+    const items = pkg.session.items!;
+    expect(items.map((x) => x.exitType)).toEqual(['swipe_next', 'swipe_prev', 'swipe_next', 'swipe_next', 'swipe_next', 'swipe_next']);
+    expect(items.map((x) => x.index)).toEqual([0, 1, 0, 1, 2, 3]);
   });
 });

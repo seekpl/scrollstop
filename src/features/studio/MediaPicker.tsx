@@ -41,7 +41,7 @@ export function probeVideo(url: string): Promise<{ duration: number; width: numb
  * Materiał wersji (§9.2 krok 3): zakładki Wgraj plik / YouTube / Link do pliku / Klip demo.
  * W trybie lokalnym plik zostaje na tym komputerze; po dodaniu — podsumowanie i „Zmień”.
  */
-export function MediaPicker({ value, onChange, platform, label }: { value: PickedMedia | null; onChange(v: PickedMedia | null): void; platform: Platform; label: string }) {
+export function MediaPicker({ value, onChange, platform, label, noYoutube = false }: { value: PickedMedia | null; onChange(v: PickedMedia | null): void; platform: Platform; label: string; noYoutube?: boolean }) {
   const { t } = useI18n();
   const m = t.studio.media;
   const { api } = useResearch();
@@ -113,7 +113,8 @@ export function MediaPicker({ value, onChange, platform, label }: { value: Picke
       setBusy(false);
     }
   };
-  const tabs: Tab[] = ['file', 'youtube', 'url', 'demo'];
+  // Feed odtwarza pliki (pętle, przejścia); YouTube działa tylko na pełnym ekranie.
+  const tabs: Tab[] = noYoutube ? ['file', 'url', 'demo'] : ['file', 'youtube', 'url', 'demo'];
   return (
     <div className="space-y-3">
       <div role="tablist" aria-label={label} className="flex flex-wrap gap-1 rounded-xl bg-ink/[0.05] p-1">

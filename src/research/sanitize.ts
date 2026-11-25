@@ -94,6 +94,8 @@ function screenerMap(x: unknown): Record<string, string> {
   return out;
 }
 
+const round4 = (v: number) => Math.round(v * 1e4) / 1e4;
+
 function items(x: unknown): ItemLog[] | undefined {
   if (!Array.isArray(x)) return undefined;
   return x.slice(0, LIMITS.maxItems).flatMap((it, i): ItemLog[] => {
@@ -113,6 +115,9 @@ function items(x: unknown): ItemLog[] | undefined {
         exitType: exits.includes(it.exitType as never) ? (it.exitType as ItemLog['exitType']) : null,
         loops: isNum(it.loops, 0, 1000) ? Math.round(it.loops) : 0,
         events,
+        ...(isObj(it.rect) && isNum(it.rect.x, 0, 1) && isNum(it.rect.y, 0, 1) && isNum(it.rect.w, 0, 1) && isNum(it.rect.h, 0, 1)
+          ? { rect: { x: round4(it.rect.x), y: round4(it.rect.y), w: round4(Math.min(it.rect.w, 1 - it.rect.x)), h: round4(Math.min(it.rect.h, 1 - it.rect.y)) } }
+          : {}),
       },
     ];
   });

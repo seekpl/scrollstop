@@ -16,7 +16,8 @@ Pełna specyfikacja produktu: [`docs/prompt-startowy.md`](docs/prompt-startowy.m
 | M3 | Przebieg widza: zgoda 18+, pytania przesiewowe, przygotowanie, kamera, dźwięk, kalibracja, pełny ekran z ochroną przebiegu, pytania po, zakończenie, kolejka wysyłki, kod usunięcia, link samowystarczalny, plik sesji, `?sim=1` | gotowe |
 | M4 | Studio (tryb lokalny: projekty, kreator, przygotowanie testu, zbieranie widzów z importem plików, raport, analiza techniczna, konto) i strona publiczna (główna z żywą krzywą, cennik z zamówieniem e-mailem, prywatność, przykładowe raporty) | gotowe |
 | M5 | Tryb serwerowy (konta, zespoły z rolami i zaproszeniami, media z `Range`, sesje, retencja, usuwanie kodem, linki do raportu), Docker | gotowe |
-| M6–M9 | Feed, miniatura, karuzela; plany i płatności; AI, grafika, PDF; szlif | w kolejce |
+| M6 | Test w feedzie (gesty, pętle, zatrzymanie scrolla), test miniatury w siatce (spojrzenia, wybór, efekt pozycji), karuzela i slajdy — widz, metryki, raport, kreator | gotowe |
+| M7–M9 | Plany i płatności (Stripe); AI, grafika, PDF; szlif | w kolejce |
 
 ## Uruchomienie
 
@@ -97,6 +98,16 @@ Kod w `src/research/` działa w przeglądarce i na serwerze (ten sam raport).
 - **Analiza techniczna:** urządzenie, ekran, błąd kalibracji x/y, liczba próbek, wiarygodne sekundy; „Otwórz w laboratorium” przenosi sesję do `#/lab`.
 - **Strona publiczna:** główna (żywa krzywa uwagi nad pionowym klipem demo — liczona z symulowanego panelu, nie wpisana na sztywno), `#/pricing` (waluta według języka, en: USD/EUR, okres roczny = 10 × miesięczna; zamówienie przez `mailto:` — płatności online w M7), `#/privacy` (§17.8, dane operatora z `company.ts`), `#/sample/reel|video` (feed w M6).
 - **Uczciwy cennik:** pozycje cennika, których jeszcze nie ma w kodzie, są w `PRICING_SOON` (`src/research/plans.ts`) i pokazują się z etykietą „wkrótce”. Usuń klucz z tej listy w kamieniu milowym, który dostarcza funkcję.
+
+## Feed, miniatura, karuzela (M6)
+
+- **Test w feedzie** (§4.4): 6 pozycji, badany klip losowo na pozycji 2–5, wypełniacze w losowej kolejności (domyślnie klipy demo, §26.6; można dodać własne wcześniejsze klipy). Telefon: przesunięcie w górę/dół (> 60 px albo > 0,3 px/ms), dotknięcie — pauza; komputer: kółko (suma > 50), ↑/↓, J/K, spacja. Klip po końcu leci od nowa (pętla). Pozycja trwa najwyżej max(3 × długość, 60 s), cały feed domyślnie 3 min. Opcjonalna **neutralna** nakładka (ikony, konto, opis — bez znaków platform). Badanie ślepe: bez pytań po obejrzeniu.
+- **Metryki feedu** (`src/research/feed.ts`): zatrzymanie scrolla (zachowanie ≥ T_stop i wzrok ≥ 50% pierwszych 2 s), czas na klipie (mediana, średnia, bootstrap 95%) wobec wypełniaczy, test dwóch proporcji, obejrzenie do końca i pętle, „oglądają, ale nie patrzą”, retencja i momenty przewinięcia. Krzywa, hook, sceny, strefy i heat mapy liczą się na samym badanym klipie (`feedFocus`).
+- **Test miniatury** (§4.5): układy „strona główna 3 × 2”, „wyniki wyszukiwania (telefon)”, „siatka profilu”; ta sama geometria komórek u widza i w raporcie (`gridCells`). Ekspozycja 3–10 s, potem „Który film chcesz obejrzeć?”. Metryki (`src/research/grid.ts`): spojrzenie (≥ 3 kolejne próbki w komórce), mediana pierwszego spojrzenia, udział patrzenia, kolejność pierwszych spojrzeń, wybór (deklaracja) i **wskaźnik pozycji** (spojrzenia wobec wypełniaczy na tej samej pozycji). Wypełniacze demo mają neutralne tytuły, żeby tekst nie wyróżniał badanej miniatury.
+- **Karuzela i slajdy** (§4.6): 2–20 obrazów; przesunięcie w bok — kolejny obraz, w górę — koniec; slajdy mogą zmieniać się same. Metryki (`src/research/carousel.ts`): zasięg slajdu, czas na slajdzie, uwaga na slajdzie, slajd porzucenia; heat mapa każdego slajdu.
+- **Kontrola jakości** sesji z wieloma pozycjami ocenia całą sesję — przewinięcie badanego klipu po sekundzie to wynik, a nie powód odrzucenia.
+- **Plan:** feed, miniatura i karuzela są w planie Pro (402 `feature_*`). YouTube działa tylko w teście materiału (`format_media`).
+- **Ograniczenia:** strefy zainteresowania na slajdach i własne miniatury‑wypełniacze — w kolejnych etapach.
 
 ## Tryb serwerowy (M5)
 

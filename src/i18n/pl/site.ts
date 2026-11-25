@@ -43,8 +43,8 @@ export const site = {
       { title: 'Napisy i strefy', body: 'Czy napisy są czytane, czy coś zasłania interfejs platformy i ile uwagi dostaje każda strefa.' },
       { title: 'Wersje A/B/C/D', body: 'Ta sama miara dla każdej wersji, test istotności i informacja, ilu widzów brakuje do werdyktu.' },
       { title: 'Wnioski w języku montażu', body: 'Hook, cięcie, napis, CTA: konkretna scena do poprawy, wyliczona z danych, nie zgadywana.' },
+      { title: 'Feed, miniatury i karuzele', body: 'Czy widzowie zatrzymują scroll na Twoim klipie wśród innych, czy ich wzrok trafia na Twoją miniaturę w siatce i do którego obrazu karuzeli dochodzą.' },
     ],
-    feedSoon: 'Test w feedzie (zatrzymanie scrolla) i test miniatury — wkrótce.',
     privacyTitle: 'Obraz z kamery nie opuszcza telefonu widza',
     privacyBody: 'Kamera w przeglądarce tylko szacuje, czy i gdzie widz patrzy. Do Ciebie trafiają współrzędne na obrazie, bez zdjęć, nagrań i punktów twarzy. Badamy wyłącznie dorosłych, za ich zgodą.',
     privacyLink: 'Prywatność i zasady etyczne',
@@ -109,7 +109,6 @@ export const site = {
     lead: 'Tak wygląda raport po badaniu. Dane pochodzą z symulowanego panelu widzów, a nie z prawdziwego badania.',
     tabs: { reel: 'Rolka: test hooka A/B', video: 'Film na YouTube', feed: 'Rolka w feedzie' },
     tabsLabel: 'Wybierz przykład',
-    feedSoon: 'Przykład testu w feedzie pojawi się razem z tym rodzajem badania.',
     cta: 'Przetestuj swoją rolkę',
   },
   auth: {

@@ -206,6 +206,8 @@ function PanelOrder({ project }: { project: Project }) {
 function VariantCard({ project, variant, sessionsCount, onChange }: { project: Project; variant: Variant; sessionsCount: number; onChange(v: Variant): Promise<void> }) {
   const t = useT();
   const { can } = useResearch();
+  // Miniatura i karuzela to obrazy: bez scen i stref na osi czasu (strefy komórek liczy raport).
+  const stills = project.kind === 'thumbnail' || project.kind === 'carousel' || project.kind === 'slides';
   const p = t.studio.prepare;
   const lib = useLibraryVersion();
   const src = useVariantFrames(variant);
@@ -267,82 +269,91 @@ function VariantCard({ project, variant, sessionsCount, onChange }: { project: P
           <span className="font-semibold text-cobalt underline">{p.pick}</span>
         </label>
       )}
-      <div className="flex flex-wrap gap-1.5">
-        {variant.scenes.length ? variant.scenes.map((s, i) => <Badge key={s.id}>{p.sceneBadge(i + 1, formatTime(s.start, 0), formatTime(s.end, 0))}</Badge>) : <span className="text-[13.5px] text-muted">{p.noScenes}</span>}
-      </div>
-      <div className="flex flex-wrap items-end gap-2">
-        <Btn size="sm" onClick={() => void detect()} disabled={progress !== null}>
-          {progress !== null ? p.detecting(Math.round(progress * 100)) : p.detect}
-        </Btn>
-        {duration > 0 && (
-          <Btn size="sm" onClick={() => void setScenes(fixedScenes(duration, segmentLength(duration)))}>
-            {p.split(segmentLength(duration))}
-          </Btn>
-        )}
-        <div className="flex items-end gap-2">
-          <Field label={p.cutLabel}>{(id) => <input id={id} inputMode="decimal" className={`${inputClass} h-8 w-24`} value={cut} onChange={(e) => setCut(e.target.value)} />}</Field>
-          <Btn size="sm" onClick={() => void addCut()} disabled={!cut}>
-            {p.addCut}
-          </Btn>
-        </div>
-        {variant.scenes.length > 0 && (
-          <Btn size="sm" variant="quiet" onClick={() => void setScenes([])}>
-            {p.clearScenes}
-          </Btn>
-        )}
-      </div>
-      {error && (
-        <p className="text-[13.5px] font-semibold text-poor" role="alert">
-          {error}
+      {stills && (
+        <p className="text-[13.5px] text-muted">
+          {project.kind === 'thumbnail' ? p.thumbMeta(variant.title || p.noTitle) : p.slidesMeta(variant.slides?.length ?? 0)}
         </p>
       )}
-      <div className="space-y-3 border-t border-line pt-4">
-        <h4 className="text-[14.5px] font-semibold">{p.aoisTitle}</h4>
-        {variant.aois.length ? (
-          <ul className="flex flex-wrap gap-2">
-            {variant.aois.map((a: Aoi) => (
-              <li key={a.id} className="inline-flex items-center gap-1.5 rounded-lg bg-ink/[0.05] py-1 pl-2.5 pr-1 text-[13px]">
-                <span className="font-semibold">{a.name}</span>
-                <span className="text-muted">
-                  {t.common.aoiTypes[a.type]}, {formatTime(a.t0, 0)}–{formatTime(a.t1, 0)}
-                </span>
-                <button type="button" aria-label={t.report.aoi.removeAria(a.name)} className="grid h-7 w-7 place-items-center rounded-md text-muted hover:bg-poor/10 hover:text-poor" onClick={() => void onChange({ ...variant, aois: variant.aois.filter((x) => x.id !== a.id) })}>
-                  <Icon name="close" size={14} />
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-[13.5px] text-muted">{t.report.aoi.empty}</p>
-        )}
-        {!can.aoi ? (
-          <p className="flex flex-wrap items-center gap-2 text-[13.5px] text-muted">
-            <Icon name="lock" size={15} />
-            {t.errors.feature_aoi}
-            <a href={`${pathOf({ name: 'pricing' })}?plan=${planFor('aoi')}`} className="font-semibold text-cobalt underline underline-offset-4">
-              {t.billing.locked.unlock(t.billing.planNames[planFor('aoi')])}
-            </a>
-          </p>
-        ) : editing ? (
-          <AoiEditor
-            src={src}
-            duration={duration || 15}
-            width={variant.width}
-            height={variant.height}
-            platform={project.platform}
-            existing={variant.aois}
-            onCancel={() => setEditing(false)}
-            onAdd={async (a) => {
-              await onChange({ ...variant, aois: [...variant.aois, a] });
-              setEditing(false);
-            }}
-          />
-        ) : (
-          <Btn size="sm" onClick={() => setEditing(true)}>
-            {t.report.aoi.add}
-          </Btn>
-        )}
-      </div>
+      {!stills && (
+        <>
+          <div className="flex flex-wrap gap-1.5">
+            {variant.scenes.length ? variant.scenes.map((s, i) => <Badge key={s.id}>{p.sceneBadge(i + 1, formatTime(s.start, 0), formatTime(s.end, 0))}</Badge>) : <span className="text-[13.5px] text-muted">{p.noScenes}</span>}
+          </div>
+          <div className="flex flex-wrap items-end gap-2">
+            <Btn size="sm" onClick={() => void detect()} disabled={progress !== null}>
+              {progress !== null ? p.detecting(Math.round(progress * 100)) : p.detect}
+            </Btn>
+            {duration > 0 && (
+              <Btn size="sm" onClick={() => void setScenes(fixedScenes(duration, segmentLength(duration)))}>
+                {p.split(segmentLength(duration))}
+              </Btn>
+            )}
+            <div className="flex items-end gap-2">
+              <Field label={p.cutLabel}>{(id) => <input id={id} inputMode="decimal" className={`${inputClass} h-8 w-24`} value={cut} onChange={(e) => setCut(e.target.value)} />}</Field>
+              <Btn size="sm" onClick={() => void addCut()} disabled={!cut}>
+                {p.addCut}
+              </Btn>
+            </div>
+            {variant.scenes.length > 0 && (
+              <Btn size="sm" variant="quiet" onClick={() => void setScenes([])}>
+                {p.clearScenes}
+              </Btn>
+            )}
+          </div>
+          {error && (
+            <p className="text-[13.5px] font-semibold text-poor" role="alert">
+              {error}
+            </p>
+          )}
+          <div className="space-y-3 border-t border-line pt-4">
+            <h4 className="text-[14.5px] font-semibold">{p.aoisTitle}</h4>
+            {variant.aois.length ? (
+              <ul className="flex flex-wrap gap-2">
+                {variant.aois.map((a: Aoi) => (
+                  <li key={a.id} className="inline-flex items-center gap-1.5 rounded-lg bg-ink/[0.05] py-1 pl-2.5 pr-1 text-[13px]">
+                    <span className="font-semibold">{a.name}</span>
+                    <span className="text-muted">
+                      {t.common.aoiTypes[a.type]}, {formatTime(a.t0, 0)}–{formatTime(a.t1, 0)}
+                    </span>
+                    <button type="button" aria-label={t.report.aoi.removeAria(a.name)} className="grid h-7 w-7 place-items-center rounded-md text-muted hover:bg-poor/10 hover:text-poor" onClick={() => void onChange({ ...variant, aois: variant.aois.filter((x) => x.id !== a.id) })}>
+                      <Icon name="close" size={14} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-[13.5px] text-muted">{t.report.aoi.empty}</p>
+            )}
+            {!can.aoi ? (
+              <p className="flex flex-wrap items-center gap-2 text-[13.5px] text-muted">
+                <Icon name="lock" size={15} />
+                {t.errors.feature_aoi}
+                <a href={`${pathOf({ name: 'pricing' })}?plan=${planFor('aoi')}`} className="font-semibold text-cobalt underline underline-offset-4">
+                  {t.billing.locked.unlock(t.billing.planNames[planFor('aoi')])}
+                </a>
+              </p>
+            ) : editing ? (
+              <AoiEditor
+                src={src}
+                duration={duration || 15}
+                width={variant.width}
+                height={variant.height}
+                platform={project.platform}
+                existing={variant.aois}
+                onCancel={() => setEditing(false)}
+                onAdd={async (a) => {
+                  await onChange({ ...variant, aois: [...variant.aois, a] });
+                  setEditing(false);
+                }}
+              />
+            ) : (
+              <Btn size="sm" onClick={() => setEditing(true)}>
+                {t.report.aoi.add}
+              </Btn>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }

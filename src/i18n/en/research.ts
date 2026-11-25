@@ -4,6 +4,7 @@ function seg(s: SegmentRef, form: SegForm): string {
   const name = s.kind === 'scene' ? `Scene ${s.n}` : `Section ${s.range}`;
   return form === 'nom' ? name : form === 'loc' ? `in ${name.toLowerCase()}` : name.toLowerCase();
 }
+const dec = (v: number, digits = 1) => v.toFixed(digits);
 const lower = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 const ppl = (n: number) => (n === 1 ? 'viewer' : 'viewers');
 
@@ -24,6 +25,12 @@ export const research: ResearchText = {
     dropDetail: (p) => `The share of viewers looking falls from ${p.fromPct}% to ${p.toPct}%, that is by ${p.deltaPp} pp. Across the whole video, ${p.meanPct}% of viewers look on average.`,
     stable: (p) => `Attention holds steady: on average ${p.meanPct}% of viewers are looking.`,
     stableDetail: 'The curve has no drops larger than 10 pp.',
+    feed: (p) => `${p.stopPct}% of viewers stopped on the clip${p.fillerPct !== null ? ` (other feed clips: ${p.fillerPct}%)` : ''}.`,
+    feedDetail: (p) => [p.dwell !== null ? `Median time on the clip: ${dec(p.dwell)} s.` : null, p.meanPct !== null ? `While they stay, ${p.meanPct}% of them look on average.` : null].filter(Boolean).join(' '),
+    grid: (p) => `${p.lookedPct}% of viewers looked at the tested thumbnail${p.firstLook !== null ? `, typically after ${dec(p.firstLook)} s` : ''}.`,
+    gridDetail: (p) => [p.chosenPct !== null ? `${p.chosenPct}% of viewers chose this video (declared).` : null, p.positionIndex !== null ? `Index against thumbnails in the same position: ${dec(p.positionIndex, 2)}× (1× = average).` : null].filter(Boolean).join(' '),
+    carousel: (p) => `${p.completedPct}% of viewers reached the last slide (of ${p.slides}).`,
+    carouselDetail: (p) => (p.worst === null ? 'No slide stands out with drop-offs.' : `Most viewers stop at slide ${p.worst}: ${p.lost} ${p.lost === 1 ? 'person' : 'people'}.`),
   },
   findings: {
     drop: {
@@ -124,6 +131,9 @@ export const research: ResearchText = {
     reelProject: 'Demo reel: hook test',
     videoProject: 'Demo YouTube video',
     feedProject: 'Demo reel in the feed',
+    gridProject: 'Demo thumbnail in a YouTube grid',
+    carouselProject: 'Demo carousel (5 slides)',
+    thumbTitle: 'Three things I check before publishing',
     creator: 'Demo studio',
     reelA: 'Demo reel A (15s, 9:16)',
     reelB: 'Demo reel B (15s, 9:16)',

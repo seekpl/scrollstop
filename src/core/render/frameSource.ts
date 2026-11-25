@@ -170,6 +170,7 @@ export function createImageFrameSource(info: Pick<VideoInfo, 'width' | 'height' 
       if (!img) return fallback.drawFrame(ctx, t, cw, ch);
       const c = coverCrop(img.naturalWidth, img.naturalHeight, cw, ch);
       ctx.drawImage(img, c.sx, c.sy, c.sw, c.sh, 0, 0, cw, ch);
+      if (!caption) return;
       const fs = Math.max(11, Math.round(ch / 40));
       const pad = Math.round(fs * 0.6);
       ctx.save();
