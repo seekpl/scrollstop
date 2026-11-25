@@ -43,7 +43,7 @@ export class SimulatedGazeSource implements GazeSource {
 
   constructor(
     private readonly clock: PlaybackClock,
-    spec: DemoSpec,
+    spec: Pick<DemoSpec, 'target'>,
   ) {
     this.sim = new GazeSimulator(spec);
   }

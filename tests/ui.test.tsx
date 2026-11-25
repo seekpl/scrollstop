@@ -1,6 +1,8 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { useState } from 'react';
 import { describe, expect, it } from 'vitest';
+import { LocalResearchApi } from '../src/api/local';
+import { MemoryLocalStore } from '../src/api/localStore';
 import { Root } from '../src/app/Root';
 import { aspectFits, defaultDeviceFor, overlapsUnsafe } from '../src/config/platforms';
 import { I18nProvider } from '../src/i18n';
@@ -11,7 +13,7 @@ describe('strona w budowie', () => {
     window.history.replaceState(null, '', '/#/');
     render(
       <I18nProvider>
-        <Root />
+        <Root api={new LocalResearchApi(new MemoryLocalStore())} />
       </I18nProvider>,
     );
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('W której sekundzie widzowie przestają patrzeć na Twoją rolkę?');
@@ -23,7 +25,7 @@ describe('strona w budowie', () => {
     window.history.replaceState(null, '', '/#/nie-ma');
     render(
       <I18nProvider>
-        <Root />
+        <Root api={new LocalResearchApi(new MemoryLocalStore())} />
       </I18nProvider>,
     );
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Nie ma takiej strony');

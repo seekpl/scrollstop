@@ -22,7 +22,7 @@ export class GazeSimulator {
   private lastT: number | null = null;
 
   constructor(
-    private readonly spec: DemoSpec,
+    private readonly spec: Pick<DemoSpec, 'target'>,
     private readonly opts: SimOptions = { seed: 7, noise: 0.012 },
   ) {
     this.rng = mulberry32(opts.seed);
@@ -57,6 +57,9 @@ export class GazeSimulator {
     };
   }
 }
+
+/** Cel wzroku dla materiału, który nie jest klipem demo (próba twórcy bez kamery): powolne błądzenie po środku kadru. */
+export const wanderingTarget = { target: (t: number) => ({ x: 0.5 + 0.18 * Math.sin(t * 0.7), y: 0.45 + 0.15 * Math.sin(t * 0.43 + 1), key: 'background' as const }) };
 
 export function newLabSessionId(): string {
   const d = new Date();

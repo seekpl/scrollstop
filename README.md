@@ -13,7 +13,7 @@ Pełna specyfikacja produktu: [`docs/prompt-startowy.md`](docs/prompt-startowy.m
 | M0 | Narzędzia, marka, platformy, tokeny, `kit.tsx`, i18n pl/en, router, ErrorBoundary, diagnostyka startu, CI | gotowe |
 | M1 | Rdzeń pomiaru (port z KidAttention, progi dla dorosłych w `src/core/config.ts`), laboratorium `#/lab` | gotowe |
 | M2 | Warstwa badań: krzywa 0,5 s / 1 s, spadki, segmenty, heat mapy, strefy, czytelność, moment marki, A/B/n (Welch, proporcje, Holm), MDE, jakość sesji, wnioski z reguł, symulator panelu | gotowe |
-| M3 | Przebieg widza | w kolejce |
+| M3 | Przebieg widza: zgoda 18+, pytania przesiewowe, przygotowanie, kamera, dźwięk, kalibracja, pełny ekran z ochroną przebiegu, pytania po, zakończenie, kolejka wysyłki, kod usunięcia, link samowystarczalny, plik sesji, `?sim=1` | gotowe |
 | M4 | Studio (tryb lokalny) i strona publiczna | w kolejce |
 | M5 | Tryb serwerowy, Docker | w kolejce |
 | M6–M9 | Feed, miniatura, karuzela; plany i płatności; AI, grafika, PDF; szlif | w kolejce |
@@ -76,6 +76,14 @@ Kod w `src/research/` działa w przeglądarce i na serwerze (ten sam raport).
 - **Porównanie wersji** (`report.ts`, `statsMath.ts`): Welch na średniej uwadze widza, test dwóch proporcji dla hooka, przy > 2 wersjach każda kontra A z korektą Holma; werdykt tylko przy p < 0,05 i ≥ 15 widzach w każdej wersji; kalkulator MDE.
 - **Wnioski** (`insights.ts`): fakt → obserwacja → hipoteza → rekomendacja; teksty w `src/i18n/<język>/research.ts`.
 - **Symulator** (`panelSim.ts`): profile uwagi (hazard/recovery), raporty demo z 31 ważnymi widzami na wersję. Sesje symulowane są domyślnie poza raportem.
+
+## Badanie widza (M3)
+
+- **Adresy:** `#/s/<token>` (link projektu), `#/p/<base64url>` (link samowystarczalny — konfiguracja we fragmencie adresu, nie trafia do serwera), `#/delete/<sessionId>` (usuwanie danych kodem).
+- **Przebieg:** urządzenie → zgoda (18+, wersjonowana) → pytania przesiewowe (opcjonalne, tylko listy) → przygotowanie → sprawdzenie kamery → dźwięk (gdy warunek `on`/`viewer`) → kalibracja → oglądanie → pytania po → zakończenie. Cały przebieg w języku badania z projektu.
+- **Oglądanie:** bez kontrolek i bez znacznika wzroku; panel pauzy po przytrzymaniu 1,5 s (Esc na komputerze) z „Zgłoś treść”; blokada wygaszania ekranu, ostrzeżenie przy wyjściu, Wstecz → panel, ukrycie karty → pauza, obrót telefonu przy materiale pionowym → prośba o pion.
+- **Zakończenie:** przerwane → wybór, czy wysłać; ukończone → wysyłka automatyczna, a przy błędzie sieci kolejka w IndexedDB `attn-outbox`; link samowystarczalny → plik `scrollstop-sesja-<id>.json` przez Web Share API albo pobranie.
+- **Tryb testowy** `?sim=1`: bez kamery, wzrok symulowany, sesja oznaczona jako symulacja (poza raportem i limitami).
 
 ## Wdrożenie
 
