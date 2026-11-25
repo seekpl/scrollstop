@@ -1,4 +1,4 @@
-import { timingSafeEqual } from 'node:crypto';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 import { createReadStream, createWriteStream, existsSync, mkdirSync, statSync, unlinkSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { extname, join, resolve, sep } from 'node:path';
@@ -7,6 +7,7 @@ import { BRAND } from '../src/config/brand';
 import { isLocale } from '../src/i18n/locales';
 import { RESEARCH_TEXT } from '../src/i18n/research';
 import { newDeletionCode, normalizeCode, randomId } from '../src/research/link';
+import { cleanPanelConfig, cleanPid } from '../src/research/panel';
 import { AGE_BANDS, type AgeBand, type MediaSource, type Project, type ViewerSession } from '../src/research/model';
 import { entitlements, isPlanId, PLANS, projectBlock, sessionBlock, type BlockReason, type PlanId } from '../src/research/plans';
 import { newProjectFrom, patchProject, pickVariant, PlanLimit, studyConfigFor } from '../src/research/project';
@@ -14,8 +15,9 @@ import { cleanText, InvalidInput, sanitizeSession } from '../src/research/saniti
 import { assessSession, expiryDate, monthKey } from '../src/research/sessions';
 import { buildSharedReport, type SharedReport } from '../src/research/share';
 import { burnPasswordCheck, EMAIL_RE, hashPassword, MAX_PASSWORD, MIN_PASSWORD, newToken, sha256, TOKEN_TTL_DAYS, verifyPassword } from './auth';
+import { PAID_PLANS, SignatureError, type Stripe, type StripeEvent, type StripeSubscription, type SubscriptionState } from './billing';
 import type { AccountRow, Db } from './db';
-import { applyCors, bearer, clientIp, fail, KB, MB, RateLimiter, readJson, SECURITY_HEADERS, sendError, sendJson } from './http';
+import { applyCors, bearer, clientIp, fail, KB, MB, RateLimiter, readBody, readJson, SECURITY_HEADERS, sendError, sendJson } from './http';
 
 export interface ServerConfig {
   dataDir: string;
@@ -29,10 +31,20 @@ export interface ServerConfig {
   trustProxy: boolean;
   /** Katalog zbudowanego frontendu (jeden kontener: aplikacja + API). */
   staticDir: string | null;
+  /** Stripe (§16.4); brak — płatności online wyłączone: 503 `billing_unavailable` i ścieżka e-mail. */
+  stripe?: Stripe | null;
+  /** Sól skrótu identyfikatora uczestnika panelu (`PANEL_SALT`); bez niej skrótu nie zapisujemy. */
+  panelSalt?: string | null;
   now?: () => number;
   /** Linia logu na żądanie API (`METODA wzorzec status ms`). */
   log?: boolean;
 }
+
+/** Skrót identyfikatora uczestnika panelu: HMAC-SHA256 z solą serwera (§15). Twórca go nie widzi. */
+export const panelRefHash = (salt: string, provider: string, pid: string): string => createHmac('sha256', salt).update(`${provider}:${pid}`).digest('hex');
+
+/** Sesja dla twórcy: bez skrótu identyfikatora z panelu (służy tylko rozliczeniom operatora). */
+const forCreator = ({ panel: _panel, ...s }: ViewerSession): ViewerSession => s;
 
 interface Ctx {
   req: IncomingMessage;
@@ -102,6 +114,7 @@ export function createApp(db: Db, cfg: ServerConfig) {
     workspaceId: a.workspace_id,
     role: db.role(a.workspace_id, a.id) ?? 'owner',
     workspacePlan: ownerPlan(a.workspace_id),
+    billing: a.stripe_customer_id ? 'stripe' : a.plan !== 'free' ? 'manual' : null,
   });
 
   const auth = (c: Ctx): AccountRow => {
@@ -209,7 +222,7 @@ export function createApp(db: Db, cfg: ServerConfig) {
   const workspaceName = (name: string, company: string, email: string) => (company || name || email.split('@')[0]).slice(0, 120);
 
   // ── Stan ──────────────────────────────────────────────────────────────────
-  add('GET', '/api/health', async () => ({ ok: true, time: iso(), billing: false, ai: false }));
+  add('GET', '/api/health', async () => ({ ok: true, time: iso(), billing: !!cfg.stripe, ai: false }));
 
   // ── Konto (§9.7, §15) ─────────────────────────────────────────────────────
   add('POST', '/api/auth/register', async (c) => {
@@ -365,7 +378,7 @@ export function createApp(db: Db, cfg: ServerConfig) {
   });
 
   // ── Sesje (twórca) ────────────────────────────────────────────────────────
-  add('GET', '/api/projects/:id/sessions', async (c) => db.sessions(projectIn(c, scope(c)).id, iso()));
+  add('GET', '/api/projects/:id/sessions', async (c) => db.sessions(projectIn(c, scope(c)).id, iso()).map(forCreator));
 
   add('PATCH', '/api/projects/:id/sessions/:sid', async (c) => {
     const p = projectIn(c, scope(c, 'editor'));
@@ -582,7 +595,10 @@ export function createApp(db: Db, cfg: ServerConfig) {
     const existing = db.sessionRow(s.id);
     // Ponowne wysłanie tej samej sesji (np. po zerwanym połączeniu): kod usunięcia był już pokazany.
     if (existing) return new Created({ sessionId: s.id, deletionCode: '', status: existing.status as ViewerSession['status'] } satisfies SubmitResult);
-    const stored = normalize(project, s, s.source !== 'simulated' && !!blockFor(project));
+    const normalized = normalize(project, s, s.source !== 'simulated' && !!blockFor(project));
+    // Widz z panelu: identyfikator uczestnika tylko jako skrót z solą (nagłówek, nie treść sesji).
+    const pid = project.panel && cfg.panelSalt ? cleanPid(c.req.headers['x-panel-ref']) : null;
+    const stored: ViewerSession = pid && project.panel && cfg.panelSalt ? { ...normalized, panel: { provider: project.panel.provider, refHash: panelRefHash(cfg.panelSalt, project.panel.provider, pid) } } : normalized;
     const code = newDeletionCode();
     db.insertSession(stored, sha256(normalizeCode(code)));
     return new Created({ sessionId: stored.id, deletionCode: code, status: stored.status } satisfies SubmitResult);
@@ -600,11 +616,119 @@ export function createApp(db: Db, cfg: ServerConfig) {
     return { ok: true };
   });
 
-  // ── Płatności (§16.4, M7): bez kluczy Stripe — 503 i ścieżka e-mail ────────
-  for (const path of ['/api/billing/checkout', '/api/billing/portal', '/api/billing/webhook'])
-    add('POST', path, async () => {
-      throw fail(503, 'billing_unavailable');
+  // ── Płatności (§16.4): Stripe Checkout, portal klienta, webhook z podpisem ─
+  const billing = (): Stripe => {
+    if (!cfg.stripe) throw fail(503, 'billing_unavailable');
+    return cfg.stripe;
+  };
+  /** Adres w aplikacji (routing po `#`), np. powrót z płatności. */
+  const appLink = (hashPath: string) => `${cfg.appUrl.replace(/\/+$/, '')}/${hashPath}`;
+  /** Błąd po stronie Stripe (sieć, klucz, cena): 502, szczegóły tylko w logu serwera. */
+  const providerError = (e: unknown): never => {
+    console.error(`[${BRAND.code}] Stripe: ${e instanceof Error ? e.message : String(e)}`);
+    throw fail(502, 'billing_failed');
+  };
+
+  add('POST', '/api/billing/checkout', async (c) => {
+    const stripe = billing();
+    const a = auth(c);
+    limiter.check(`checkout:${a.id}`, 20, 60 * 60_000);
+    const b = await readJson<Record<string, unknown>>(c.req, 4 * KB);
+    const plan = PAID_PLANS.find((p) => p === b.plan);
+    const interval = b.interval === 'monthly' || b.interval === 'yearly' ? b.interval : null;
+    if (!plan || !interval) throw fail(400, 'bad_request');
+    if (!stripe.hasPrice(plan, interval)) throw fail(503, 'billing_unavailable');
+    // Zmiana planu przy aktywnej subskrypcji: w portalu klienta, nie drugą subskrypcją.
+    if (a.stripe_subscription_id && (a.plan_status === 'active' || a.plan_status === 'past_due')) throw fail(409, 'already_subscribed');
+    const url = await stripe
+      .checkout({
+        accountId: a.id,
+        email: a.email,
+        customerId: a.stripe_customer_id,
+        plan,
+        interval,
+        locale: isLocale(b.locale) ? b.locale : 'pl',
+        successUrl: appLink('#/app/account?payment=ok'),
+        cancelUrl: appLink('#/app/account?payment=cancelled'),
+      })
+      .catch(providerError);
+    return { url };
+  });
+
+  add('POST', '/api/billing/portal', async (c) => {
+    const stripe = billing();
+    const a = auth(c);
+    limiter.check(`portal:${a.id}`, 30, 60 * 60_000);
+    if (!a.stripe_customer_id) throw fail(409, 'no_subscription');
+    const b = await readJson<Record<string, unknown>>(c.req, 4 * KB);
+    const url = await stripe.portal(a.stripe_customer_id, appLink('#/app/account'), isLocale(b.locale) ? b.locale : 'pl').catch(providerError);
+    return { url };
+  });
+
+  /**
+   * Stan subskrypcji → plan konta. Konto z metadanych (ustawionych przy Checkout) albo po kliencie.
+   * Anulowanie starszej subskrypcji nie zdejmuje planu z nowszej.
+   */
+  const applySubscription = (st: SubscriptionState) => {
+    const a = (st.accountId ? db.account(st.accountId) : undefined) ?? db.accountByCustomer(st.customerId);
+    if (!a) return;
+    if (a.stripe_subscription_id && a.stripe_subscription_id !== st.subscriptionId && st.status !== 'active') return;
+    db.updateAccount(a.id, {
+      plan: st.plan,
+      plan_status: st.status,
+      plan_renews_at: st.status === 'canceled' ? null : st.renewsAt,
+      stripe_customer_id: st.customerId,
+      stripe_subscription_id: st.subscriptionId,
     });
+  };
+
+  const handleStripeEvent = async (stripe: Stripe, event: StripeEvent) => {
+    const obj = event.data.object;
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        if (obj.mode !== 'subscription' || typeof obj.subscription !== 'string') return;
+        const st = stripe.stateOf(await stripe.subscription(obj.subscription));
+        applySubscription({ ...st, accountId: st.accountId ?? (typeof obj.client_reference_id === 'string' ? obj.client_reference_id : null) });
+        return;
+      }
+      case 'customer.subscription.created':
+      case 'customer.subscription.updated':
+      case 'customer.subscription.deleted': {
+        // Bieżący stan z API, nie z treści zdarzenia: zdarzenia mogą przyjść w innej kolejności.
+        const id = typeof obj.id === 'string' ? obj.id : null;
+        if (!id) return;
+        const fresh: StripeSubscription = await stripe.subscription(id);
+        applySubscription(stripe.stateOf(fresh));
+        return;
+      }
+      case 'invoice.payment_failed': {
+        const customer = typeof obj.customer === 'string' ? obj.customer : null;
+        const a = customer ? db.accountByCustomer(customer) : undefined;
+        if (a && a.plan !== 'free') db.updateAccount(a.id, { plan_status: 'past_due' });
+        return;
+      }
+      default:
+        return;
+    }
+  };
+
+  /** Webhook: podpis HMAC (5 min), idempotencja po `event.id`; błąd przetwarzania → Stripe ponowi. */
+  add('POST', '/api/billing/webhook', async (c) => {
+    const stripe = billing();
+    const raw = await readBody(c.req, MB);
+    let event: StripeEvent;
+    try {
+      event = stripe.verify(raw, typeof c.req.headers['stripe-signature'] === 'string' ? c.req.headers['stripe-signature'] : undefined, now());
+    } catch (e) {
+      if (e instanceof SignatureError || e instanceof SyntaxError) throw fail(400, 'bad_signature');
+      throw e;
+    }
+    if (typeof event.id !== 'string' || !event.data?.object) throw fail(400, 'bad_request');
+    if (db.stripeEventSeen(event.id)) return { received: true, duplicate: true };
+    await handleStripeEvent(stripe, event);
+    db.claimStripeEvent(event.id, iso());
+    return { received: true };
+  });
 
   // ── Badanie z panelem (zamówienie na fakturę, §16.5) ──────────────────────
   add('POST', '/api/orders/panel', async (c) => {
@@ -654,6 +778,28 @@ export function createApp(db: Db, cfg: ServerConfig) {
     if (!isPlanId(b.plan)) throw fail(400, 'bad_request');
     db.updateAccount(row.id, { plan: b.plan, plan_status: b.plan === 'free' ? 'none' : 'active', plan_renews_at: typeof b.renewsAt === 'string' ? cleanText(b.renewsAt, 40) : null });
     return toAccount(db.account(row.id)!);
+  });
+
+  /** Integracja projektu z dostawcą panelu (§16.5): adresy powrotu ustawia operator; `panel: null` wyłącza. */
+  add('PUT', '/api/admin/projects/:id/panel', async (c) => {
+    const a = admin(c);
+    const p = db.project(c.params.id);
+    if (!p) throw fail(404, 'not_found');
+    const b = await readJson<Record<string, unknown>>(c.req, 8 * KB);
+    const panel = b.panel === null ? null : cleanPanelConfig(b.panel);
+    if (b.panel !== null && !panel) throw fail(400, 'bad_panel');
+    const { panel: _old, ...rest } = p;
+    const next: Project = panel ? { ...rest, panel, updatedAt: iso() } : { ...rest, updatedAt: iso() };
+    db.saveProject(next, a.id);
+    return { panel: next.panel ?? null };
+  });
+
+  /** Rozliczenie z dostawcą: sesje z panelu (skrót identyfikatora i status), bez danych wzroku. */
+  add('GET', '/api/admin/projects/:id/panel', async (c) => {
+    admin(c);
+    const p = db.project(c.params.id);
+    if (!p) throw fail(404, 'not_found');
+    return { panel: p.panel ?? null, sessions: db.panelSessions(p.id) };
   });
 
   // ── Zespoły (§9.6): właściciel / edytor / widz raportu, zaproszenia tokenem ──

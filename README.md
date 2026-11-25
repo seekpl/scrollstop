@@ -17,7 +17,8 @@ Pełna specyfikacja produktu: [`docs/prompt-startowy.md`](docs/prompt-startowy.m
 | M4 | Studio (tryb lokalny: projekty, kreator, przygotowanie testu, zbieranie widzów z importem plików, raport, analiza techniczna, konto) i strona publiczna (główna z żywą krzywą, cennik z zamówieniem e-mailem, prywatność, przykładowe raporty) | gotowe |
 | M5 | Tryb serwerowy (konta, zespoły z rolami i zaproszeniami, media z `Range`, sesje, retencja, usuwanie kodem, linki do raportu), Docker | gotowe |
 | M6 | Test w feedzie (gesty, pętle, zatrzymanie scrolla), test miniatury w siatce (spojrzenia, wybór, efekt pozycji), karuzela i slajdy — widz, metryki, raport, kreator | gotowe |
-| M7–M9 | Plany i płatności (Stripe); AI, grafika, PDF; szlif | w kolejce |
+| M7 | Plany i paywall, płatności Stripe (Checkout, portal, podpisany webhook), zamówienie badania z panelem, powroty do dostawcy panelu | gotowe |
+| M8–M9 | AI, grafika, PDF; szlif | w kolejce |
 
 ## Uruchomienie
 
@@ -120,8 +121,8 @@ Serwer w `server/` (Node ≥ 22.5, `node:sqlite`, `node:http`, bez frameworka). 
 - **Badanie**: `GET /api/study/:token` (przydział wersji A→D, limit planu sprawdzany przed zgodą), `POST /api/study/:token/sessions` (sanitizacja, kontrola jakości, kod usunięcia; symulacje bez limitu), `POST /api/sessions/:id/delete` (kod, porównanie stałoczasowe).
 - **Retencja**: sesje wygasają po 30/90/180/365 dniach; usuwanie przy starcie i co godzinę. Usunięcie projektu lub konta kasuje też pliki mediów.
 - **Link do raportu** (plan Pro+): `#/r/<token>` — raport **zbiorczy** liczony na serwerze, bez surowych sesji, map spojrzeń i wartości pojedynczych widzów; wygasa po 7/30/90 dniach, można go wyłączyć.
-- **Płatności i AI** dochodzą w M7–M8: do tego czasu `/api/billing/*` odpowiada 503 `billing_unavailable` (zamówienie e-mailem), a rekomendacje — wnioskami z reguł.
-- **Linia poleceń**: `node dist-server/main.js set-plan <e-mail> <free|creator|pro|agency>` (faktura, Agency).
+- **Płatności** (M7) — opis niżej; bez kluczy Stripe `/api/billing/*` odpowiada 503 `billing_unavailable`, a cennik pokazuje zamówienie e-mailem. **AI** dochodzi w M8: do tego czasu rekomendacje to wnioski z reguł.
+- **Linia poleceń**: `node dist-server/main.js set-plan <e-mail> <free|creator|pro|agency>` (faktura, Agency); `PANEL_SALT=… node dist-server/main.js panel-hash <dostawca> <id…>` (skróty identyfikatorów do rozliczenia z dostawcą panelu).
 
 | Zmienna serwera | Znaczenie (domyślnie) |
 |---|---|
@@ -133,8 +134,24 @@ Serwer w `server/` (Node ≥ 22.5, `node:sqlite`, `node:http`, bez frameworka). 
 | `ADMIN_EMAILS` | administratorzy (zamówienia, ręczna zmiana planu) |
 | `MAX_VIDEO_MB`, `MAX_IMAGE_MB` | limity plików (`1024`, `15`) |
 | `TRUST_PROXY` | `1` za odwrotnym proxy (IP do limitów z `X-Forwarded-For`) |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | płatności online; bez nich — zamówienie e-mailem |
+| `STRIPE_PRICE_{CREATOR,PRO}_{MONTHLY,YEARLY}` | identyfikatory cen w Stripe (brak ceny → 503 dla tego wariantu) |
+| `STRIPE_AUTOMATIC_TAX` | `1` — Stripe Tax (VAT w UE, wymaga konfiguracji w Stripe) |
+| `STRIPE_API_BASE` | inny adres API Stripe (np. stripe-mock); domyślnie `https://api.stripe.com/v1` |
+| `PANEL_SALT` | sól skrótu identyfikatora uczestnika panelu; bez niej skrótu nie zapisujemy |
 
 Frontend w trybie serwerowym: build z `VITE_API_URL` (adres API albo `/` przy wspólnym serwerze).
+
+## Plany, płatności i panel (M7)
+
+- **Jedno źródło zasad:** `src/research/plans.ts` — limity, uprawnienia, ceny i pozycje cennika. Serwer egzekwuje je odpowiedziami 402 (`feature_*`, limity), interfejs pokazuje paywall (okno „Limit planu”, karty „Dostępne od planu …”).
+- **Stripe** (`server/billing.ts`, bez SDK — kilka wywołań REST): Checkout (`mode=subscription`, cena z `STRIPE_PRICE_*`, `client_reference_id`, `metadata[account_id]`, `subscription_data[metadata][account_id|plan]`, NIP do faktury, opcjonalnie Stripe Tax), powrót na `#/app/account?payment=ok|cancelled`; portal klienta (karta, faktury, zmiana planu, anulowanie). Przy aktywnej subskrypcji drugi Checkout dostaje 409 `already_subscribed` — zmiana planu idzie przez portal.
+- **Webhook** `POST /api/billing/webhook`: podpis `Stripe-Signature` (HMAC-SHA256, tolerancja 5 min, kilka podpisów `v1` przy rotacji sekretu), idempotencja po `event.id` (zdarzenie zapisujemy dopiero po przetworzeniu — błąd → Stripe ponowi). Obsługiwane: `checkout.session.completed`, `customer.subscription.created|updated|deleted` (stan zawsze pobierany z API, bo zdarzenia mogą przyjść w innej kolejności; plan z identyfikatora ceny albo z metadanych), `invoice.payment_failed` → zaległość. Anulowanie starszej subskrypcji nie zdejmuje planu z bieżącej.
+- **Konfiguracja w panelu Stripe:** produkty Creator i Pro z cenami miesięczną i roczną (10 × miesięczna); endpoint webhooka `https://<domena>/api/billing/webhook` z pięcioma zdarzeniami powyżej; w ustawieniach portalu klienta — zmiana planu między cenami Creator/Pro, anulowanie, faktury.
+- **Bez Stripe** (tryb lokalny albo serwer bez kluczy): przyciski zakupu otwierają e-mail do sprzedaży z tematem i ceną, nigdy techniczny komunikat. Błąd płatności (np. awaria Stripe, 502 `billing_failed`) zawsze pokazuje też przycisk „Zamów e-mailem”.
+- **Badanie z panelem** (§16.5): formularz (firma, NIP, e-mail, 30/50/100 widzów, wiek, kraje, korzystanie z platform, uwagi, podsumowanie z ceną „od”) w cenniku, w oknie limitu i w projekcie z widzami z panelu. Serwer zapisuje zamówienie (`GET /api/admin/orders`), bez serwera powstaje e-mail z podsumowaniem. Cena tylko „od 590 zł / 139 € za 30 widzów” — większe próby są wyceniane indywidualnie.
+- **Integracja z dostawcą panelu:** operator ustawia adresy powrotu projektu: `PUT /api/admin/projects/:id/panel` z `{ "panel": { "provider", "completeUrl", "screenoutUrl", "qualityFailUrl" } }` (tylko HTTPS; `{PID}` w adresie zastępujemy identyfikatorem uczestnika; `{ "panel": null }` wyłącza). Twórca tych adresów nie ustawia — to przekierowanie widza poza serwis. Dostawca wysyła widzów na `https://<domena>/#/s/<token>?pid=<identyfikator>`. Po badaniu: ważna sesja → `complete`, odrzucona przez kontrolę jakości → `quality_fail`, wiek poza grupą albo poniżej 18 lat → `screenout`. Identyfikator trafia do serwera tylko w nagłówku `X-Panel-Ref` i jest zapisywany wyłącznie jako HMAC-SHA256 z `PANEL_SALT`; twórca go nie widzi, operator rozlicza się przez `GET /api/admin/projects/:id/panel` i `panel-hash`. W trybie testowym (`?sim=1`) nie ma przekierowań.
+- **Testy:** `tests/billing.test.ts` (Checkout, podpis, idempotencja, zmiana i anulowanie planu, panel ze skrótem), `e2e/billing.spec.ts` (paywall → Checkout → plan → portal → anulowanie na atrapie Stripe z `e2e/fake-stripe.mjs`, zamówienie panelu, powrót widza do dostawcy).
 
 ## Wdrożenie
 

@@ -201,8 +201,7 @@ export const studio: Messages['studio'] = {
     },
     panelTitle: 'Panel study',
     panelBody: 'You chose viewers from a panel. Send the order with a project summary and we will get back to you with a quote and timing. Panel viewers get the same study link.',
-    panelMail: (x: { name: string; kind: string; platform: string; seconds: number; versions: number; target: number; ages: string; language: string }) =>
-      `Hello,\n\nI would like to order a panel study.\n\nProject: ${x.name}\nStudy type: ${x.kind}\nPlatform: ${x.platform}\nContent length: ${x.seconds > 0 ? `${x.seconds} s` : 'to be confirmed'}\nVersions: ${x.versions}\nViewers${x.versions > 1 ? ' per version' : ''}: ${x.target}\nAge: ${x.ages}\nStudy language: ${x.language}\n\nCompany name and tax ID (for the invoice):\nPublishing date:\n`,
+    panelConnected: (provider: string) => `Panel connected (${provider}): panel viewers return to the provider after the study.`,
     statusTitle: 'Collecting viewers',
     mediaTitle: 'Content and scenes',
     mediaMeta: (name: string, kind: string, duration: string) => `${name} · ${kind} · ${duration}`,
@@ -325,9 +324,13 @@ export const studio: Messages['studio'] = {
   account: {
     title: 'Account',
     paymentOk: 'Thank you, payment received. Your plan will be active within a few seconds.',
+    paymentActive: (plan: string) => `Thank you, payment received. Your ${plan} plan is active.`,
     paymentCancelled: 'Payment cancelled. Your plan has not changed.',
     planTitle: 'Plan and usage',
     pastDue: 'Payment overdue',
+    pastDueBody: 'Your last card payment failed. Update your card in the billing portal to keep your plan.',
+    renews: (date: string) => `Renews on ${date}`,
+    manualBilling: 'This plan is invoiced. To change it, write to',
     changePlan: 'Change plan',
     portal: 'Payments and invoices',
     dataTitle: 'Details',

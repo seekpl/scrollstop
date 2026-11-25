@@ -6,6 +6,7 @@ import type { Platform } from '../config/platforms';
 import type { TrackingQuality } from '../core/contracts/types';
 import type { DemoId } from '../demo/demoScene';
 import type { Locale } from '../i18n/locales';
+import type { PanelConfig } from './panel';
 
 export type { Platform } from '../config/platforms';
 export type { TrackingQuality } from '../core/contracts/types';
@@ -167,6 +168,8 @@ export interface Project {
   locale: Locale;
   createdAt: string;
   updatedAt: string;
+  /** Integracja z dostawcą panelu — ustawia operator, nie twórca (§16.5). */
+  panel?: PanelConfig;
   /** Dołączane przez API przy liście. */
   counts?: { total: number; valid: number };
 }
@@ -288,7 +291,7 @@ export interface StudyConfig {
   linkToken: string;
   retentionDays: number;
   locale: Locale;
-  panel?: { provider: string; completeUrl: string; screenoutUrl: string; qualityFailUrl: string };
+  panel?: PanelConfig;
 }
 
 /** Plik sesji do odesłania twórcy (badanie bez serwera). */

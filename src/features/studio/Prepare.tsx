@@ -3,7 +3,6 @@ import { useMemo, useState } from 'react';
 import { studyConfigFor } from '../../research/project';
 import { absoluteUrl, navigate, pathOf } from '../../app/router';
 import { useResearch } from '../../app/research';
-import { salesEmail } from '../../config/company';
 import { detectScenes, fixedScenes, segmentLength } from '../../core/analysis/scenes';
 import { errorCode } from '../../core/errors';
 import { formatTime } from '../../core/math/util';
@@ -11,8 +10,9 @@ import { I18nProvider, LOCALE_NAMES, LOCALES, useI18n, useT, type Locale } from 
 import { encodeStudyConfig } from '../../research/link';
 import { AGE_BANDS, RETENTION_OPTIONS, type Aoi, type Project, type Scene, type Variant } from '../../research/model';
 import { planFor } from '../../research/plans';
-import { Badge, btnClass, Btn, Callout, CopyField, Dialog, Field, Icon, inputClass, Section, Segmented, Surface } from '../../ui/kit';
+import { Badge, Btn, Callout, CopyField, Dialog, Field, Icon, inputClass, Section, Segmented, Surface } from '../../ui/kit';
 import { registerLocalFile } from '../shared/mediaLibrary';
+import { PanelOrderDialog } from '../shared/PanelOrder';
 import { AoiEditor } from '../report/AoiPanel';
 import { useLibraryVersion, useVariantFrames } from '../report/frames';
 import { variantLabel } from '../report/ReportView';
@@ -124,7 +124,7 @@ export function Prepare({ project, sessions, update }: ProjectCtx) {
         </div>
       </Section>
 
-      {project.audience.source === 'panel' && <PanelOrder project={project} />}
+      {(project.audience.source !== 'community' || project.panel) && <PanelOrder project={project} />}
 
       <Section title={p.messagesTitle} aside={p.messagesAside(LOCALE_NAMES[project.locale])}>
         <I18nProvider locale={project.locale}>
@@ -174,31 +174,22 @@ export function Prepare({ project, sessions, update }: ProjectCtx) {
   );
 }
 
-/** Zamówienie badania z panelem (§16.5): bez serwera e-mail z podsumowaniem projektu. */
+/** Zamówienie badania z panelem (§16.5): formularz z podsumowaniem projektu; stan integracji z dostawcą. */
 function PanelOrder({ project }: { project: Project }) {
   const { t } = useI18n();
   const p = t.studio.prepare;
-  const v0 = project.variants[0];
-  const body = p.panelMail({
-    name: project.name,
-    kind: t.common.studyKinds[project.kind],
-    platform: t.common.platforms[project.platform],
-    seconds: Math.round(v0.duration),
-    versions: project.variants.length,
-    target: project.targetSessions,
-    ages: project.audience.ageBands.map((a) => t.common.ageBands[a]).join(', '),
-    language: LOCALE_NAMES[project.locale],
-  });
-  const href = `mailto:${salesEmail()}?subject=${encodeURIComponent(t.billing.panel.mailSubject)}&body=${encodeURIComponent(body)}`;
+  const [open, setOpen] = useState(false);
   return (
     <Section title={p.panelTitle}>
       <Surface>
         <p className="max-w-[70ch] text-[14.5px] leading-relaxed text-ink">{p.panelBody}</p>
         <p className="mt-2 text-[13.5px] text-muted">{t.billing.panel.quoteNote}</p>
-        <a href={href} className={btnClass('primary', 'md', 'mt-4')}>
+        {project.panel && <p className="mt-2 text-[13.5px] font-semibold text-good">{p.panelConnected(project.panel.provider)}</p>}
+        <Btn variant="primary" className="mt-4" onClick={() => setOpen(true)}>
           {t.billing.panel.order}
-        </a>
+        </Btn>
       </Surface>
+      <PanelOrderDialog open={open} onClose={() => setOpen(false)} project={project} />
     </Section>
   );
 }

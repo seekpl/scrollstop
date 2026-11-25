@@ -111,7 +111,7 @@ export function applyCors(req: IncomingMessage, res: ServerResponse, origins: re
     res.writeHead(204, {
       ...SECURITY_HEADERS,
       'Access-Control-Allow-Methods': 'GET, HEAD, POST, PATCH, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Authorization, Content-Type, Content-Encoding, Range',
+      'Access-Control-Allow-Headers': 'Authorization, Content-Type, Content-Encoding, Range, X-Panel-Ref',
       'Access-Control-Expose-Headers': 'Content-Range, Accept-Ranges, Content-Length',
       'Access-Control-Max-Age': '600',
     });

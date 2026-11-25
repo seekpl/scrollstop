@@ -14,6 +14,11 @@ export function exitFullscreen(): void {
 
 export const isFullscreen = (): boolean => !!document.fullscreenElement;
 
+/** Wyjście ze strony na inny adres (płatność, powrót widza do dostawcy panelu). */
+export function leaveTo(url: string): void {
+  window.location.assign(url);
+}
+
 let audio: AudioContext | null = null;
 
 function audioContext(): AudioContext | null {

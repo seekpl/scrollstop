@@ -202,8 +202,7 @@ export const studio = {
     },
     panelTitle: 'Badanie z panelem',
     panelBody: 'Ten projekt zakłada widzów z panelu. Wyślij zamówienie z podsumowaniem projektu, a odezwiemy się z wyceną i terminem. Widzowie z panelu dostaną ten sam link do badania.',
-    panelMail: (x: { name: string; kind: string; platform: string; seconds: number; versions: number; target: number; ages: string; language: string }) =>
-      `Dzień dobry,\n\nchcę zamówić badanie z panelem widzów.\n\nProjekt: ${x.name}\nRodzaj badania: ${x.kind}\nPlatforma: ${x.platform}\nDługość materiału: ${x.seconds > 0 ? `${x.seconds} s` : 'do ustalenia'}\nLiczba wersji: ${x.versions}\nWidzów${x.versions > 1 ? ' na wersję' : ''}: ${x.target}\nWiek: ${x.ages}\nJęzyk badania: ${x.language}\n\nNazwa firmy i NIP (do faktury):\nTermin publikacji:\n`,
+    panelConnected: (provider: string) => `Panel podłączony (${provider}): widzowie z panelu po badaniu wracają do dostawcy.`,
     statusTitle: 'Zbieranie widzów',
     mediaTitle: 'Materiał i sceny',
     mediaMeta: (name: string, kind: string, duration: string) => `${name} · ${kind} · ${duration}`,
@@ -326,9 +325,13 @@ export const studio = {
   account: {
     title: 'Konto',
     paymentOk: 'Dziękujemy, płatność przyjęta. Plan będzie aktywny w ciągu kilku sekund.',
+    paymentActive: (plan: string) => `Dziękujemy, płatność przyjęta. Plan ${plan} jest aktywny.`,
     paymentCancelled: 'Płatność anulowana. Plan się nie zmienił.',
     planTitle: 'Plan i wykorzystanie',
     pastDue: 'Zaległa płatność',
+    pastDueBody: 'Ostatnia płatność kartą nie przeszła. Zaktualizuj kartę w portalu płatności, żeby zachować plan.',
+    renews: (date: string) => `Odnowienie: ${date}`,
+    manualBilling: 'Plan rozliczany fakturą. Zmiany planu:',
     changePlan: 'Zmień plan',
     portal: 'Płatności i faktury',
     dataTitle: 'Dane',

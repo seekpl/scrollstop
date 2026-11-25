@@ -3,7 +3,8 @@ import { createServer } from 'node:http';
 import { join, resolve } from 'node:path';
 import { BRAND } from '../src/config/brand';
 import { isPlanId } from '../src/research/plans';
-import { createApp } from './app';
+import { createApp, panelRefHash } from './app';
+import { Stripe, stripeConfigFromEnv } from './billing';
 import { Db } from './db';
 
 /**
@@ -11,6 +12,8 @@ import { Db } from './db';
  *
  *   node dist-server/main.js                           — start serwera
  *   node dist-server/main.js set-plan <e-mail> <plan>  — ręczna zmiana planu (faktura, Agency, §13.4)
+ *   node dist-server/main.js panel-hash <dostawca> <id…> — skróty identyfikatorów uczestników panelu
+ *                                                         (porównanie z listą od dostawcy, §16.5)
  */
 const env = process.env;
 const list = (v: string | undefined) =>
@@ -18,6 +21,16 @@ const list = (v: string | undefined) =>
     .split(',')
     .map((x) => x.trim())
     .filter(Boolean);
+
+if (process.argv[2] === 'panel-hash') {
+  const [provider, ...ids] = process.argv.slice(3);
+  if (!env.PANEL_SALT || !provider || !ids.length) {
+    console.error('Użycie: PANEL_SALT=… panel-hash <dostawca> <id> [id…]');
+    process.exit(1);
+  }
+  for (const id of ids) console.info(`${id}\t${panelRefHash(env.PANEL_SALT, provider, id)}`);
+  process.exit(0);
+}
 
 const dataDir = resolve(env.DATA_DIR ?? './data');
 mkdirSync(dataDir, { recursive: true });
@@ -39,6 +52,8 @@ if (process.argv[2] === 'set-plan') {
 const port = Number(env.PORT ?? 8787);
 const appUrl = env.APP_URL ?? `http://localhost:${port}/`;
 const origins = list(env.APP_ORIGINS).length ? list(env.APP_ORIGINS) : [new URL(appUrl).origin];
+const stripeConfig = stripeConfigFromEnv(env);
+if (!env.PANEL_SALT) console.warn(`[${BRAND.code}] brak PANEL_SALT — identyfikatory uczestników panelu nie będą zapisywane`);
 
 const app = createApp(db, {
   dataDir,
@@ -49,6 +64,8 @@ const app = createApp(db, {
   maxImageMb: Number(env.MAX_IMAGE_MB ?? 15),
   trustProxy: env.TRUST_PROXY === '1',
   staticDir: env.STATIC_DIR ? resolve(env.STATIC_DIR) : null,
+  stripe: stripeConfig ? new Stripe(stripeConfig) : null,
+  panelSalt: env.PANEL_SALT || null,
   log: env.NODE_ENV !== 'test',
 });
 
@@ -57,7 +74,7 @@ server.requestTimeout = 30 * 60_000; // wgrywanie dużych plików wideo
 server.headersTimeout = 60_000;
 
 server.listen(port, env.HOST ?? '0.0.0.0', () => {
-  console.info(`[${BRAND.code}] API na porcie ${port}; aplikacja: ${appUrl}; dane: ${dataDir}; statyka: ${env.STATIC_DIR ?? 'brak'}`);
+  console.info(`[${BRAND.code}] API na porcie ${port}; aplikacja: ${appUrl}; dane: ${dataDir}; statyka: ${env.STATIC_DIR ?? 'brak'}; płatności: ${stripeConfig ? 'Stripe' : 'e-mail'}`);
 });
 
 const purge = () => {

@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import { pathOf } from '../../app/router';
 import { useResearch } from '../../app/research';
+import { salesEmail } from '../../config/company';
 import { errorCode } from '../../core/errors';
 import { useI18n } from '../../i18n';
+import { formatDate } from '../../i18n/format';
 import type { Usage } from '../../api/types';
 import { PLANS } from '../../research/plans';
 import { Badge, btnClass, Btn, Callout, Dialog, Field, inputClass, PageHeader, Section, Surface } from '../../ui/kit';
+import { leaveTo } from '../shared/browser';
 import { StudioShell } from './Shell';
 
 /** Słowa potwierdzenia usunięcia konta (§9.6). */
@@ -27,6 +30,17 @@ export function AccountPage() {
   useEffect(() => {
     void api.usage().then(setUsage);
   }, [api]);
+  // Powrót z płatności: plan zmienia webhook Stripe — odświeżamy konto, aż zmiana dotrze (do ~45 s).
+  const activated = account?.billing === 'stripe' && account.planStatus === 'active';
+  useEffect(() => {
+    if (payment !== 'ok' || activated) return;
+    let n = 0;
+    const timer = setInterval(() => {
+      if (++n > 15) clearInterval(timer);
+      void refreshAccount();
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [payment, activated, refreshAccount]);
   useEffect(() => {
     if (account) {
       setName(account.name);
@@ -65,7 +79,7 @@ export function AccountPage() {
     <StudioShell crumbs={[{ label: a.title }]} title={a.title}>
       <div className="space-y-10">
         <PageHeader title={a.title} />
-        {payment === 'ok' && <Callout title={a.paymentOk} />}
+        {payment === 'ok' && <Callout title={activated ? a.paymentActive(t.billing.planNames[account.plan]) : a.paymentOk} />}
         {payment === 'cancelled' && <Callout tone="warn" title={a.paymentCancelled} />}
         <Section title={a.planTitle}>
           <Surface>
@@ -73,16 +87,26 @@ export function AccountPage() {
               <span className="text-[20px] font-semibold">{t.billing.planNames[plan.id]}</span>
               {account.planStatus === 'past_due' && <Badge tone="poor">{a.pastDue}</Badge>}
             </div>
+            {account.planRenewsAt && account.planStatus === 'active' && <p className="mt-1 text-[14px] text-muted">{a.renews(formatDate(account.planRenewsAt, locale))}</p>}
+            {account.planStatus === 'past_due' && account.billing === 'stripe' && <p className="mt-1 text-[14px] text-poor">{a.pastDueBody}</p>}
+            {account.billing === 'manual' && (
+              <p className="mt-1 text-[14px] text-muted">
+                {a.manualBilling}{' '}
+                <a className="font-semibold text-cobalt underline underline-offset-4" href={`mailto:${salesEmail()}`}>
+                  {salesEmail()}
+                </a>
+              </p>
+            )}
             {usage && <p className="mt-2 text-[14px] text-muted">{t.studio.projects.limits(t.billing.planNames[plan.id], usage.activeProjects, plan.limits.activeProjects, usage.monthSessions, plan.limits.monthSessions)}</p>}
             <div className="mt-4 flex flex-wrap gap-2">
               <a href={pathOf({ name: 'pricing' })} className={btnClass('primary', 'md')}>
                 {a.changePlan}
               </a>
-              {api.mode === 'server' && account.planStatus !== 'none' && (
+              {api.mode === 'server' && account.billing === 'stripe' && (
                 <Btn
                   onClick={async () => {
                     try {
-                      window.location.assign((await api.billingPortal()).url);
+                      leaveTo((await api.billingPortal(locale)).url);
                     } catch (e) {
                       setError((t.errors as Record<string, string>)[errorCode(e)] ?? t.errors.unknown);
                     }

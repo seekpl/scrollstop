@@ -70,8 +70,12 @@ test.describe('studio twórcy (tryb lokalny)', () => {
     await page.getByRole('button', { name: 'Zobacz możliwości' }).click();
     const dialog = page.getByRole('dialog', { name: 'Limit planu' });
     await expect(dialog.getByRole('link', { name: /^Plan Creator za 79/ })).toHaveAttribute('href', '#/pricing?plan=creator');
-    await expect(dialog.getByRole('link', { name: /Zamów badanie z panelem/ })).toHaveAttribute('href', /^mailto:/);
+    // Panel z okna limitu: formularz z nazwą projektu (bez serwera — e-mail z podsumowaniem).
+    await dialog.getByRole('button', { name: /Zamów badanie z panelem/ }).click();
+    const order = page.getByRole('dialog', { name: 'Zamów badanie z panelem' });
+    await expect(order.getByText(/^Projekt: /)).toBeVisible();
     await page.keyboard.press('Escape');
+    await expect(order).toBeHidden();
     await input.setInputFiles(sessionFiles(1, 12));
     await expect(page.getByText('Dodano 0 sesji, pominięto 1 (duplikaty, limit planu albo uszkodzone dane).')).toBeVisible();
 

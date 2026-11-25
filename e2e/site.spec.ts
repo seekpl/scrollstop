@@ -33,9 +33,20 @@ test.describe('strona publiczna', () => {
     const creator = page.getByRole('listitem').filter({ has: page.getByRole('heading', { name: 'Creator' }) });
     await expect(creator.getByText(/^79\s?zł$/)).toBeVisible();
     await expect(creator.getByRole('link', { name: 'Zamów plan Creator' })).toHaveAttribute('href', /^mailto:.+\?subject=Zam%C3%B3wienie%20planu%20Creator/);
-    await expect(page.getByRole('link', { name: 'Zamów badanie z panelem' })).toHaveAttribute('href', /^mailto:/);
+    await expect(page.getByText('Płatności online nie są jeszcze włączone.', { exact: false })).toBeVisible();
     await expect(page.getByText('wkrótce').first()).toBeVisible();
     await expectNoHorizontalScroll(page);
+    // Badanie z panelem bez serwera: formularz → e-mail z podsumowaniem (§16.5).
+    await page.getByRole('button', { name: 'Zamów badanie z panelem' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Zamów badanie z panelem' });
+    await expect(dialog.getByText(/^Od 590\s?zł przy materiale do 60 s/)).toBeVisible();
+    await expectNoHorizontalScroll(page);
+    await dialog.getByLabel('Firma lub nazwa kanału').fill('Marka');
+    await dialog.getByLabel('E-mail kontaktowy').fill('kontakt@marka.pl');
+    await dialog.getByRole('button', { name: 'Przygotuj e-mail z zamówieniem' }).click();
+    await expect(dialog.getByText(/^Otworzyliśmy wiadomość e-mail z podsumowaniem/)).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
     await page.goto('/?lang=en#/pricing');
     const pro = page.getByRole('listitem').filter({ has: page.getByRole('heading', { name: 'Pro' }) });
     await expect(pro.getByText('$49')).toBeVisible();

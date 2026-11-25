@@ -9,6 +9,7 @@ import {
   type Account,
   type AiInsightsResult,
   type BillingInterval,
+  type Capabilities,
   type InviteInfo,
   type InvitePreview,
   type MemberInfo,
@@ -68,8 +69,8 @@ export class HttpResearchApi implements ResearchApi {
     this.base = base.replace(/\/$/, '');
   }
 
-  private async request<T>(method: string, path: string, body?: unknown, opts: { gzip?: boolean } = {}): Promise<T> {
-    const headers: Record<string, string> = {};
+  private async request<T>(method: string, path: string, body?: unknown, opts: { gzip?: boolean; headers?: Record<string, string> } = {}): Promise<T> {
+    const headers: Record<string, string> = { ...opts.headers };
     if (this.token) headers.Authorization = `Bearer ${this.token}`;
     let payload: BodyInit | undefined;
     if (body !== undefined) {
@@ -216,20 +217,30 @@ export class HttpResearchApi implements ResearchApi {
     return this.request('GET', `/api/study/${enc(token)}`);
   }
 
-  submitSession(token: string, session: ViewerSession): Promise<SubmitResult> {
-    return this.request('POST', `/api/study/${enc(token)}/sessions`, session, { gzip: true });
+  submitSession(token: string, session: ViewerSession, opts: { panelRef?: string } = {}): Promise<SubmitResult> {
+    // Identyfikator uczestnika panelu w nagłówku: serwer zapisze tylko jego skrót (§15).
+    return this.request('POST', `/api/study/${enc(token)}/sessions`, session, { gzip: true, ...(opts.panelRef ? { headers: { 'X-Panel-Ref': opts.panelRef } } : {}) });
   }
 
   async deleteSessionByCode(sessionId: string, code: string): Promise<void> {
     await this.request('POST', `/api/sessions/${enc(sessionId)}/delete`, { code });
   }
 
-  checkout(plan: Exclude<PlanId, 'free' | 'agency'>, interval: BillingInterval): Promise<{ url: string }> {
-    return this.request('POST', '/api/billing/checkout', { plan, interval });
+  async capabilities(): Promise<Capabilities> {
+    try {
+      const h = await this.request<{ billing?: unknown; ai?: unknown }>('GET', '/api/health');
+      return { billing: h.billing === true, ai: h.ai === true };
+    } catch {
+      return { billing: false, ai: false };
+    }
   }
 
-  billingPortal(): Promise<{ url: string }> {
-    return this.request('POST', '/api/billing/portal');
+  checkout(plan: Exclude<PlanId, 'free' | 'agency'>, interval: BillingInterval, locale: Locale): Promise<{ url: string }> {
+    return this.request('POST', '/api/billing/checkout', { plan, interval, locale });
+  }
+
+  billingPortal(locale: Locale): Promise<{ url: string }> {
+    return this.request('POST', '/api/billing/portal', { locale });
   }
 
   requestPanel(order: PanelOrder): Promise<{ id: string }> {

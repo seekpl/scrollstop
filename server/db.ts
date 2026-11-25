@@ -385,6 +385,14 @@ export class Db {
     );
   }
 
+  /** Sesje z panelu do rozliczenia z dostawcą: same metadane, bez próbek wzroku. */
+  panelSessions(projectId: string): Array<{ id: string; status: ViewerSession['status']; rejectCode: ViewerSession['rejectCode']; createdAt: string; refHash: string; provider: string }> {
+    return this.all<{ meta: string }>('select meta from sessions where project_id = ? order by created_at', projectId).flatMap((r) => {
+      const m = JSON.parse(r.meta) as Omit<ViewerSession, 'data'>;
+      return m.panel ? [{ id: m.id, status: m.status, rejectCode: m.rejectCode, createdAt: m.createdAt, refHash: m.panel.refHash, provider: m.panel.provider }] : [];
+    });
+  }
+
   session(id: string): ViewerSession | undefined {
     const r = this.get<{ meta: string; samples: Uint8Array }>('select meta, samples from sessions where id = ?', id);
     return r ? ({ ...(JSON.parse(r.meta) as Omit<ViewerSession, 'data'>), data: JSON.parse(gunzipSync(r.samples).toString('utf8')) } as ViewerSession) : undefined;

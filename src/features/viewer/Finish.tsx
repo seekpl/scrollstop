@@ -7,6 +7,8 @@ import { downloadText } from '../../export/exporters';
 import { useT } from '../../i18n';
 import { encodePackage } from '../../research/compact';
 import type { StudyConfig, ViewerSession } from '../../research/model';
+import { panelReturnUrl } from '../../research/panel';
+import { leaveTo } from '../shared/browser';
 import { BigButton, Screen, Title } from './parts';
 import { clearPending, queueSession } from './outbox';
 
@@ -17,7 +19,7 @@ type FinishState = 'ask' | 'sending' | 'sent' | 'failed' | 'package' | 'declined
  * usunięcia (serwer), kolejka przy błędzie sieci, plik do odesłania (link samowystarczalny),
  * przekierowanie panelu.
  */
-export function FinishScreen({ config, session, completed, reported, simulated }: { config: StudyConfig; session: ViewerSession; completed: boolean; reported: boolean; simulated: boolean }) {
+export function FinishScreen({ config, session, completed, reported, simulated, pid = null }: { config: StudyConfig; session: ViewerSession; completed: boolean; reported: boolean; simulated: boolean; pid?: string | null }) {
   const t = useT();
   const f = t.viewer.finish;
   const { api } = useResearch();
@@ -26,13 +28,12 @@ export function FinishScreen({ config, session, completed, reported, simulated }
   const [code, setCode] = useState<{ id: string; code: string } | null>(null);
   const sent = useRef(false);
 
+  /** Widz z panelu wraca do dostawcy (z identyfikatorem uczestnika w adresie, gdy dostawca go oczekuje). */
   const redirectPanel = (kind: 'complete' | 'quality_fail') => {
     const p = config.panel;
-    if (!p) return false;
-    const target = kind === 'complete' ? p.completeUrl : p.qualityFailUrl;
-    if (!/^https:\/\//.test(target)) return false;
+    if (!p || !pid) return false;
     setState('redirect');
-    window.location.assign(target);
+    leaveTo(panelReturnUrl(p, kind, pid));
     return true;
   };
 
@@ -40,7 +41,7 @@ export function FinishScreen({ config, session, completed, reported, simulated }
     if (config.transport === 'package') return setState('package');
     setState('sending');
     try {
-      const r = await api.submitSession(config.linkToken, session);
+      const r = await api.submitSession(config.linkToken, session, pid ? { panelRef: pid } : {});
       await clearPending(session.id);
       if (redirectPanel(r.status === 'valid' ? 'complete' : 'quality_fail')) return;
       setCode(r.deletionCode && config.transport === 'server' ? { id: r.sessionId, code: r.deletionCode } : null);

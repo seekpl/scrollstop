@@ -1,15 +1,20 @@
-import { useState } from 'react';
-import { pathOf } from '../../app/router';
+import { useEffect, useState } from 'react';
+import type { Capabilities } from '../../api/types';
+import { hashQuery, pathOf } from '../../app/router';
 import { useResearch } from '../../app/research';
 import { bookingUrl, salesEmail } from '../../config/company';
+import { errorCode } from '../../core/errors';
 import { useI18n } from '../../i18n';
 import { formatMoney } from '../../i18n/format';
 import { currencyFor, type Currency } from '../../i18n/locales';
 import { PANEL, PLAN_IDS, PLANS, PRICING_ITEMS, PRICING_SOON, type PlanId } from '../../research/plans';
-import { Badge, btnClass, Icon, Segmented } from '../../ui/kit';
+import { Badge, Btn, btnClass, Icon, Segmented } from '../../ui/kit';
+import { leaveTo } from '../shared/browser';
+import { PanelOrderDialog } from '../shared/PanelOrder';
 import { SiteShell } from './SiteShell';
 
 type Interval = 'monthly' | 'yearly';
+type PaidPlan = Exclude<PlanId, 'free' | 'agency'>;
 
 const mailto = (subject: string, body?: string) => `mailto:${salesEmail()}?subject=${encodeURIComponent(subject)}${body ? `&body=${encodeURIComponent(body)}` : ''}`;
 
@@ -20,15 +25,83 @@ function planFromHash(): PlanId | null {
 }
 
 /**
+ * Zakup planu (§16.4): Stripe Checkout, gdy serwer ma klucze; przy aktywnej subskrypcji portal
+ * klienta; bez płatności online — e-mail do sprzedaży. Błąd płatności zawsze z przyciskiem e-mail.
+ */
+function BuyButton({ plan, interval, label, mailHref, billing }: { plan: PaidPlan; interval: Interval; label: string; mailHref: string; billing: boolean }) {
+  const { t, locale } = useI18n();
+  const p = t.billing.pricing;
+  const { api, account } = useResearch();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  if (!billing) {
+    return (
+      <a href={mailHref} className={btnClass('primary', 'md')}>
+        {label}
+      </a>
+    );
+  }
+  if (!account) {
+    // Najpierw konto, potem powrót do cennika z wybranym planem.
+    const next = `${pathOf({ name: 'pricing' })}?plan=${plan}`;
+    return (
+      <a href={`${pathOf({ name: 'register' })}?next=${encodeURIComponent(next)}`} className={btnClass('primary', 'md')}>
+        {p.buy(t.billing.planNames[plan])}
+      </a>
+    );
+  }
+  const subscribed = account.billing === 'stripe' && (account.planStatus === 'active' || account.planStatus === 'past_due');
+  const go = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const { url } = subscribed ? await api.billingPortal(locale) : await api.checkout(plan, interval, locale);
+      leaveTo(url);
+    } catch (e) {
+      setError((t.errors as Record<string, string>)[errorCode(e)] ?? t.errors.unknown);
+      setBusy(false);
+    }
+  };
+  return (
+    <>
+      <Btn variant="primary" disabled={busy} onClick={() => void go()}>
+        {busy ? p.redirecting : subscribed ? (account.plan === plan ? p.manage : p.changeInPortal) : p.buy(t.billing.planNames[plan])}
+      </Btn>
+      {error && (
+        <>
+          <p role="alert" className="text-[13.5px] font-semibold text-poor">
+            {error}
+          </p>
+          <a href={mailHref} className={btnClass('secondary', 'md')}>
+            {p.orderByMail}
+          </a>
+        </>
+      )}
+    </>
+  );
+}
+
+/**
  * Cennik (§16): waluta według języka (en: USD z przełącznikiem EUR), okres miesięczny lub roczny
- * (10 × cena miesięczna), zamówienie e-mailem bez serwera płatności. Pozycje bez kodu — „wkrótce”.
+ * (10 × cena miesięczna). Kupno przez Stripe albo e-mailem (bez płatności online). Pozycje bez
+ * kodu — „wkrótce”. Badanie z panelem: formularz zamówienia.
  */
 export function PricingPage() {
   const { t, locale } = useI18n();
   const b = t.billing;
   const p = b.pricing;
-  const { account } = useResearch();
+  const { api, account } = useResearch();
   const [interval, setInterval] = useState<Interval>('monthly');
+  const [caps, setCaps] = useState<Capabilities | null>(null);
+  const [panelOpen, setPanelOpen] = useState(() => hashQuery().get('panel') === '1');
+  useEffect(() => {
+    let live = true;
+    void api.capabilities().then((c) => live && setCaps(c));
+    return () => {
+      live = false;
+    };
+  }, [api]);
+  const billing = !!caps?.billing;
   const [eur, setEur] = useState(false);
   const cur: Currency = currencyFor(locale, eur);
   const highlight = planFromHash();
@@ -112,16 +185,14 @@ export function PricingPage() {
                       )}
                     </>
                   ) : (
-                    <a href={mailto(p.mailSubject(name, interval === 'yearly' ? p.yearly : p.monthly), p.mailBody(name, `${price} ${per}`))} className={btnClass('primary', 'md')}>
-                      {p.order(name)}
-                    </a>
+                    <BuyButton plan={id} interval={interval} billing={billing} label={p.order(name)} mailHref={mailto(p.mailSubject(name, interval === 'yearly' ? p.yearly : p.monthly), p.mailBody(name, `${price} ${per}`))} />
                   )}
                 </div>
               </li>
             );
           })}
         </ul>
-        <p className="mt-4 text-[13.5px] text-muted">{p.noServer}</p>
+        {caps && <p className="mt-4 text-[13.5px] text-muted">{billing ? p.cardNote : p.noServer}</p>}
 
         <section className="mt-14 grid gap-6 rounded-2xl bg-surface p-5 ring-1 ring-line sm:p-8 md:grid-cols-[minmax(0,1fr)_auto] md:items-center" aria-labelledby="panel">
           <div className="min-w-0">
@@ -142,10 +213,11 @@ export function PricingPage() {
             <p className="mt-4 text-[15px] font-semibold text-ink">{b.panel.priceFrom(panelPrice)}</p>
             <p className="mt-1 text-[13.5px] text-muted">{b.panel.quoteNote}</p>
           </div>
-          <a href={mailto(b.panel.mailSubject)} className={btnClass('primary', 'lg')}>
+          <Btn variant="primary" size="lg" onClick={() => setPanelOpen(true)}>
             {b.panel.order}
-          </a>
+          </Btn>
         </section>
+        <PanelOrderDialog open={panelOpen} onClose={() => setPanelOpen(false)} />
 
         <section className="mt-14" aria-labelledby="faq">
           <h2 id="faq" className="text-[24px] font-semibold tracking-[-0.02em] text-ink">

@@ -8,8 +8,9 @@ import { I18nProvider, useT } from '../../i18n';
 import { compactSamples } from '../../research/compact';
 import { calibrationInfo, decodeStudyConfig, detectDevice, randomId } from '../../research/link';
 import type { AgeBand, ConsentRecord, StudyConfig, ViewerSession } from '../../research/model';
+import { cleanPid, panelReturnUrl } from '../../research/panel';
 import { expiryDate } from '../../research/sessions';
-import { exitFullscreen } from '../shared/browser';
+import { exitFullscreen, leaveTo } from '../shared/browser';
 import type { CalibrationOutcome } from '../shared/useCalibration';
 import { CalibrationStage } from './CalibrationStage';
 import { CameraCheck } from './CameraCheck';
@@ -36,11 +37,14 @@ const isTouchDevice = () => detectDevice().type !== 'desktop';
  * Badanie po stronie widza (§10). Do wczytania konfiguracji — język interfejsu; potem cały
  * przebieg w języku badania z projektu (zagnieżdżony provider językowy, §18).
  * `?sim=1` — tryb testowy twórcy: bez kamery, wzrok symulowany, sesja oznaczona jako symulacja.
+ * `?pid=…` — widz z panelu (§16.5): identyfikator uczestnika tylko w pamięci, po badaniu powrót do
+ * dostawcy. Serwer zapisuje wyłącznie skrót identyfikatora.
  */
 export function ViewerApp({ token, payload }: { token?: string; payload?: string }) {
   const t = useT();
   const { api } = useResearch();
   const simulated = hashQuery().get('sim') === '1';
+  const [pid] = useState(() => cleanPid(hashQuery().get('pid')));
   const [config, setConfig] = useState<StudyConfig | null>(null);
   const [problem, setProblem] = useState<Problem | null>(null);
 
@@ -90,13 +94,13 @@ export function ViewerApp({ token, payload }: { token?: string; payload?: string
   return (
     <I18nProvider locale={config.locale}>
       <div lang={config.locale} className="contents">
-        <Study config={config} simulated={simulated} />
+        <Study config={config} simulated={simulated} pid={config.panel && !simulated ? pid : null} />
       </div>
     </I18nProvider>
   );
 }
 
-function Study({ config, simulated }: { config: StudyConfig; simulated: boolean }) {
+function Study({ config, simulated, pid }: { config: StudyConfig; simulated: boolean; pid: string | null }) {
   const t = useT();
   const mobile = useMemo(isTouchDevice, []);
   const portraitMedia = config.variant.height > config.variant.width;
@@ -162,9 +166,13 @@ function Study({ config, simulated }: { config: StudyConfig; simulated: boolean 
         <ConsentScreen
           config={config}
           simulated={simulated}
-          onUnderage={() => setStage('underage')}
+          onUnderage={() => {
+            // Widz z panelu poniżej 18 lat: bez żadnych danych wraca do dostawcy jako odrzucony.
+            if (config.panel && pid) leaveTo(panelReturnUrl(config.panel, 'screenout', pid));
+            setStage('underage');
+          }}
           onScreenout={() => {
-            if (config.panel && /^https:\/\//.test(config.panel.screenoutUrl)) window.location.assign(config.panel.screenoutUrl);
+            if (config.panel && pid) leaveTo(panelReturnUrl(config.panel, 'screenout', pid));
             setStage('screenout');
           }}
           onAccept={(c, age) => {
@@ -271,6 +279,6 @@ function Study({ config, simulated }: { config: StudyConfig; simulated: boolean 
         />
       );
     case 'finish':
-      return <FinishScreen config={config} session={session as ViewerSession} completed={!!result?.completed} reported={!!result?.reported} simulated={simulated} />;
+      return <FinishScreen config={config} session={session as ViewerSession} completed={!!result?.completed} reported={!!result?.reported} simulated={simulated} pid={pid} />;
   }
 }

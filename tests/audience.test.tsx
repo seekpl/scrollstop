@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { LocalResearchApi } from '../src/api/local';
 import { MemoryLocalStore } from '../src/api/localStore';
 import { ResearchProvider } from '../src/app/research';
@@ -12,6 +12,9 @@ import type { ViewerSession } from '../src/research/model';
 import { demoProject } from '../src/research/panelSim';
 import { FULL_ACCESS } from '../src/research/plans';
 import { sanitizeSession } from '../src/research/sanitize';
+
+const leaveTo = vi.hoisted(() => vi.fn<(url: string) => void>());
+vi.mock('../src/features/shared/browser', async (orig) => ({ ...(await orig<typeof import('../src/features/shared/browser')>()), leaveTo }));
 
 const NOW = '2026-11-20T10:00:00.000Z';
 const tx = RESEARCH_TEXT.pl;
@@ -104,13 +107,23 @@ describe('zamówienie panelu w projekcie', () => {
         <Root api={api} />
       </I18nProvider>,
     );
-    const order = await screen.findByRole('link', { name: 'Zamów badanie z panelem' });
-    const href = decodeURIComponent(order.getAttribute('href') ?? '');
+    // Formularz zamówienia z podsumowaniem projektu; bez serwera — e-mail do sprzedaży.
+    fireEvent.click(await screen.findByRole('button', { name: 'Zamów badanie z panelem' }));
+    const dialog = screen.getByRole('dialog', { name: 'Zamów badanie z panelem' });
+    expect(within(dialog).getByText('Projekt: Reklama kawy')).toBeInTheDocument();
+    expect(within(dialog).getByRole('radio', { name: '50' })).toBeChecked();
+    expect(within(dialog).getByLabelText('25–34 lata')).toBeChecked();
+    fireEvent.change(within(dialog).getByLabelText('Firma lub nazwa kanału'), { target: { value: 'Marka testowa' } });
+    fireEvent.change(within(dialog).getByLabelText('E-mail kontaktowy'), { target: { value: 'marka@example.com' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Przygotuj e-mail z zamówieniem' }));
+    const href = decodeURIComponent(leaveTo.mock.calls[0][0]);
     expect(href).toMatch(/^mailto:/);
     expect(href).toContain('Projekt: Reklama kawy');
-    expect(href).toContain('Długość materiału: 15 s');
-    expect(href).toContain('Widzów: 50');
+    expect(href).toContain('długość materiału: 15 s');
+    expect(href).toContain('Liczba widzów: 50');
     expect(href).toContain('Wiek: 25–34 lata');
+    expect(href).toContain('Firma: Marka testowa');
+    expect(await within(dialog).findByText(/^Otworzyliśmy wiadomość e-mail z podsumowaniem/)).toBeInTheDocument();
     window.history.replaceState(null, '', '/');
   });
 });

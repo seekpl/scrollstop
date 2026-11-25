@@ -59,7 +59,10 @@ describe('strona publiczna (M4)', () => {
     expect(within(creator).getByText(/^790\s?zł$/)).toBeInTheDocument();
     const soon = PLAN_SOON_COUNT();
     expect(screen.getAllByText('wkrótce')).toHaveLength(soon);
-    expect(screen.getByRole('link', { name: 'Zamów badanie z panelem' }).getAttribute('href')).toMatch(/^mailto:/);
+    // Badanie z panelem: formularz (bez serwera kończy się e-mailem z podsumowaniem).
+    fireEvent.click(screen.getByRole('button', { name: 'Zamów badanie z panelem' }));
+    expect(screen.getByRole('dialog', { name: 'Zamów badanie z panelem' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Przygotuj e-mail z zamówieniem' })).toBeInTheDocument();
   });
 
   it('cennik po angielsku: USD z przełącznikiem EUR', async () => {

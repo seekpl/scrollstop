@@ -245,6 +245,8 @@ export function studyConfigFor(project: Project, variant: Variant, transport: St
     linkToken: project.linkToken,
     retentionDays: project.retentionDays,
     locale: project.locale,
+    // Powroty do dostawcy panelu tylko przez serwer (skrót identyfikatora uczestnika wymaga soli serwera).
+    ...(project.panel && transport === 'server' ? { panel: project.panel } : {}),
   };
 }
 

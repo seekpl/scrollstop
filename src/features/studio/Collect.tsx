@@ -193,7 +193,7 @@ export function Collect({ project, sessions, reload }: ProjectCtx) {
           </Btn>
         </div>
       </Dialog>
-      <PaywallDialog reason={paywall ? block : null} onClose={() => setPaywall(false)} target={project.targetSessions} />
+      <PaywallDialog reason={paywall ? block : null} onClose={() => setPaywall(false)} target={project.targetSessions} project={project} />
     </div>
   );
 }

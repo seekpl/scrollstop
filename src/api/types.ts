@@ -48,6 +48,8 @@ export interface Account {
   role: Role;
   /** Plan właściciela bieżącego zespołu — limity i funkcje w studiu. */
   workspacePlan: PlanId;
+  /** Rozliczenie planu: karta w Stripe (portal klienta), faktura (ręcznie) albo brak. */
+  billing: 'stripe' | 'manual' | null;
 }
 
 export interface Usage {
@@ -176,6 +178,11 @@ export interface AiInsightsResult {
 
 export type BillingInterval = 'monthly' | 'yearly';
 
+export interface Capabilities {
+  billing: boolean;
+  ai: boolean;
+}
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -215,11 +222,14 @@ export interface ResearchApi {
 
   /** Konfiguracja badania dla widza (przydział wersji). */
   study(token: string): Promise<StudyLookup>;
-  submitSession(token: string, session: ViewerSession): Promise<SubmitResult>;
+  /** `panelRef` — identyfikator uczestnika panelu (serwer zapisuje tylko skrót). */
+  submitSession(token: string, session: ViewerSession, opts?: { panelRef?: string }): Promise<SubmitResult>;
   deleteSessionByCode(sessionId: string, code: string): Promise<void>;
 
-  checkout(plan: Exclude<PlanId, 'free' | 'agency'>, interval: BillingInterval): Promise<{ url: string }>;
-  billingPortal(): Promise<{ url: string }>;
+  /** Co jest włączone na serwerze (płatności online, AI) — przyciski w cenniku i raporcie. */
+  capabilities(): Promise<Capabilities>;
+  checkout(plan: Exclude<PlanId, 'free' | 'agency'>, interval: BillingInterval, locale: Locale): Promise<{ url: string }>;
+  billingPortal(locale: Locale): Promise<{ url: string }>;
   requestPanel(order: PanelOrder): Promise<{ id: string }>;
   /** Rekomendacje AI (serwer) albo z reguł. */
   insights(projectId: string, variantId: VariantId, locale: Locale): Promise<AiInsightsResult>;

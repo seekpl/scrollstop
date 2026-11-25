@@ -63,6 +63,7 @@ export class LocalResearchApi implements ResearchApi {
       workspaceId: 'local',
       role: 'owner',
       workspacePlan: this.opts.plan ?? 'free',
+      billing: null,
     };
   }
 
@@ -277,6 +278,11 @@ export class LocalResearchApi implements ResearchApi {
     if (!hash || hash !== (await sha256Hex(normalizeCode(code)))) throw fail('bad_code', 404);
     await this.store.del('sessions', sessionId);
     await this.store.del('kv', `del:${sessionId}`);
+  }
+
+  /** Bez serwera nie ma płatności online ani AI: zakup e-mailem, wnioski z reguł. */
+  async capabilities() {
+    return { billing: false, ai: false };
   }
 
   async checkout(): Promise<never> {

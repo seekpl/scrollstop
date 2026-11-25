@@ -1,47 +1,13 @@
-import { devices, expect, test, type APIRequestContext, type Page } from '@playwright/test';
+import { devices, expect, test } from '@playwright/test';
 import { acceptConsent, expectNoHorizontalScroll, PHONE_WIDTHS } from './helpers';
+import { createDemoProject, PASSWORD, registerUi, SERVER, setPlan, uniqueEmail } from './serverHelpers';
 
 /**
  * Tryb serwerowy (§22.2): konto, link do badania, sesja z telefonu, usunięcie kodem, link do raportu,
  * zespół i wgrywanie materiału. Serwer z pustą bazą startuje z `e2e/start-server.mjs` (port 4174).
  */
-const SERVER = 'http://127.0.0.1:4174';
 test.use({ baseURL: SERVER });
 test.skip(process.env.E2E_SERVER === '0', 'serwer E2E wyłączony (E2E_SERVER=0)');
-
-const PASSWORD = 'haslo-testowe-123';
-let seq = 0;
-const uniqueEmail = (tag: string) => `${tag}-${Date.now()}-${++seq}@example.com`;
-
-/** Plan ustawiany przez administratora (ADMIN_EMAILS w serwerze testowym). */
-async function setPlan(request: APIRequestContext, email: string, plan: 'free' | 'creator' | 'pro' | 'agency') {
-  await request.post('/api/auth/register', { data: { email: 'admin@e2e.test', password: 'haslo-admina-123' } });
-  const login = await request.post('/api/auth/login', { data: { email: 'admin@e2e.test', password: 'haslo-admina-123' } });
-  const { token } = (await login.json()) as { token: string };
-  const r = await request.post('/api/admin/plan', { headers: { Authorization: `Bearer ${token}` }, data: { email, plan } });
-  expect(r.status()).toBe(200);
-}
-
-async function registerUi(page: Page, email: string, name = 'Ala Twórczyni', company = 'Studio E2E') {
-  await page.goto('/#/register');
-  await page.getByLabel('Imię i nazwisko').fill(name);
-  await page.getByLabel('Firma lub kanał').fill(company);
-  await page.getByLabel('E-mail służbowy').fill(email);
-  await page.getByLabel('Hasło').fill(PASSWORD);
-  await page.getByRole('button', { name: 'Załóż konto' }).click();
-  await expect(page).toHaveURL(/#\/app$/);
-}
-
-async function createDemoProject(page: Page, name: string): Promise<string> {
-  await page.goto('/#/app/new');
-  await page.getByRole('tab', { name: 'Klip demo' }).click();
-  await page.getByRole('button', { name: 'Użyj: Rolka demo B (15 s, 9:16)' }).click();
-  await page.getByLabel('Nazwa projektu').fill(name);
-  await page.getByLabel('Nazwa twórcy').fill('Studio E2E');
-  await page.getByRole('button', { name: 'Utwórz projekt' }).click();
-  await expect(page.getByRole('heading', { level: 1, name })).toBeVisible();
-  return new URL(page.url()).hash;
-}
 
 test('konto, link do badania, sesja z telefonu, usunięcie kodem i link do raportu', async ({ page, browser, request }) => {
   test.setTimeout(150_000);
