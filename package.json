@@ -1,0 +1,50 @@
+{
+  "name": "scrollstop",
+  "version": "0.1.0",
+  "description": "ScrollStop — badania uwagi widzów dla twórców treści w social media: krzywa uwagi sekunda po sekundzie, hook, test w feedzie, mapy spojrzeń (szacowanie wzroku kamerą internetową; obraz z kamery zostaje na urządzeniu widza)",
+  "scripts": {
+    "postinstall": "node scripts/copy-mediapipe-wasm.mjs",
+    "fetch-model": "node scripts/fetch-model.mjs",
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "build:ftp": "tsc --noEmit && vite build --base ./ --outDir dist-ftp --emptyOutDir",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "server:build": "vite build --config vite.server.config.ts",
+    "server:start": "node dist-server/main.js",
+    "server:dev": "vite build --config vite.server.config.ts --watch",
+    "e2e": "playwright test",
+    "check:colors": "vitest run tests/colors.test.ts"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.132.1",
+    "@fontsource-variable/instrument-sans": "^5.3.0",
+    "@mediapipe/tasks-vision": "^1.1.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "@tailwindcss/vite": "^4.3.3",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^26.6.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "jsdom": "^30.1.2",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.3",
+    "vitest": "^5.0.3"
+  },
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.5"
+  }
+}

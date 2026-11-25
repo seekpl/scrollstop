@@ -1,0 +1,114 @@
+name: CI & Pages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Build serwera (gdy istnieje)
+        run: if [ -f server/main.ts ]; then npm run server:build; fi
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run e2e
+        env:
+          CI: '1'
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report
+            test-results
+          retention-days: 7
+
+  ftp-package:
+    # Paczka do wgrania przez FTP na zwykły hosting: Actions → przebieg → Artifacts → scrollstop-ftp.
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: [test, e2e]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Pobierz model Face Landmarker (hostowany razem z aplikacją)
+        run: npm run fetch-model
+      - name: Build (ścieżki względne, działa w dowolnym katalogu)
+        run: npm run build:ftp
+        env:
+          VITE_API_URL: ${{ vars.ATTN_API_URL }}
+          VITE_SALES_EMAIL: ${{ vars.ATTN_SALES_EMAIL }}
+          VITE_BOOKING_URL: ${{ vars.ATTN_BOOKING_URL }}
+      - run: rm -f dist-ftp/models/.gitkeep
+      - uses: actions/upload-artifact@v4
+        with:
+          name: scrollstop-ftp
+          path: dist-ftp
+          include-hidden-files: true
+          retention-days: 30
+
+  deploy:
+    # Publikacja wymaga włączenia Pages: Settings → Pages → Source: „GitHub Actions”.
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: [test, e2e]
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Pobierz model Face Landmarker (hostowany razem z aplikacją)
+        run: npm run fetch-model
+      - name: Build
+        run: npm run build
+        env:
+          BASE_PATH: /${{ github.event.repository.name }}/
+          # Tryb serwerowy, gdy w ustawieniach repozytorium ustawiono zmienną ATTN_API_URL.
+          VITE_API_URL: ${{ vars.ATTN_API_URL }}
+          VITE_SALES_EMAIL: ${{ vars.ATTN_SALES_EMAIL }}
+          VITE_BOOKING_URL: ${{ vars.ATTN_BOOKING_URL }}
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - id: deployment
+        uses: actions/deploy-pages@v4

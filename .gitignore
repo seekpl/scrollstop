@@ -1,0 +1,15 @@
+node_modules
+dist
+coverage
+public/mediapipe/
+public/models/*.task
+.DS_Store
+*.log
+.vite
+dist-server
+data
+test-results
+playwright-report
+dist-e2e
+dist-ftp
+.claude/worktrees

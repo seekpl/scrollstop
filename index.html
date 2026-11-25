@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>%BRAND_NAME% — w której sekundzie widzowie przestają patrzeć?</title>
+    <meta name="description" content="Sprawdź hook, montaż i napisy na prawdziwych widzach, zanim opublikujesz: krzywa uwagi sekunda po sekundzie, mapa spojrzeń i konkretne poprawki. Obraz z kamery nie opuszcza urządzenia widza." />
+    <meta name="theme-color" content="%THEME_COLOR%" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="%BRAND_NAME%" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>%BRAND_NAME% wymaga włączonego JavaScriptu. / %BRAND_NAME% needs JavaScript.</noscript>
+    <script>
+      // Diagnostyka wdrożenia (§21.3): gdy aplikacja się nie uruchomi (np. brak plików po wgraniu
+      // przez FTP), zamiast białej strony pokazujemy, czego brakuje — w języku przeglądarki.
+      (function () {
+        var BRAND = '%BRAND_NAME%';
+        var problems = [];
+        window.addEventListener('error', function (e) {
+          var t = e.target;
+          if (t && (t.tagName === 'SCRIPT' || t.tagName === 'LINK')) problems.push('Nie wczytano pliku / File not loaded: ' + (t.src || t.href));
+          else if (e.message) problems.push(e.message);
+        }, true);
+        window.addEventListener('unhandledrejection', function (e) {
+          problems.push(String((e.reason && e.reason.message) || e.reason));
+        });
+        var TEXT = {
+          pl: ['Aplikacja się nie uruchomiła', 'Przeglądarka wczytała stronę, ale nie aplikację. Najczęstsze przyczyny po wgraniu przez FTP:', ['nie wgrano folderu <b>assets</b> (albo wgrano go tylko częściowo),', 'pliki trafiły do innego katalogu niż <b>index.html</b>,', 'nie wgrano ukrytego pliku <b>.htaccess</b> albo serwer podaje pliki .js z niewłaściwym typem,', 'przeglądarka jest bardzo stara (potrzebny Chrome, Edge, Firefox lub Safari z ostatnich 2–3 lat).'], 'Szczegóły:'],
+          en: ['The app did not start', 'The browser loaded the page but not the application. The most common causes after an FTP upload:', ['the <b>assets</b> folder was not uploaded (or only partly),', 'the files ended up in a different folder than <b>index.html</b>,', 'the hidden <b>.htaccess</b> file was not uploaded or the server sends .js files with the wrong type,', 'the browser is very old (Chrome, Edge, Firefox or Safari from the last 2–3 years is needed).'], 'Details:'],
+          de: ['Die Anwendung wurde nicht gestartet', 'Der Browser hat die Seite geladen, aber nicht die Anwendung. Häufigste Ursachen nach dem Hochladen per FTP:', ['der Ordner <b>assets</b> wurde nicht (oder nur teilweise) hochgeladen,', 'die Dateien liegen in einem anderen Ordner als <b>index.html</b>,', 'die versteckte Datei <b>.htaccess</b> fehlt oder der Server liefert .js-Dateien mit falschem Typ,', 'der Browser ist sehr alt (nötig ist Chrome, Edge, Firefox oder Safari aus den letzten 2–3 Jahren).'], 'Details:'],
+          es: ['La aplicación no se ha iniciado', 'El navegador cargó la página, pero no la aplicación. Causas más habituales tras subir los archivos por FTP:', ['no se subió la carpeta <b>assets</b> (o solo en parte),', 'los archivos están en una carpeta distinta de la de <b>index.html</b>,', 'no se subió el archivo oculto <b>.htaccess</b> o el servidor envía los archivos .js con un tipo incorrecto,', 'el navegador es muy antiguo (se necesita Chrome, Edge, Firefox o Safari de los últimos 2–3 años).'], 'Detalles:'],
+          it: ['L’applicazione non si è avviata', 'Il browser ha caricato la pagina ma non l’applicazione. Cause più frequenti dopo il caricamento via FTP:', ['la cartella <b>assets</b> non è stata caricata (o solo in parte),', 'i file sono in una cartella diversa da quella di <b>index.html</b>,', 'manca il file nascosto <b>.htaccess</b> oppure il server invia i file .js con il tipo sbagliato,', 'il browser è molto vecchio (serve Chrome, Edge, Firefox o Safari degli ultimi 2–3 anni).'], 'Dettagli:'],
+        };
+        function lang() {
+          var saved = null;
+          try { saved = localStorage.getItem('%BRAND_CODE%-lang'); } catch (e) { /* brak dostępu */ }
+          var list = [saved].concat(navigator.languages || [navigator.language]);
+          for (var i = 0; i < list.length; i++) {
+            var code = String(list[i] || '').slice(0, 2).toLowerCase();
+            if (TEXT[code]) return code;
+          }
+          return 'en';
+        }
+        function show() {
+          var root = document.getElementById('root');
+          if (!root || root.childElementCount > 0) return;
+          var esc = function (s) { return String(s).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); };
+          var tx = TEXT[lang()];
+          root.innerHTML =
+            '<div data-boot-error style="max-width:620px;margin:64px auto;padding:0 20px;font:16px/1.55 system-ui,sans-serif;color:#1f2a44">' +
+            '<p style="font-weight:600;margin:0 0 4px">' + esc(BRAND) + '</p>' +
+            '<h1 style="font-size:26px;margin:0 0 12px">' + tx[0] + '</h1>' +
+            '<p>' + tx[1] + '</p>' +
+            '<ul style="padding-left:20px"><li>' + tx[2].join('</li><li>') + '</li></ul>' +
+            (problems.length ? '<p style="margin-top:16px"><b>' + tx[3] + '</b></p><pre style="white-space:pre-wrap;background:#fff;border:1px solid #d8dee9;border-radius:10px;padding:12px;font-size:13px">' + esc(problems.slice(0, 6).join('\n')) + '</pre>' : '') +
+            '</div>';
+        }
+        window.addEventListener('load', function () { setTimeout(show, 4000); });
+      })();
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,72 @@
+@import '@fontsource-variable/instrument-sans';
+@import 'tailwindcss';
+
+/*
+ * Tokeny (§19.1) — wartości sprawdzone pod kątem kontrastu (scripts/check-colors.mjs).
+ * Każda zmiana koloru wymaga ponownego uruchomienia `npm run check:colors`.
+ */
+@theme {
+  --font-sans: 'Instrument Sans Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-ui: 'Instrument Sans Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
+  --color-paper: #f4f6f9;
+  --color-surface: #ffffff;
+  --color-mist: #eef2f7;
+  --color-ink: #1f2a44;
+  --color-muted: #5b6478;
+  /* Tylko dekoracyjne obramowania (1,35:1) — nigdy granica kontrolki. */
+  --color-line: #d8dee9;
+  /* Obramowania pól formularzy: 3,1:1 na białym (WCAG 1.4.11). */
+  --color-field: #8a93a6;
+  --color-cobalt: #2747d6;
+  --color-cobalt-dark: #1d36a8;
+  /* Znaczniki spadków i tło „do poprawy” — nigdy tekst (1,8:1). */
+  --color-marker: #f2b705;
+  --color-good: #12784f;
+  --color-fair: #8f5c00;
+  --color-poor: #c03636;
+  /* Kolory wersji na wykresach (§7, §19.4): A, B stałe; C, D z walidacji palety. */
+  --color-series-a: #2747d6;
+  --color-series-b: #eb6834;
+  --color-series-c: #0b8f8f;
+  --color-series-d: #8a1f4a;
+  --animate-pulse-ring: pulse-ring 1.6s ease-out infinite;
+}
+
+@keyframes pulse-ring {
+  0% { transform: translate(-50%, -50%) scale(0.85); opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scale(1.35); opacity: 0; }
+}
+
+html, body, #root { min-height: 100%; }
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
+.tabular, table { font-variant-numeric: tabular-nums; }
+/* Długie złożenia (np. niemieckie „Aufmerksamkeitsabfall”) dzielą się zamiast wychodzić poza ekran (§24.7). */
+h1, h2, h3 { overflow-wrap: break-word; hyphens: auto; }
+
+:focus-visible { outline: 3px solid var(--color-cobalt); outline-offset: 2px; border-radius: 10px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+
+/* Bezpieczne obszary telefonu (notch, pasek gestów) — ekrany widza. */
+.safe-pad { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+.min-h-dvh-safe { min-height: 100vh; min-height: 100dvh; }
+
+/* Druk i PDF (§7.2). */
+.print-only { display: none; }
+@media print {
+  @page { size: A4; margin: 14mm; }
+  html, body { background: #fff !important; }
+  .no-print { display: none !important; }
+  .print-only { display: block; }
+  .print-break { break-before: page; }
+  .print-avoid { break-inside: avoid; }
+}

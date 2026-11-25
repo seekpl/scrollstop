@@ -1,0 +1,37 @@
+/**
+ * Komunikaty błędów po kodach (§0, §12.2, lekcja §24.3). Dane i API zapisują wyłącznie kody;
+ * tłumaczymy je dopiero przy wyświetlaniu. Błędy nie obwiniają użytkownika i mówią, jak naprawić.
+ */
+export const errors = {
+  unknown: 'Coś poszło nie tak. Spróbuj ponownie za chwilę.',
+  network: 'Brak połączenia z serwerem. Sprawdź internet i spróbuj ponownie.',
+  local_mode: 'Ta funkcja działa tylko z kontem na serwerze. W trybie lokalnym dane zostają w tej przeglądarce.',
+  storage_unavailable: 'Przeglądarka nie pozwala zapisywać danych (np. w trybie prywatnym). Otwórz stronę w zwykłym oknie.',
+  invalid_email: 'Podaj adres e-mail w formacie nazwa@domena.pl.',
+  weak_password: 'Hasło musi mieć co najmniej 10 znaków.',
+  exists: 'Nie udało się utworzyć konta z tym adresem. Jeśli już masz konto, zaloguj się.',
+  bad_credentials: 'E-mail lub hasło się nie zgadzają.',
+  unauthorized: 'Sesja logowania wygasła. Zaloguj się ponownie.',
+  forbidden: 'Nie masz dostępu do tego zasobu.',
+  not_found: 'Nie znaleźliśmy tego zasobu. Mógł zostać usunięty.',
+  closed: 'Badanie jest zamknięte i nie przyjmuje nowych widzów.',
+  paused: 'Badanie jest wstrzymane. Spróbuj później.',
+  project_sessions: 'Badanie jest wstrzymane: projekt osiągnął limit widzów w planie.',
+  month_sessions: 'Badanie jest wstrzymane: wykorzystano miesięczny limit widzów.',
+  active_projects: 'Osiągnięto limit aktywnych projektów. Zamknij jeden z projektów albo przejdź na wyższy plan.',
+  feature_locked: 'Ta funkcja jest dostępna w wyższym planie.',
+  feature_recommendations: 'Rekomendacje AI są dostępne od planu Pro.',
+  rate_limited: 'Zbyt wiele prób w krótkim czasie. Odczekaj chwilę i spróbuj ponownie.',
+  too_large: 'Plik jest za duży dla tego rodzaju materiału.',
+  unsupported_type: 'Ten rodzaj pliku nie jest obsługiwany. Użyj MP4, MOV lub WebM (wideo) albo PNG, JPG lub WebP (obrazy).',
+  bad_request: 'Dane w zapytaniu są niepełne lub uszkodzone.',
+  bad_code: 'Numer sesji lub kod usunięcia się nie zgadzają. Sprawdź oba pola.',
+  consent_required: 'Bez zgody widza sesja nie może zostać zapisana.',
+  adult_required: 'Badanie jest wyłącznie dla osób pełnoletnich.',
+  billing_unavailable: 'Płatności online nie są jeszcze włączone. Napisz do nas, wystawimy fakturę.',
+  active_subscription: 'Najpierw anuluj subskrypcję w portalu płatności, potem usuń konto.',
+  ai_unavailable: 'AI jest niedostępne, pokazujemy rekomendacje z reguł.',
+  link_broken: 'Link do badania jest uszkodzony. Poproś twórcę o nowy link.',
+  link_incomplete: 'Link do badania jest niepełny. Skopiuj go jeszcze raz w całości.',
+  local_media: 'Ten materiał jest dostępny tylko na komputerze twórcy.',
+};
