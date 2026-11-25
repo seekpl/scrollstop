@@ -28,6 +28,7 @@ import type {
 } from '../research/model';
 import type { BlockReason, PlanId } from '../research/plans';
 import type { SharedReport } from '../research/share';
+import type { AiInsightsResult } from '../research/aiContract';
 
 /** Role w zespole (§9.6): właściciel, edytor, widz raportu. */
 export type Role = 'owner' | 'editor' | 'viewer';
@@ -158,23 +159,7 @@ export interface InvitePreview {
   expiresAt: string;
 }
 
-export interface AiInsight {
-  title: string;
-  fact: string;
-  observation: string | null;
-  hypothesis: string | null;
-  recommendation: string;
-  t0: number;
-  t1: number;
-}
-
-export interface AiInsightsResult {
-  source: 'ai' | 'rules';
-  model: string | null;
-  insights: AiInsight[];
-  /** Odrzucone propozycje z liczbami spoza danych albo zakazanymi treściami. */
-  rejected: number;
-}
+export type { AiInsight, AiInsightsResult } from '../research/aiContract';
 
 export type BillingInterval = 'monthly' | 'yearly';
 

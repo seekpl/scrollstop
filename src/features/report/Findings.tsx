@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { useResearch } from '../../app/research';
+import { useCapabilities, useResearch } from '../../app/research';
 import { errorCode } from '../../core/errors';
 import { formatTime } from '../../core/math/util';
 import { useI18n } from '../../i18n';
@@ -28,6 +28,7 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
  */
 export function Findings({ findings, onJump, projectId, variantId, can }: { findings: Finding[]; onJump?(t: number): void; projectId?: string; variantId?: VariantId; can: Entitlements }) {
   const { api } = useResearch();
+  const caps = useCapabilities();
   const { locale, t } = useI18n();
   const tf = t.report.findings;
   const [ai, setAi] = useState<AiInsightsResult | null>(null);
@@ -106,6 +107,8 @@ export function Findings({ findings, onJump, projectId, variantId, can }: { find
             <Locked plan={planFor('recommendations')} title={tf.ai.generate} />
           ) : api.mode !== 'server' ? (
             <p className="text-[13px] text-muted">{tf.ai.serverOnly}</p>
+          ) : caps && !caps.ai ? (
+            <p className="text-[13px] text-muted">{tf.ai.fallback}</p>
           ) : (
             <div className="flex flex-wrap items-center gap-3">
               <Btn size="sm" onClick={() => void generate()} disabled={busy}>

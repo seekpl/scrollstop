@@ -164,6 +164,7 @@ export const studio = {
   },
   report: {
     pdf: 'Pobierz PDF',
+    printHeader: (date: string) => `Raport z badania uwagi · ${date}`,
     pdfHint: 'PDF powstaje przez drukowanie strony: wybierz „Zapisz jako PDF”.',
     pdfWatermark: 'W planie Free raport ma znak wodny.',
     json: 'Dane JSON',

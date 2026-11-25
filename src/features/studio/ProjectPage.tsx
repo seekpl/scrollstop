@@ -3,6 +3,8 @@ import { pathOf, type ProjectStep } from '../../app/router';
 import { useResearch } from '../../app/research';
 import { errorCode } from '../../core/errors';
 import { useI18n } from '../../i18n';
+import { formatDate } from '../../i18n/format';
+import { BrandMark } from '../../ui/BrandMark';
 import type { ProjectPatch } from '../../api/types';
 import type { Project, ViewerSession } from '../../research/model';
 import { btnClass, Callout, Stepper } from '../../ui/kit';
@@ -21,7 +23,7 @@ export interface ProjectCtx {
 
 /** Strona projektu (§9.3–§9.5): kroki Przygotuj, Zbierz widzów, Raport, Analiza techniczna. */
 export function ProjectPage({ id, step }: { id: string; step: ProjectStep }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const s = t.studio.project;
   const { api } = useResearch();
   const [project, setProject] = useState<Project | null | undefined>(undefined);
@@ -76,8 +78,19 @@ export function ProjectPage({ id, step }: { id: string; step: ProjectStep }) {
     <StudioShell crumbs={[{ label: project.name }]} title={project.name}>
       <div className="space-y-8">
         <div className="space-y-4">
+          {/* Nagłówek wydruku i PDF raportu: marka i data (powłoka studia jest ukryta w druku). */}
+          {step === 'report' && (
+            <div className="print-only border-b border-line pb-3">
+              <div className="flex items-center justify-between gap-4">
+                <BrandMark size={24} />
+                <span className="text-[12px] text-muted">{t.studio.report.printHeader(formatDate(new Date().toISOString(), locale))}</span>
+              </div>
+            </div>
+          )}
           <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.02em] sm:text-[34px]">{project.name}</h1>
-          <Stepper label={s.stepsLabel} current={step} steps={steps.map((x) => ({ ...x, href: pathOf({ name: 'project', id, step: x.id }) }))} />
+          <div className="no-print">
+            <Stepper label={s.stepsLabel} current={step} steps={steps.map((x) => ({ ...x, href: pathOf({ name: 'project', id, step: x.id }) }))} />
+          </div>
         </div>
         {error && (
           <div role="alert">

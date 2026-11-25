@@ -3,6 +3,7 @@ import { createServer } from 'node:http';
 import { join, resolve } from 'node:path';
 import { BRAND } from '../src/config/brand';
 import { isPlanId } from '../src/research/plans';
+import { createClaudeGenerator, DEFAULT_AI_MODEL } from './ai';
 import { createApp, panelRefHash } from './app';
 import { Stripe, stripeConfigFromEnv } from './billing';
 import { Db } from './db';
@@ -66,6 +67,7 @@ const app = createApp(db, {
   staticDir: env.STATIC_DIR ? resolve(env.STATIC_DIR) : null,
   stripe: stripeConfig ? new Stripe(stripeConfig) : null,
   panelSalt: env.PANEL_SALT || null,
+  ai: env.ANTHROPIC_API_KEY ? createClaudeGenerator({ apiKey: env.ANTHROPIC_API_KEY, model: env.AI_MODEL || DEFAULT_AI_MODEL }) : null,
   log: env.NODE_ENV !== 'test',
 });
 
@@ -74,7 +76,7 @@ server.requestTimeout = 30 * 60_000; // wgrywanie dużych plików wideo
 server.headersTimeout = 60_000;
 
 server.listen(port, env.HOST ?? '0.0.0.0', () => {
-  console.info(`[${BRAND.code}] API na porcie ${port}; aplikacja: ${appUrl}; dane: ${dataDir}; statyka: ${env.STATIC_DIR ?? 'brak'}; płatności: ${stripeConfig ? 'Stripe' : 'e-mail'}`);
+  console.info(`[${BRAND.code}] API na porcie ${port}; aplikacja: ${appUrl}; dane: ${dataDir}; statyka: ${env.STATIC_DIR ?? 'brak'}; płatności: ${stripeConfig ? 'Stripe' : 'e-mail'}; AI: ${env.ANTHROPIC_API_KEY ? env.AI_MODEL || DEFAULT_AI_MODEL : 'reguły'}`);
 });
 
 const purge = () => {

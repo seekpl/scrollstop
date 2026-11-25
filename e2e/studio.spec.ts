@@ -13,6 +13,17 @@ function sessionFiles(n: number, seed: number) {
   }));
 }
 
+/** Pobiera plik PNG po kliknięciu i zwraca jego wymiary z nagłówka IHDR. */
+async function pngSize(page: Page, click: () => Promise<void>, name: string): Promise<{ w: number; h: number }> {
+  const download = page.waitForEvent('download');
+  await click();
+  const file = await download;
+  expect(file.suggestedFilename()).toBe(name);
+  const bytes = Buffer.concat((await (await file.createReadStream())!.toArray()) as Buffer[]);
+  expect(bytes.subarray(1, 4).toString('ascii')).toBe('PNG');
+  return { w: bytes.readUInt32BE(16), h: bytes.readUInt32BE(20) };
+}
+
 /** Kreator: projekt z klipem demo B; zwraca adres kroku Przygotuj test. */
 async function createProject(page: Page, name = 'Rolka E2E'): Promise<string> {
   await page.goto('/#/app/new');
@@ -84,6 +95,28 @@ test.describe('studio twórcy (tryb lokalny)', () => {
     await expect(page.getByText('Mała próba', { exact: true }).first()).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Hook' })).toBeVisible();
     await expect(page.getByText('ScrollStop Free').first()).toBeAttached();
+
+    // Grafika do udostępnienia (§7.1): dwa formaty PNG, w Free ze znakiem wodnym.
+    await page.getByRole('button', { name: 'Grafika do udostępnienia' }).click();
+    const share = page.getByRole('dialog', { name: 'Grafika do udostępnienia' });
+    await expect(share.getByText('W planie Free grafika ma znak wodny.', { exact: false })).toBeVisible();
+    await expect(share.getByRole('img', { name: 'Podgląd grafiki: Post 4:5' })).toBeVisible();
+    expect(await pngSize(page, () => share.getByRole('button', { name: 'Pobierz PNG' }).click(), 'scrollstop-grafika-4x5.png')).toEqual({ w: 1080, h: 1350 });
+    await share.getByRole('radio', { name: 'Relacja 9:16' }).click();
+    await share.getByLabel('Największy spadek').check();
+    expect(await pngSize(page, () => share.getByRole('button', { name: 'Pobierz PNG' }).click(), 'scrollstop-grafika-9x16.png')).toEqual({ w: 1080, h: 1920 });
+    await page.keyboard.press('Escape');
+
+    // PDF przez druk (§7.2): nagłówek z marką i datą, bez przycisków i powłoki studia, znak wodny Free.
+    await page.emulateMedia({ media: 'print' });
+    await expect(page.getByText(/^Raport z badania uwagi · /)).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Pobierz PDF' })).toBeHidden();
+    await expect(page.getByRole('navigation', { name: 'Ścieżka' })).toBeHidden();
+    await expect(page.getByText('ScrollStop Free').first()).toBeVisible();
+    const pdf = await page.pdf({ format: 'A4' });
+    expect(pdf.subarray(0, 5).toString('latin1')).toBe('%PDF-');
+    expect((pdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g) ?? []).length).toBeGreaterThan(1);
+    await page.emulateMedia({ media: 'screen' });
 
     // Analiza techniczna → laboratorium.
     await page.goto(`/${prepare.replace(/prepare$/, 'technical')}`);

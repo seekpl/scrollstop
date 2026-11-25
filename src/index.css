@@ -65,6 +65,8 @@ h1, h2, h3 { overflow-wrap: break-word; hyphens: auto; }
 @media print {
   @page { size: A4; margin: 14mm; }
   html, body { background: #fff !important; }
+  /* Białe tło także w powłoce studia i kartach (§7.2). */
+  .bg-paper, .bg-mist { background: #fff !important; }
   .no-print { display: none !important; }
   .print-only { display: block; }
   .print-break { break-before: page; }

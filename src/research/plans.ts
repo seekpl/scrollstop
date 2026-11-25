@@ -143,4 +143,4 @@ export const PRICING_ITEMS: Record<PlanId, PricingItem[]> = {
  * Pozycje, których jeszcze nie ma w kodzie — cennik oznacza je „wkrótce” (§0: strona nie obiecuje
  * funkcji, których nie ma). Usuwaj klucz z listy w kamieniu milowym, który dostarcza funkcję.
  */
-export const PRICING_SOON: ReadonlySet<PricingItem> = new Set<PricingItem>(['shareImage', 'ai', 'folders']);
+export const PRICING_SOON: ReadonlySet<PricingItem> = new Set<PricingItem>(['folders']);

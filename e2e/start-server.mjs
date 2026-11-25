@@ -1,10 +1,12 @@
 // Tryb serwerowy do testów E2E (§22.2): buduje aplikację z VITE_API_URL=/ i serwer, potem uruchamia
 // API z pustą bazą w katalogu tymczasowym. Konto administratora (plan testów) z ADMIN_EMAILS.
 // Płatności: atrapa Stripe na porcie 4175 (API, strony płatności i portalu, podpisane webhooki).
+// AI: atrapa Messages API na porcie 4176 (prawdziwe SDK po stronie serwera, `ANTHROPIC_BASE_URL`).
 import { spawn, spawnSync } from 'node:child_process';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { startFakeAnthropic } from './fake-anthropic.mjs';
 import { startFakeStripe } from './fake-stripe.mjs';
 
 const run = (args, env = {}) => {
@@ -16,6 +18,7 @@ run(['vite', 'build', '--config', 'vite.server.config.ts', '--outDir', 'dist-e2e
 
 const WEBHOOK_SECRET = 'whsec_e2e_test';
 const stripe = startFakeStripe({ port: 4175, secret: WEBHOOK_SECRET, webhookUrl: 'http://127.0.0.1:4174/api/billing/webhook' });
+const anthropic = startFakeAnthropic({ port: 4176 });
 
 const child = spawn(process.execPath, ['dist-e2e/api/main.js'], {
   stdio: 'inherit',
@@ -36,17 +39,22 @@ const child = spawn(process.execPath, ['dist-e2e/api/main.js'], {
     STRIPE_PRICE_PRO_YEARLY: 'price_pro_y',
     STRIPE_API_BASE: 'http://127.0.0.1:4175/v1',
     PANEL_SALT: 'e2e-panel-salt',
+    ANTHROPIC_API_KEY: 'sk-ant-e2e-fake',
+    ANTHROPIC_BASE_URL: 'http://127.0.0.1:4176',
+    AI_MODEL: 'claude-opus-5-5',
     NODE_ENV: 'test',
     NODE_NO_WARNINGS: '1',
   },
 });
 const stop = () => {
   stripe.close();
+  anthropic.close();
   child.kill('SIGTERM');
 };
 process.on('SIGTERM', stop);
 process.on('SIGINT', stop);
 child.on('exit', (code) => {
   stripe.close();
+  anthropic.close();
   process.exit(code ?? 0);
 });

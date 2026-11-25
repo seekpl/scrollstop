@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { Account, ResearchApi } from '../api/types';
+import type { Account, Capabilities, ResearchApi } from '../api/types';
 import { entitlements, type Entitlements } from '../research/plans';
 
 interface ResearchValue {
@@ -28,6 +28,20 @@ export function ResearchProvider({ api, children }: { api: ResearchApi; children
   }, [refreshAccount]);
   const value = useMemo(() => ({ api, account, refreshAccount, can: entitlements(account?.workspacePlan ?? 'free') }), [api, account, refreshAccount]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+}
+
+/** Co jest włączone na serwerze (płatności online, AI); `null` — jeszcze nie wiadomo. */
+export function useCapabilities(): Capabilities | null {
+  const { api } = useResearch();
+  const [caps, setCaps] = useState<Capabilities | null>(null);
+  useEffect(() => {
+    let live = true;
+    void api.capabilities().then((c) => live && setCaps(c));
+    return () => {
+      live = false;
+    };
+  }, [api]);
+  return caps;
 }
 
 export function useResearch(): ResearchValue {

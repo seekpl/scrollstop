@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
-import type { Capabilities } from '../../api/types';
+import { useState } from 'react';
 import { hashQuery, pathOf } from '../../app/router';
-import { useResearch } from '../../app/research';
+import { useCapabilities, useResearch } from '../../app/research';
 import { bookingUrl, salesEmail } from '../../config/company';
 import { errorCode } from '../../core/errors';
 import { useI18n } from '../../i18n';
@@ -90,17 +89,10 @@ export function PricingPage() {
   const { t, locale } = useI18n();
   const b = t.billing;
   const p = b.pricing;
-  const { api, account } = useResearch();
+  const { account } = useResearch();
   const [interval, setInterval] = useState<Interval>('monthly');
-  const [caps, setCaps] = useState<Capabilities | null>(null);
+  const caps = useCapabilities();
   const [panelOpen, setPanelOpen] = useState(() => hashQuery().get('panel') === '1');
-  useEffect(() => {
-    let live = true;
-    void api.capabilities().then((c) => live && setCaps(c));
-    return () => {
-      live = false;
-    };
-  }, [api]);
   const billing = !!caps?.billing;
   const [eur, setEur] = useState(false);
   const cur: Currency = currencyFor(locale, eur);

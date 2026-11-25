@@ -44,6 +44,7 @@ export function ProjectReport({ project, sessions, update }: ProjectCtx) {
       sessions={sessions}
       can={can}
       actions={actions}
+      shareImage
       onSaveAois={async (variantId, aois) => {
         await update({ variants: project.variants.map((v) => (v.id === variantId ? { ...v, aois } : v)) });
       }}

@@ -158,7 +158,8 @@ export function AttentionChart({
       onKeyDown={onKey}
       onBlur={() => setHover(null)}
     >
-      <svg width={W} height={height} role="img" aria-label={ariaLabel} className="block">
+      {/* viewBox: w druku (węższa strona A4) wykres skaluje się zamiast wychodzić poza margines. */}
+      <svg width={W} height={height} viewBox={`0 0 ${W} ${height}`} preserveAspectRatio="xMinYMin meet" role="img" aria-label={ariaLabel} className="block h-auto max-w-full">
         {[0, 0.25, 0.5, 0.75, 1].map((v) => (
           <g key={v}>
             <line x1={M.l} x2={W - M.r} y1={y(v)} y2={y(v)} stroke={v === 0 ? '#C9D0DC' : '#E7EBF1'} strokeWidth={1} />

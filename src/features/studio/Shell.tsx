@@ -24,7 +24,7 @@ export function StudioShell({ children, crumbs = [], title }: { children: ReactN
       <a href="#studio-main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[90] focus:rounded-lg focus:bg-surface focus:px-3 focus:py-2 focus:ring-2 focus:ring-cobalt">
         {t.ui.skipToContent}
       </a>
-      <header className="border-b border-line bg-paper">
+      <header className="no-print border-b border-line bg-paper">
         <div className="mx-auto flex min-h-16 max-w-[1152px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2 sm:px-6">
           <a href="#/" className="shrink-0 rounded-lg" aria-label={t.site.nav.home}>
             <BrandMark hideNameBelow400 />
@@ -79,7 +79,7 @@ export function StudioShell({ children, crumbs = [], title }: { children: ReactN
         </div>
       </header>
       {api.mode === 'local' && (
-        <div className="border-b border-cobalt/15 bg-cobalt/[0.05]">
+        <div className="no-print border-b border-cobalt/15 bg-cobalt/[0.05]">
           <p className="mx-auto max-w-[1152px] px-4 py-2.5 text-[13.5px] leading-relaxed text-ink sm:px-6">{s.localBanner}</p>
         </div>
       )}

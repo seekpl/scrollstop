@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { formatTime } from '../../core/math/util';
 import { useI18n, type Messages } from '../../i18n';
 import { formatNumber, formatPct } from '../../i18n/format';
@@ -6,6 +6,7 @@ import { RESEARCH_TEXT } from '../../i18n/research';
 import { audienceSegments, filterAudience, SCREENER_FOR, type AudienceSegment } from '../../research/audience';
 import { AGE_BANDS, type AgeBand, type Aoi, type Project, type VariantId, type ViewerSession } from '../../research/model';
 import { planFor, type Entitlements } from '../../research/plans';
+import { ShareImageButton } from './ShareImage';
 import { buildVariantReport, compareVariants, headline, type VariantReport } from '../../research/report';
 import { MIN_VERDICT_SAMPLE, RELIABLE_SAMPLE, reportSessions } from '../../research/sessions';
 import { Badge, Callout, Section, Segmented } from '../../ui/kit';
@@ -46,6 +47,30 @@ export function Stat({ label, value, hint }: { label: string; value: ReactNode; 
   );
 }
 
+/** Na czas druku rozwija zwinięte sekcje (np. „Jak liczymy”), potem przywraca ich stan. */
+function usePrintExpand() {
+  useEffect(() => {
+    const open = () =>
+      document.querySelectorAll('details').forEach((d) => {
+        if (!d.open) {
+          d.dataset.printOpened = '1';
+          d.open = true;
+        }
+      });
+    const restore = () =>
+      document.querySelectorAll<HTMLDetailsElement>('details[data-print-opened]').forEach((d) => {
+        d.open = false;
+        delete d.dataset.printOpened;
+      });
+    window.addEventListener('beforeprint', open);
+    window.addEventListener('afterprint', restore);
+    return () => {
+      window.removeEventListener('beforeprint', open);
+      window.removeEventListener('afterprint', restore);
+    };
+  }, []);
+}
+
 function Watermark() {
   const t = useI18n().t;
   return (
@@ -67,6 +92,7 @@ export function ReportView({
   sampleSwitch,
   onSaveAois,
   actions,
+  shareImage = false,
 }: {
   project: Project;
   sessions: ViewerSession[];
@@ -75,10 +101,13 @@ export function ReportView({
   sampleSwitch?: ReactNode;
   onSaveAois?(variantId: VariantId, aois: Aoi[]): Promise<void>;
   actions?: ReactNode;
+  /** Przycisk grafiki do udostępnienia (raport twórcy, §7.1). */
+  shareImage?: boolean;
 }) {
   const { t, locale } = useI18n();
   const rt = RESEARCH_TEXT[locale];
   const tr = t.report;
+  usePrintExpand();
   const P = (v: number | null) => formatPct(v, locale);
   // Segment widzów (§4.9): wszyscy, regularni użytkownicy platformy publikacji, panel / społeczność.
   const segments = useMemo(() => audienceSegments(allSessions, project.platform, { includeSimulated: sample }), [allSessions, project.platform, sample]);
@@ -169,6 +198,11 @@ export function ReportView({
         {report.viewers > 0 && report.viewers < RELIABLE_SAMPLE && <Callout tone="warn">{tr.header.smallSample(report.viewers, project.targetSessions)}</Callout>}
         {sample && report.sessions.byQuality.NONE === 0 && <p className="text-[12.5px] text-muted">{tr.header.sampleNote}</p>}
         {actions}
+        {shareImage && !sample && !isGrid && !isCarousel && report.curve.some((p) => p.value !== null) && (
+          <div className="no-print">
+            <ShareImageButton report={report} projectName={project.name} can={can} />
+          </div>
+        )}
       </header>
 
       {isGrid && report.grid && report.grid.viewers > 0 && (
@@ -201,7 +235,7 @@ export function ReportView({
             <div className="min-w-0 space-y-5">
               <div className="min-w-0 rounded-2xl bg-surface p-4 ring-1 ring-line sm:p-5">
                 <AttentionChart series={series} duration={report.duration} segments={report.segments} drops={report.drops} selected={selected} onSelect={setSelected} ariaLabel={tr.chart.aria(labels[report.variantId])} />
-                <p className="mt-3 text-[12.5px] text-muted">{tr.chart.note}</p>
+                <p className="no-print mt-3 text-[12.5px] text-muted">{tr.chart.note}</p>
               </div>
               {selected !== null && <MomentPanel src={src} sessions={validData} t={selected} point={report.curve[Math.round(selected / report.bin)]} width={variant.width} height={variant.height} onClose={() => setSelected(null)} />}
               <dl className="grid grid-cols-2 gap-x-6 gap-y-5 lg:grid-cols-4">

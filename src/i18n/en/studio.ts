@@ -163,6 +163,7 @@ export const studio: Messages['studio'] = {
   },
   report: {
     pdf: 'Download PDF',
+    printHeader: (date: string) => `Attention study report · ${date}`,
     pdfHint: 'The PDF is made by printing the page: choose “Save as PDF”.',
     pdfWatermark: 'On the Free plan the report carries a watermark.',
     json: 'JSON data',

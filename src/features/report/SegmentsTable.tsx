@@ -46,9 +46,9 @@ export function SegmentsTable({ segments, onJump }: { segments: SegmentStat[]; o
           <tbody>
             {segments.map((s) => (
               <tr key={s.index} className={`border-b border-line last:border-0 ${onJump ? 'cursor-pointer hover:bg-ink/[0.03]' : ''}`} onClick={() => onJump?.(s.t0)}>
-                <td className="px-4 py-3 font-semibold text-ink">{s.label}</td>
+                <td className="whitespace-nowrap px-4 py-3 font-semibold text-ink">{s.label}</td>
                 {isScenes && (
-                  <td className="px-4 py-3 text-muted">
+                  <td className="whitespace-nowrap px-4 py-3 text-muted">
                     {formatTime(s.t0, 0)}–{formatTime(s.t1, 0)}
                   </td>
                 )}
@@ -61,7 +61,7 @@ export function SegmentsTable({ segments, onJump }: { segments: SegmentStat[]; o
                   </div>
                 </td>
                 <td className={`px-4 py-3 font-semibold ${s.change !== null && s.change <= -0.1 ? 'text-poor' : s.change !== null && s.change >= 0.05 ? 'text-good' : 'text-ink'}`}>{change(s.change)}</td>
-                <td className="px-4 py-3 text-right">{s.fixRank !== null && <span className="inline-flex items-center rounded-md bg-marker/25 px-2 py-0.5 text-[12px] font-semibold text-ink">{ts.fixRank(s.fixRank)}</span>}</td>
+                <td className="px-4 py-3 text-right">{s.fixRank !== null && <span className="inline-flex items-center whitespace-nowrap rounded-md bg-marker/25 px-2 py-0.5 text-[12px] font-semibold text-ink">{ts.fixRank(s.fixRank)}</span>}</td>
               </tr>
             ))}
           </tbody>

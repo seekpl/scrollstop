@@ -6,15 +6,18 @@ import { INVITE_DAYS, SHARE_DAYS, type Account, type AiInsightsResult, type Invi
 import { BRAND } from '../src/config/brand';
 import { isLocale } from '../src/i18n/locales';
 import { RESEARCH_TEXT } from '../src/i18n/research';
+import { buildAiInput, insightsFromFindings } from '../src/research/aiContract';
 import { newDeletionCode, normalizeCode, randomId } from '../src/research/link';
 import { cleanPanelConfig, cleanPid } from '../src/research/panel';
 import { AGE_BANDS, type AgeBand, type MediaSource, type Project, type ViewerSession } from '../src/research/model';
 import { entitlements, isPlanId, PLANS, projectBlock, sessionBlock, type BlockReason, type PlanId } from '../src/research/plans';
 import { newProjectFrom, patchProject, pickVariant, PlanLimit, studyConfigFor } from '../src/research/project';
 import { cleanText, InvalidInput, sanitizeSession } from '../src/research/sanitize';
+import { buildVariantReport } from '../src/research/report';
 import { assessSession, expiryDate, monthKey } from '../src/research/sessions';
 import { buildSharedReport, type SharedReport } from '../src/research/share';
 import { burnPasswordCheck, EMAIL_RE, hashPassword, MAX_PASSWORD, MIN_PASSWORD, newToken, sha256, TOKEN_TTL_DAYS, verifyPassword } from './auth';
+import type { InsightsGenerator } from './ai';
 import { PAID_PLANS, SignatureError, type Stripe, type StripeEvent, type StripeSubscription, type SubscriptionState } from './billing';
 import type { AccountRow, Db } from './db';
 import { applyCors, bearer, clientIp, fail, KB, MB, RateLimiter, readBody, readJson, SECURITY_HEADERS, sendError, sendJson } from './http';
@@ -35,6 +38,8 @@ export interface ServerConfig {
   stripe?: Stripe | null;
   /** Sól skrótu identyfikatora uczestnika panelu (`PANEL_SALT`); bez niej skrótu nie zapisujemy. */
   panelSalt?: string | null;
+  /** Rekomendacje AI (§8.4); brak — wnioski z reguł w tym samym formacie. */
+  ai?: InsightsGenerator | null;
   now?: () => number;
   /** Linia logu na żądanie API (`METODA wzorzec status ms`). */
   log?: boolean;
@@ -222,7 +227,7 @@ export function createApp(db: Db, cfg: ServerConfig) {
   const workspaceName = (name: string, company: string, email: string) => (company || name || email.split('@')[0]).slice(0, 120);
 
   // ── Stan ──────────────────────────────────────────────────────────────────
-  add('GET', '/api/health', async () => ({ ok: true, time: iso(), billing: !!cfg.stripe, ai: false }));
+  add('GET', '/api/health', async () => ({ ok: true, time: iso(), billing: !!cfg.stripe, ai: !!cfg.ai }));
 
   // ── Konto (§9.7, §15) ─────────────────────────────────────────────────────
   add('POST', '/api/auth/register', async (c) => {
@@ -520,10 +525,21 @@ export function createApp(db: Db, cfg: ServerConfig) {
     const s = scope(c, 'editor');
     const p = projectIn(c, s);
     if (!PLANS[s.plan].features.recommendations) throw fail(402, 'feature_recommendations');
-    if (!p.variants.some((v) => v.id === c.params.v)) throw fail(404, 'not_found');
+    const variant = p.variants.find((v) => v.id === c.params.v);
+    if (!variant) throw fail(404, 'not_found');
+    const b = await readJson<Record<string, unknown>>(c.req, 4 * KB);
+    const locale = isLocale(b.locale) ? b.locale : p.locale;
+    // Ten sam raport co w studiu (sesje ważne, bez symulacji), liczony na serwerze.
+    const report = buildVariantReport(p, variant, db.sessions(p.id, iso()), RESEARCH_TEXT[locale]);
+    if (!cfg.ai || !report.viewers) return insightsFromFindings(report.findings) satisfies AiInsightsResult;
+    const input = buildAiInput(report, { projectName: p.name, kind: p.kind, platform: p.platform, vertical: variant.height > variant.width });
+    // Pamięć podręczna po sha256(model:język:JSON wejścia) — te same dane nie kosztują drugi raz.
+    const key = sha256(`${cfg.ai.model}:${locale}:${JSON.stringify(input)}`);
+    const cached = db.cachedInsights(key);
+    if (cached) return JSON.parse(cached) as AiInsightsResult;
     limiter.check(`ai:${s.account.id}`, 30, 60 * 60_000);
-    await readJson(c.req, 4 * KB);
-    const result: AiInsightsResult = { source: 'rules', model: null, insights: [], rejected: 0 };
+    const result = await cfg.ai.generate(report, input, locale);
+    if (result.source === 'ai') db.cacheInsights(key, JSON.stringify(result), iso());
     return result;
   });
 
