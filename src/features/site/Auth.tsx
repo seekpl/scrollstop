@@ -146,7 +146,16 @@ export function RegisterPage() {
         <Btn type="submit" variant="primary" size="lg" className="w-full" disabled={busy}>
           {busy ? a.busy : a.createAccount}
         </Btn>
-        <p className="text-[12.5px] leading-relaxed text-muted">{a.terms}</p>
+        <p className="text-[12.5px] leading-relaxed text-muted">
+          {a.terms}{' '}
+          <a className="font-semibold text-ink underline underline-offset-4" href={pathOf({ name: 'terms' })} target="_blank" rel="noopener">
+            {t.site.nav.terms}
+          </a>
+          {' · '}
+          <a className="font-semibold text-ink underline underline-offset-4" href={pathOf({ name: 'privacy' })} target="_blank" rel="noopener">
+            {t.site.nav.privacy}
+          </a>
+        </p>
       </form>
       <p className="mt-6 text-[14px] text-muted">
         {a.haveAccount}{' '}

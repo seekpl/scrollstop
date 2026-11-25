@@ -19,7 +19,7 @@ Pełna specyfikacja produktu: [`docs/prompt-startowy.md`](docs/prompt-startowy.m
 | M6 | Test w feedzie (gesty, pętle, zatrzymanie scrolla), test miniatury w siatce (spojrzenia, wybór, efekt pozycji), karuzela i slajdy — widz, metryki, raport, kreator | gotowe |
 | M7 | Plany i paywall, płatności Stripe (Checkout, portal, podpisany webhook), zamówienie badania z panelem, powroty do dostawcy panelu | gotowe |
 | M8 | Rekomendacje AI (kontrakt, walidacja liczb i treści, pamięć podręczna, limity), grafika do udostępnienia 4:5 i 9:16, PDF przez druk | gotowe |
-| M9 | Szlif: dostępność, wydajność, języki, teksty prawne, lista startowa | w kolejce |
+| M9 | Szlif: audyt dostępności WCAG 2.2 AA, podział paczek, regulamin i prywatność (robocze), kopie zapasowe, lista startowa | gotowe |
 
 ## Uruchomienie
 
@@ -123,7 +123,7 @@ Serwer w `server/` (Node ≥ 22.5, `node:sqlite`, `node:http`, bez frameworka). 
 - **Retencja**: sesje wygasają po 30/90/180/365 dniach; usuwanie przy starcie i co godzinę. Usunięcie projektu lub konta kasuje też pliki mediów.
 - **Link do raportu** (plan Pro+): `#/r/<token>` — raport **zbiorczy** liczony na serwerze, bez surowych sesji, map spojrzeń i wartości pojedynczych widzów; wygasa po 7/30/90 dniach, można go wyłączyć.
 - **Płatności** (M7) i **AI** (M8) — opis niżej; bez kluczy Stripe `/api/billing/*` odpowiada 503 `billing_unavailable`, a cennik pokazuje zamówienie e-mailem; bez `ANTHROPIC_API_KEY` rekomendacje to wnioski z reguł.
-- **Linia poleceń**: `node dist-server/main.js set-plan <e-mail> <free|creator|pro|agency>` (faktura, Agency); `PANEL_SALT=… node dist-server/main.js panel-hash <dostawca> <id…>` (skróty identyfikatorów do rozliczenia z dostawcą panelu).
+- **Linia poleceń**: `node dist-server/main.js set-plan <e-mail> <free|creator|pro|agency>` (faktura, Agency); `node dist-server/main.js backup <plik.sqlite>` (spójna kopia bazy w trakcie działania); `PANEL_SALT=… node dist-server/main.js panel-hash <dostawca> <id…>` (skróty identyfikatorów do rozliczenia z dostawcą panelu).
 
 | Zmienna serwera | Znaczenie (domyślnie) |
 |---|---|
@@ -164,6 +164,14 @@ Frontend w trybie serwerowym: build z `VITE_API_URL` (adres API albo `/` przy ws
 - **Grafika do udostępnienia** (§7.1): w raporcie twórcy, rysowana w przeglądarce na płótnie (`src/features/report/shareImage.ts`) w formatach 1080×1350 (post 4:5) i 1080×1920 (relacja 9:16, treść poza pasami zasłanianymi przez aplikacje): wykres uwagi, wynik hooka, średnia albo największy spadek z zaznaczonym fragmentem, opcjonalnie nazwa materiału, znak marki i „Zbadane w ScrollStop”. Tylko dane zbiorcze. Free — znak wodny. Pobranie PNG albo udostępnienie przez Web Share.
 - **PDF** (§7.2): przez okno drukowania — A4, margines 14 mm, białe tło, nagłówek z marką i datą, bez przycisków i powłoki studia, wykresy skalowane do szerokości strony, sekcje zwijane rozwinięte na czas druku, znak wodny w Free.
 - **Testy:** `tests/ai.test.ts` (wejście bez danych widzów, walidacja liczb i treści, limity, zapytanie do API, powrót do reguł, plan, pamięć podręczna, limit), `tests/shareImage.test.ts` (dwa formaty, dane zbiorcze, znak wodny), E2E: `e2e/ai.spec.ts` (prawdziwe SDK na atrapie API z `e2e/fake-anthropic.mjs`), grafika w dwóch formatach i wydruk w `e2e/studio.spec.ts`.
+
+## Szlif i start (M9)
+
+- **Dostępność:** `e2e/a11y.spec.ts` sprawdza axe-core (WCAG 2.2 AA) ok. 20 ekranów na komputerze i telefonie; każde naruszenie zatrzymuje test z listą elementów.
+- **Wydajność:** strona publiczna w paczce głównej, a badanie widza, studio, raporty i laboratorium jako osobne pliki (`React.lazy` w `src/app/Root.tsx`); wczytywanie fragmentu pokazuje komunikat dopiero po 400 ms.
+- **Teksty prawne:** regulamin `#/terms` i polityka prywatności (dane widzów i twórców, podmioty przetwarzające, prawa z RODO) w słowniku `legal`; to wersje robocze do przeglądu prawnika — po przeglądzie ustaw `LEGAL` w `src/config/company.ts`.
+- **Języki:** zgodnie z decyzją §26.2 startujemy z pl i en; kolejne języki dodaje się bez zmian w kodzie aplikacji (lista w `docs/launch-checklist.md`).
+- **Lista startowa:** [`docs/launch-checklist.md`](docs/launch-checklist.md) — co jest gotowe w kodzie i co zostaje właścicielowi (domena, SSL, DNS, Stripe na żywo, kopie `/data`, prawnik, pilotaż).
 
 ## Wdrożenie
 

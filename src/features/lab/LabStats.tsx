@@ -97,7 +97,7 @@ export function LabStats() {
           {longest.length === 0 ? (
             <p className="text-[14px] text-muted">{s.noFix}</p>
           ) : (
-            <div className="relative overflow-x-auto">
+            <div role="region" aria-label={s.longestTitle} tabIndex={0} className="relative overflow-x-auto">
               <table className="w-full text-left text-[14px]">
                 <caption className="sr-only">{s.longestTitle}</caption>
                 <thead className="text-muted">

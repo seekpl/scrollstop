@@ -136,7 +136,7 @@ export function Collect({ project, sessions, reload }: ProjectCtx) {
                 </li>
               ))}
             </ul>
-            <div className="hidden relative overflow-x-auto rounded-2xl bg-surface ring-1 ring-line md:block">
+            <div role="region" aria-label={c.tableTitle} tabIndex={0} className="hidden relative overflow-x-auto rounded-2xl bg-surface ring-1 ring-line md:block">
               <table className="w-full min-w-[760px] text-left text-[14px]">
                 <caption className="sr-only">{c.tableTitle}</caption>
                 <thead className="text-[12.5px] text-muted">

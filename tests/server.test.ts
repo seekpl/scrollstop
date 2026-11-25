@@ -391,3 +391,17 @@ describe('serwer: nagłówki, CORS, statyka, usługi M7–M8', () => {
     expect(set.data.plan).toBe('agency');
   });
 });
+
+describe('serwer: kopia zapasowa (lista startowa, M9)', () => {
+  it('backup w trakcie działania: kopia z kontami i projektami da się otworzyć', async () => {
+    const a = await account('pro');
+    await project(a.token);
+    const target = join(dir, 'kopia.sqlite');
+    db.backupTo(target);
+    const copy = new Db(target);
+    expect(copy.accountByEmail(a.email)?.id).toBe(a.id);
+    expect(copy.activeProjects(a.workspaceId)).toBe(1);
+    copy.close();
+    expect(() => db.backupTo(target)).toThrow();
+  });
+});

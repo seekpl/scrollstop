@@ -1,38 +1,46 @@
-import { useEffect, useMemo, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
 import type { ResearchApi } from '../api/types';
-import { LabApp } from '../features/lab/LabApp';
-import { DeleteSessionPage } from '../features/viewer/DeleteSession';
-import { ViewerApp } from '../features/viewer/ViewerApp';
-import { getLabStore, LAB_OPEN_KEY } from '../features/lab/labStore';
-import { SharedReportPage } from '../features/report/SharedReport';
 import { LoginPage, RegisterPage } from '../features/site/Auth';
-import { InvitePage } from '../features/site/Invite';
 import { LandingPage } from '../features/site/Landing';
 import { NotFound } from '../features/site/Pages';
 import { PricingPage } from '../features/site/Pricing';
 import { PrivacyPage } from '../features/site/Privacy';
-import { SamplePage } from '../features/site/Sample';
-import { AccountPage } from '../features/studio/Account';
-import { NewProjectPage } from '../features/studio/NewProject';
-import { ProjectPage } from '../features/studio/ProjectPage';
-import { ProjectsPage } from '../features/studio/Projects';
-import { WorkspacePage } from '../features/studio/Workspace';
+import { TermsPage } from '../features/site/Terms';
+import { useT } from '../i18n';
 import { ErrorBoundary } from './ErrorBoundary';
 import { ResearchProvider, useResearch } from './research';
 import { navigate, pathOf, useRoute, type Route } from './router';
 
-function LabRoute() {
-  // Sesja przekazana z analizy technicznej projektu (Otwórz w laboratorium).
-  const initial = useMemo(() => {
-    try {
-      const id = sessionStorage.getItem(LAB_OPEN_KEY);
-      sessionStorage.removeItem(LAB_OPEN_KEY);
-      return id;
-    } catch {
-      return null;
-    }
+/*
+ * Podział paczek (§20): strona publiczna w paczce głównej; badanie widza, studio, raporty
+ * i laboratorium jako osobne pliki wczytywane przy wejściu na ścieżkę. Widz nie pobiera studia,
+ * a odwiedzający stronę główną — kodu badania.
+ */
+const ViewerApp = lazy(() => import('../features/viewer/ViewerApp').then((m) => ({ default: m.ViewerApp })));
+const DeleteSessionPage = lazy(() => import('../features/viewer/DeleteSession').then((m) => ({ default: m.DeleteSessionPage })));
+const LabRoute = lazy(() => import('../features/lab/LabRoute').then((m) => ({ default: m.LabRoute })));
+const SharedReportPage = lazy(() => import('../features/report/SharedReport').then((m) => ({ default: m.SharedReportPage })));
+const SamplePage = lazy(() => import('../features/site/Sample').then((m) => ({ default: m.SamplePage })));
+const InvitePage = lazy(() => import('../features/site/Invite').then((m) => ({ default: m.InvitePage })));
+const ProjectsPage = lazy(() => import('../features/studio/Projects').then((m) => ({ default: m.ProjectsPage })));
+const NewProjectPage = lazy(() => import('../features/studio/NewProject').then((m) => ({ default: m.NewProjectPage })));
+const ProjectPage = lazy(() => import('../features/studio/ProjectPage').then((m) => ({ default: m.ProjectPage })));
+const AccountPage = lazy(() => import('../features/studio/Account').then((m) => ({ default: m.AccountPage })));
+const WorkspacePage = lazy(() => import('../features/studio/Workspace').then((m) => ({ default: m.WorkspacePage })));
+
+/** Wczytywanie fragmentu aplikacji: nic przez pierwsze 400 ms (bez mignięcia), potem krótki komunikat. */
+function RouteLoading() {
+  const t = useT();
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setShow(true), 400);
+    return () => clearTimeout(timer);
   }, []);
-  return <LabApp store={getLabStore()} initialSessionId={initial} />;
+  return show ? (
+    <p role="status" className="px-4 py-16 text-center text-[15px] text-muted">
+      {t.ui.loading}
+    </p>
+  ) : null;
 }
 
 /** Studio w trybie serwerowym wymaga konta: bez logowania — strona logowania z powrotem tutaj. */
@@ -53,6 +61,8 @@ function RouteView({ route }: { route: Route }) {
       return <PricingPage />;
     case 'privacy':
       return <PrivacyPage />;
+    case 'terms':
+      return <TermsPage />;
     case 'sample':
       return <SamplePage sample={route.sample} />;
     case 'projects':
@@ -112,7 +122,9 @@ export function Root({ api }: { api: ResearchApi }) {
   return (
     <ErrorBoundary>
       <ResearchProvider api={api}>
-        <RouteView route={route} />
+        <Suspense fallback={<RouteLoading />}>
+          <RouteView route={route} />
+        </Suspense>
       </ResearchProvider>
     </ErrorBoundary>
   );

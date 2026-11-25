@@ -31,7 +31,7 @@ export default defineConfig({
   },
   projects: [
     { name: 'desktop', testIgnore: /mobile\.spec\.ts/, use: { ...devices['Desktop Chrome'], viewport: { width: 1366, height: 860 }, launchOptions } },
-    { name: 'mobile', testMatch: /(site|mobile|layout)\.spec\.ts/, use: { ...devices['iPhone 13'], browserName: 'chromium', launchOptions } },
+    { name: 'mobile', testMatch: /(site|mobile|layout|a11y)\.spec\.ts/, use: { ...devices['iPhone 13'], browserName: 'chromium', launchOptions } },
   ],
   webServer: [
     {

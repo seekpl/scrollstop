@@ -47,7 +47,7 @@ export function AoiPanel({ results, aois, src, duration, width, height, platform
         </ul>
       )}
       {results.length > 0 ? (
-        <div className="hidden relative overflow-x-auto rounded-2xl bg-surface ring-1 ring-line sm:block">
+        <div role="region" aria-label={ta.caption} tabIndex={0} className="hidden relative overflow-x-auto rounded-2xl bg-surface ring-1 ring-line sm:block">
           <table className="w-full min-w-[640px] text-left text-[14px]">
             <caption className="sr-only">{ta.caption}</caption>
             <thead className="text-[12.5px] text-muted">

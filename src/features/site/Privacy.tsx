@@ -3,6 +3,7 @@ import { pathOf } from '../../app/router';
 import { COMPANY, salesEmail } from '../../config/company';
 import { useT } from '../../i18n';
 import { SiteShell } from './SiteShell';
+import { LegalStatus } from './Terms';
 
 function Block({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
@@ -19,13 +20,14 @@ function Block({ id, title, children }: { id: string; title: string; children: R
 export function PrivacyPage() {
   const t = useT();
   const p = t.site.privacy;
+  const x = t.legal.privacyExtra;
   const email = salesEmail();
   return (
     <SiteShell>
       <article className="mx-auto max-w-[760px] px-4 py-10 sm:px-6 md:py-16">
         <h1 className="text-[34px] font-semibold leading-tight tracking-[-0.03em] text-ink md:text-[42px]">{p.title}</h1>
         <p className="mt-4 text-[17px] leading-relaxed text-ink">{p.lead}</p>
-        <p className="mt-2 text-[13.5px] text-muted">{p.draft}</p>
+        <LegalStatus />
         <div className="mt-10 space-y-10">
           <Block id="camera" title={p.cameraTitle}>
             <p>{p.camera}</p>
@@ -60,6 +62,25 @@ export function PrivacyPage() {
             <a href={pathOf({ name: 'delete-session', id: null })} className="inline-flex min-h-10 items-center font-semibold text-cobalt underline underline-offset-4">
               {p.deleteLink}
             </a>
+          </Block>
+          <Block id="creators" title={x.creatorsTitle}>
+            {x.creators.map((c) => (
+              <p key={c}>{c}</p>
+            ))}
+          </Block>
+          <Block id="processors" title={x.processorsTitle}>
+            <ul className="list-disc space-y-1.5 pl-5">
+              {x.processors.map((c) => (
+                <li key={c}>{c}</li>
+              ))}
+            </ul>
+          </Block>
+          <Block id="gdpr" title={x.gdprTitle}>
+            <ul className="list-disc space-y-1.5 pl-5">
+              {x.gdpr.map((c) => (
+                <li key={c}>{c}</li>
+              ))}
+            </ul>
           </Block>
           <Block id="cookies" title={p.cookiesTitle}>
             <p>{p.cookies}</p>

@@ -17,6 +17,15 @@ export const COMPANY: Company = {
   email: 'sebastian.biel@me.com', // publiczny na stronie; rozważ adres w domenie produktu (kontakt@…)
 };
 
+/**
+ * Teksty prawne (regulamin, prywatność): po przeglądzie prawnika ustaw `reviewed: true` (znika notatka
+ * „wersja robocza”) i datę wejścia w życie (`effective`, RRRR-MM-DD) — lista startowa, docs/launch-checklist.md.
+ */
+export const LEGAL: { reviewed: boolean; effective: string | null } = {
+  reviewed: false,
+  effective: null,
+};
+
 /** E-mail sprzedaży: zmienna z budowania albo adres operatora. */
 export function salesEmail(): string {
   const fromEnv = typeof import.meta !== 'undefined' ? import.meta.env?.VITE_SALES_EMAIL : undefined;

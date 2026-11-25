@@ -10,6 +10,7 @@ export const site = {
     home: 'Strona główna',
     pricing: 'Cennik',
     privacy: 'Prywatność',
+    terms: 'Regulamin',
     sample: 'Przykładowy raport',
     login: 'Zaloguj się',
     studio: 'Studio',
@@ -64,7 +65,6 @@ export const site = {
   privacy: {
     title: 'Prywatność i zasady etyczne',
     lead: `${BRAND.name} bada materiały, a nie ludzi. Mierzymy, czy fragment rolki przyciąga wzrok, a nie to, jaki jest widz.`,
-    draft: 'Wersja robocza do przeglądu prawnego.',
     cameraTitle: 'Obraz z kamery',
     camera: 'Obraz z kamery jest przetwarzany wyłącznie w przeglądarce widza. Model szacuje położenie oczu i kierunek wzroku, a obraz od razu znika. Nie wysyłamy, nie nagrywamy i nie zapisujemy zdjęć, filmów ani punktów twarzy.',
     savedTitle: 'Co zapisujemy',
@@ -130,7 +130,7 @@ export const site = {
     busy: 'Chwileczkę…',
     noAccount: 'Nie masz konta?',
     haveAccount: 'Masz już konto?',
-    terms: 'Zakładając konto, potwierdzasz, że znasz zasady prywatności i zasady treści opisane na stronie Prywatność.',
+    terms: 'Zakładając konto, akceptujesz regulamin i potwierdzasz, że znasz zasady prywatności i zasady treści.',
   },
   invite: {
     title: 'Zaproszenie do zespołu',

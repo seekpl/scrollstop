@@ -37,12 +37,13 @@ export function ageSpan(byAge: Partial<Record<AgeBand, number>>): string | null 
   return last === '55+' ? `${lo}+` : `${lo}–${last.split('-')[1]}`;
 }
 
+/** Liczba pod wykresem — para `dt`/`dd` w liście definicji (`<dl>`). */
 export function Stat({ label, value, hint }: { label: string; value: ReactNode; hint?: string }) {
   return (
     <div className="min-w-0">
-      <div className="text-[13px] text-muted">{label}</div>
-      <div className="tabular mt-1 text-[26px] font-semibold tracking-[-0.02em] text-ink">{value}</div>
-      {hint && <div className="text-[12.5px] leading-snug text-muted">{hint}</div>}
+      <dt className="text-[13px] text-muted">{label}</dt>
+      <dd className="tabular mt-1 text-[26px] font-semibold tracking-[-0.02em] text-ink">{value}</dd>
+      {hint && <dd className="text-[12.5px] leading-snug text-muted">{hint}</dd>}
     </div>
   );
 }
@@ -306,7 +307,7 @@ export function ReportView({
 
       {isGrid && reports.length > 1 && reports.every((r) => r.grid) && (
         <Section title={tr.grid.compareTitle}>
-          <div className="relative overflow-x-auto rounded-2xl bg-surface ring-1 ring-line">
+          <div role="region" aria-label={tr.grid.compareTitle} tabIndex={0} className="relative overflow-x-auto rounded-2xl bg-surface ring-1 ring-line">
             <table className="w-full min-w-[560px] text-left text-[14px]">
               <caption className="sr-only">{tr.grid.compareTitle}</caption>
               <thead className="text-[12.5px] text-muted">

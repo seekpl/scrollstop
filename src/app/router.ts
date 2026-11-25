@@ -15,6 +15,7 @@ export type Route =
   | { name: 'landing' }
   | { name: 'pricing' }
   | { name: 'privacy' }
+  | { name: 'terms' }
   | { name: 'sample'; sample: SampleId }
   | { name: 'login' }
   | { name: 'register' }
@@ -39,6 +40,8 @@ export function pathOf(r: Route): string {
       return '#/pricing';
     case 'privacy':
       return '#/privacy';
+    case 'terms':
+      return '#/terms';
     case 'sample':
       return `#/sample/${r.sample}`;
     case 'login':
@@ -92,6 +95,7 @@ export function parseRoute(hash: string): Route {
   if (!a) return { name: 'landing' };
   if (a === 'pricing' && !b) return { name: 'pricing' };
   if (a === 'privacy' && !b) return { name: 'privacy' };
+  if (a === 'terms' && !b) return { name: 'terms' };
   if (a === 'sample') return (SAMPLE_IDS as string[]).includes(b ?? '') ? { name: 'sample', sample: b as SampleId } : b ? { name: 'not-found' } : { name: 'sample', sample: 'reel' };
   if (a === 'login' && !b) return { name: 'login' };
   if (a === 'register' && !b) return { name: 'register' };

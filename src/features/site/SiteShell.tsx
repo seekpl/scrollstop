@@ -112,6 +112,12 @@ export function SiteFooter() {
           <a href={`mailto:${email}`} className="inline-flex min-h-9 items-center font-semibold text-ink underline decoration-field underline-offset-4 hover:decoration-ink">
             {t.site.footer.contact}: {email}
           </a>
+          <a href={pathOf({ name: 'privacy' })} className="inline-flex min-h-9 items-center font-semibold text-ink underline decoration-field underline-offset-4 hover:decoration-ink">
+            {t.site.nav.privacy}
+          </a>
+          <a href={pathOf({ name: 'terms' })} className="inline-flex min-h-9 items-center font-semibold text-ink underline decoration-field underline-offset-4 hover:decoration-ink">
+            {t.site.nav.terms}
+          </a>
           <span>{t.site.footer.rights(new Date().getFullYear())}</span>
         </div>
       </div>

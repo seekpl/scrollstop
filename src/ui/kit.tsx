@@ -67,12 +67,16 @@ export function Surface({ children, className = '' }: { children: ReactNode; cla
 }
 
 export type Tone = 'neutral' | 'good' | 'fair' | 'poor' | 'info' | 'marker';
+/*
+ * Tło odznak mieszane z bielą (nie przezroczyste): kontrast tekstu ≥ 4,5:1 niezależnie od tła pod
+ * spodem (szare tło strony obniżało go do 4,4:1, §19.6).
+ */
 const TONE: Record<Tone, string> = {
   neutral: 'bg-ink/[0.06] text-ink',
-  good: 'bg-good/10 text-good',
-  fair: 'bg-fair/10 text-fair',
-  poor: 'bg-poor/10 text-poor',
-  info: 'bg-cobalt/10 text-cobalt',
+  good: 'bg-[color-mix(in_srgb,var(--color-good)_10%,white)] text-good',
+  fair: 'bg-[color-mix(in_srgb,var(--color-fair)_10%,white)] text-fair',
+  poor: 'bg-[color-mix(in_srgb,var(--color-poor)_10%,white)] text-poor',
+  info: 'bg-[color-mix(in_srgb,var(--color-cobalt)_10%,white)] text-cobalt',
   marker: 'bg-marker/25 text-ink',
 };
 

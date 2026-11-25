@@ -24,7 +24,7 @@ export function Compare({ cmp, labels }: { cmp: ComparisonView; labels: Record<s
           <AttentionChart series={series} duration={duration} ariaLabel={tc.chartLabel} />
         </div>
       </div>
-      <div className="relative overflow-x-auto rounded-2xl bg-surface ring-1 ring-line">
+      <div role="region" aria-label={tc.tableCaption} tabIndex={0} className="relative overflow-x-auto rounded-2xl bg-surface ring-1 ring-line">
         <table className="w-full min-w-[560px] text-left text-[14px]">
           <caption className="sr-only">{tc.tableCaption}</caption>
           <thead className="text-[12.5px] text-muted">
@@ -57,7 +57,7 @@ export function Compare({ cmp, labels }: { cmp: ComparisonView; labels: Record<s
       </div>
       {cmp.testLine && <p className="text-[13px] leading-relaxed text-muted">{cmp.testLine}</p>}
       {cmp.hookLine && <p className="-mt-4 text-[13px] leading-relaxed text-muted">{cmp.hookLine}</p>}
-      <div className="relative overflow-x-auto rounded-2xl bg-surface ring-1 ring-line">
+      <div role="region" aria-label={tc.segmentsCaption} tabIndex={0} className="relative overflow-x-auto rounded-2xl bg-surface ring-1 ring-line">
         <table className="w-full min-w-[480px] text-left text-[14px]">
           <caption className="sr-only">{tc.segmentsCaption}</caption>
           <thead className="text-[12.5px] text-muted">
@@ -87,7 +87,7 @@ export function Compare({ cmp, labels }: { cmp: ComparisonView; labels: Record<s
         </table>
       </div>
       {cmp.aois.length > 0 && (
-        <div className="relative overflow-x-auto rounded-2xl bg-surface ring-1 ring-line">
+        <div role="region" aria-label={tc.aoisCaption} tabIndex={0} className="relative overflow-x-auto rounded-2xl bg-surface ring-1 ring-line">
           <table className="w-full min-w-[420px] text-left text-[14px]">
             <caption className="px-4 pt-3 text-left text-[13px] font-semibold text-muted">{tc.aoisCaption}</caption>
             <thead className="text-[12.5px] text-muted">

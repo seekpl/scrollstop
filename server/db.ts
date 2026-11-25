@@ -161,6 +161,14 @@ export class Db {
     this.sql.exec(SCHEMA);
   }
 
+  /**
+   * Spójna kopia bazy w trakcie działania serwera (`VACUUM INTO`): zwarty plik SQLite gotowy do
+   * odtworzenia. Pliki materiałów (`media/`) są niezmienne — kopiuje się je osobno (rsync, tar).
+   */
+  backupTo(path: string): void {
+    this.run('VACUUM INTO ?', path);
+  }
+
   close(): void {
     this.sql.close();
   }

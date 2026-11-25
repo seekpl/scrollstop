@@ -75,7 +75,7 @@ export function Technical({ project, sessions }: ProjectCtx) {
         {sessions.length === 0 ? (
           <p className="text-[14px] text-muted">{t.studio.collect.emptyBody}</p>
         ) : (
-          <div className="relative overflow-x-auto rounded-2xl bg-surface ring-1 ring-line">
+          <div role="region" aria-label={x.tableTitle} tabIndex={0} className="relative overflow-x-auto rounded-2xl bg-surface ring-1 ring-line">
             <table className="w-full min-w-[860px] text-left text-[13.5px]">
               <caption className="sr-only">{x.tableTitle}</caption>
               <thead className="text-[12.5px] text-muted">

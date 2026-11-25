@@ -17,7 +17,7 @@ test.describe('języki', () => {
       test.setTimeout(180_000);
       for (const width of PHONE_WIDTHS) {
         await page.setViewportSize({ width, height: 800 });
-        for (const path of ['/', '/#/pricing', '/#/privacy', '/#/sample/reel', '/#/sample/video', '/#/app', '/#/app/new', '/#/app/account', '/#/login', '/#/register', '/#/nie-ma']) {
+        for (const path of ['/', '/#/pricing', '/#/privacy', '/#/terms', '/#/sample/reel', '/#/sample/video', '/#/app', '/#/app/new', '/#/app/account', '/#/login', '/#/register', '/#/nie-ma']) {
           await page.goto(`${path}?lang=${locale}`);
           await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
           await expectNoHorizontalScroll(page);

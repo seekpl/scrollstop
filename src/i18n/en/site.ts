@@ -9,6 +9,7 @@ export const site: Messages['site'] = {
     home: 'Home',
     pricing: 'Pricing',
     privacy: 'Privacy',
+    terms: 'Terms',
     sample: 'Sample report',
     login: 'Sign in',
     studio: 'Studio',
@@ -63,7 +64,6 @@ export const site: Messages['site'] = {
   privacy: {
     title: 'Privacy and ethics',
     lead: `${BRAND.name} studies content, not people. We measure whether a part of a reel draws the eye, not who the viewer is.`,
-    draft: 'Draft version pending legal review.',
     cameraTitle: 'Camera image',
     camera: 'The camera image is processed only in the viewer’s browser. A model estimates the position of the eyes and the gaze direction, and the image is discarded right away. We do not send, record or store photos, videos or face points.',
     savedTitle: 'What we store',
@@ -129,7 +129,7 @@ export const site: Messages['site'] = {
     busy: 'One moment…',
     noAccount: 'No account yet?',
     haveAccount: 'Already have an account?',
-    terms: 'By creating an account you confirm that you know the privacy and content rules described on the Privacy page.',
+    terms: 'By creating an account you accept the terms of service and confirm that you know the privacy and content rules.',
   },
   invite: {
     title: 'Team invitation',

@@ -1,4 +1,4 @@
-import { mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { join, resolve } from 'node:path';
 import { BRAND } from '../src/config/brand';
@@ -13,6 +13,7 @@ import { Db } from './db';
  *
  *   node dist-server/main.js                           — start serwera
  *   node dist-server/main.js set-plan <e-mail> <plan>  — ręczna zmiana planu (faktura, Agency, §13.4)
+ *   node dist-server/main.js backup <plik.sqlite>         — spójna kopia bazy (serwer może działać)
  *   node dist-server/main.js panel-hash <dostawca> <id…> — skróty identyfikatorów uczestników panelu
  *                                                         (porównanie z listą od dostawcy, §16.5)
  */
@@ -46,6 +47,18 @@ if (process.argv[2] === 'set-plan') {
   }
   db.updateAccount(row.id, { plan, plan_status: plan === 'free' ? 'none' : 'active' });
   console.info(`Plan konta ${email}: ${plan}`);
+  db.close();
+  process.exit(0);
+}
+
+if (process.argv[2] === 'backup') {
+  const target = process.argv[3] ? resolve(process.argv[3]) : '';
+  if (!target || existsSync(target)) {
+    console.error(target ? `Plik ${target} już istnieje — podaj nową nazwę.` : 'Użycie: backup <plik.sqlite>');
+    process.exit(1);
+  }
+  db.backupTo(target);
+  console.info(`Kopia bazy: ${target}. Materiały: ${join(dataDir, 'media')} (skopiuj osobno, np. rsync).`);
   db.close();
   process.exit(0);
 }
