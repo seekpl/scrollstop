@@ -35,6 +35,13 @@ export const report = {
     panel: 'Z panelu',
     community: 'Z Twojej społeczności',
   },
+  shared: {
+    title: 'Raport udostępniony',
+    kicker: (creator: string, until: string) => `Raport udostępniony przez: ${creator} · link ważny do ${until}`,
+    logoAlt: (creator: string) => `Logo: ${creator}`,
+    chartNote: 'Pasmo wokół krzywej to 95% przedział niepewności. Żółte chorągiewki oznaczają spadki; kliknięcie wykresu zaznacza chwilę.',
+    note: 'To widok tylko do odczytu z danymi zbiorczymi. Mapy spojrzeń, dane pojedynczych sesji i eksport są dostępne wyłącznie w studiu autora raportu.',
+  },
   hook: {
     title: 'Hook',
     aside: 'pierwsze sekundy materiału',

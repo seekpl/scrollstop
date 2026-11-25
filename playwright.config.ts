@@ -3,7 +3,7 @@ import { defineConfig, devices } from '@playwright/test';
 /**
  * Testy E2E (§22.2): aplikacja zbudowana produkcyjnie.
  * - :4173 — tryb lokalny (GitHub Pages, IndexedDB),
- * - :4174 — tryb serwerowy (aplikacja + API + SQLite w jednym procesie; od M5).
+ * - :4174 — tryb serwerowy (aplikacja + API + SQLite w jednym procesie). `E2E_SERVER=0` pomija go.
  * Kamera: sztuczne urządzenie Chromium; pełne badania przechodzą też w trybie symulacji wzroku.
  * W kontenerze z inną wersją Chromium niż przypięty Playwright: PW_CHROMIUM_PATH=/opt/pw-browsers/chromium.
  */
@@ -40,7 +40,7 @@ export default defineConfig({
       reuseExistingServer: !process.env.CI,
       timeout: 180_000,
     },
-    ...(withServer && process.env.E2E_WITH_API === '1'
+    ...(withServer
       ? [
           {
             command: 'node e2e/start-server.mjs',

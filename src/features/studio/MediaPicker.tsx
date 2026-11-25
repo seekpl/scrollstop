@@ -62,14 +62,14 @@ export function MediaPicker({ value, onChange, platform, label }: { value: Picke
           </span>
           <span className="min-w-0 flex-1">
             <span className="block truncate text-[14.5px] font-semibold text-ink">{value.mediaName}</span>
-            <span className="block text-[13px] text-muted">{m.summary(m.kinds[kind], value.duration ? Math.round(value.duration) : null, value.width && value.height ? `${value.width}×${value.height}` : null)}</span>
+            <span className="block text-[13px] text-muted">{m.summary(value.file ? m.uploadKind : m.kinds[kind], value.duration ? Math.round(value.duration) : null, value.width && value.height ? `${value.width}×${value.height}` : null)}</span>
           </span>
           <Btn size="sm" onClick={() => onChange(null)}>
             {t.common.actions.change}
           </Btn>
         </div>
         {!fits && <Callout tone="warn">{m.aspectWarn(t.common.platforms[platform])}</Callout>}
-        {kind === 'local' && <p className="text-[12.5px] text-muted">{m.localNote}</p>}
+        {value.file ? <p className="text-[12.5px] text-muted">{m.uploadNote}</p> : kind === 'local' && <p className="text-[12.5px] text-muted">{m.localNote}</p>}
       </div>
     );
   }

@@ -1,11 +1,14 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, type ReactNode } from 'react';
 import type { ResearchApi } from '../api/types';
 import { LabApp } from '../features/lab/LabApp';
 import { DeleteSessionPage } from '../features/viewer/DeleteSession';
 import { ViewerApp } from '../features/viewer/ViewerApp';
 import { getLabStore, LAB_OPEN_KEY } from '../features/lab/labStore';
+import { SharedReportPage } from '../features/report/SharedReport';
+import { LoginPage, RegisterPage } from '../features/site/Auth';
+import { InvitePage } from '../features/site/Invite';
 import { LandingPage } from '../features/site/Landing';
-import { NotFound, SoonPage } from '../features/site/Pages';
+import { NotFound } from '../features/site/Pages';
 import { PricingPage } from '../features/site/Pricing';
 import { PrivacyPage } from '../features/site/Privacy';
 import { SamplePage } from '../features/site/Sample';
@@ -15,8 +18,8 @@ import { ProjectPage } from '../features/studio/ProjectPage';
 import { ProjectsPage } from '../features/studio/Projects';
 import { WorkspacePage } from '../features/studio/Workspace';
 import { ErrorBoundary } from './ErrorBoundary';
-import { ResearchProvider } from './research';
-import { useRoute, type Route } from './router';
+import { ResearchProvider, useResearch } from './research';
+import { navigate, pathOf, useRoute, type Route } from './router';
 
 function LabRoute() {
   // Sesja przekazana z analizy technicznej projektu (Otwórz w laboratorium).
@@ -32,6 +35,16 @@ function LabRoute() {
   return <LabApp store={getLabStore()} initialSessionId={initial} />;
 }
 
+/** Studio w trybie serwerowym wymaga konta: bez logowania — strona logowania z powrotem tutaj. */
+function RequireAccount({ children }: { children: ReactNode }) {
+  const { api, account } = useResearch();
+  useEffect(() => {
+    if (api.mode === 'server' && account === null) navigate(`${pathOf({ name: 'login' })}?next=${encodeURIComponent(window.location.hash)}`, { replace: true });
+  }, [api.mode, account]);
+  if (api.mode === 'server' && !account) return null;
+  return <>{children}</>;
+}
+
 function RouteView({ route }: { route: Route }) {
   switch (route.name) {
     case 'landing':
@@ -43,15 +56,35 @@ function RouteView({ route }: { route: Route }) {
     case 'sample':
       return <SamplePage sample={route.sample} />;
     case 'projects':
-      return <ProjectsPage />;
+      return (
+        <RequireAccount>
+          <ProjectsPage />
+        </RequireAccount>
+      );
     case 'new-project':
-      return <NewProjectPage />;
+      return (
+        <RequireAccount>
+          <NewProjectPage />
+        </RequireAccount>
+      );
     case 'project':
-      return <ProjectPage key={route.id} id={route.id} step={route.step} />;
+      return (
+        <RequireAccount>
+          <ProjectPage key={route.id} id={route.id} step={route.step} />
+        </RequireAccount>
+      );
     case 'account':
-      return <AccountPage />;
+      return (
+        <RequireAccount>
+          <AccountPage />
+        </RequireAccount>
+      );
     case 'workspace':
-      return <WorkspacePage />;
+      return (
+        <RequireAccount>
+          <WorkspacePage />
+        </RequireAccount>
+      );
     case 'lab':
       return <LabRoute />;
     case 'study':
@@ -63,9 +96,13 @@ function RouteView({ route }: { route: Route }) {
     case 'not-found':
       return <NotFound />;
     case 'login':
+      return <LoginPage />;
     case 'register':
-      // Konta są w trybie serwerowym (M5); w trybie lokalnym studio działa bez logowania.
-      return <SoonPage />;
+      return <RegisterPage />;
+    case 'invite':
+      return <InvitePage key={route.token} token={route.token} />;
+    case 'shared-report':
+      return <SharedReportPage key={route.token} token={route.token} />;
   }
 }
 

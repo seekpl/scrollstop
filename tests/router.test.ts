@@ -18,6 +18,8 @@ describe('router (hash, §9–§10)', () => {
     { name: 'study-package', payload: 'eyJhIjoxfQ' },
     { name: 'delete-session', id: 'ses_1' },
     { name: 'delete-session', id: null },
+    { name: 'invite', token: 'inv_Tok-1' },
+    { name: 'shared-report', token: 'shr_Tok-2' },
     { name: 'lab' },
   ];
   for (const r of routes) it(`${r.name}: ${pathOf(r)}`, () => expect(parseRoute(pathOf(r))).toEqual(r));

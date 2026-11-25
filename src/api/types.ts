@@ -27,6 +27,11 @@ import type {
   ViewerSession,
 } from '../research/model';
 import type { BlockReason, PlanId } from '../research/plans';
+import type { SharedReport } from '../research/share';
+
+/** Role w zespole (§9.6): właściciel, edytor, widz raportu. */
+export type Role = 'owner' | 'editor' | 'viewer';
+export const ROLES: Role[] = ['owner', 'editor', 'viewer'];
 
 export interface Account {
   id: string;
@@ -40,7 +45,9 @@ export interface Account {
   /** Logo do raportu (plan z `clientLogo`), data URL ≤ 150 kB. */
   logo: string | null;
   workspaceId: string;
-  role: 'owner' | 'editor' | 'viewer';
+  role: Role;
+  /** Plan właściciela bieżącego zespołu — limity i funkcje w studiu. */
+  workspacePlan: PlanId;
 }
 
 export interface Usage {
@@ -115,6 +122,40 @@ export interface ShareLinkInfo {
   expiresAt: string;
 }
 
+export interface ShareLinkStatus {
+  active: boolean;
+  expiresAt: string | null;
+}
+
+export interface WorkspaceInfo {
+  id: string;
+  name: string;
+  role: Role;
+  /** Plan właściciela — limity zespołu. */
+  plan: PlanId;
+  members: number;
+}
+
+export interface MemberInfo {
+  accountId: string;
+  email: string;
+  name: string;
+  role: Role;
+  joinedAt: string;
+}
+
+export interface InviteInfo {
+  token: string;
+  role: Exclude<Role, 'owner'>;
+  expiresAt: string;
+}
+
+export interface InvitePreview {
+  workspaceName: string;
+  role: Exclude<Role, 'owner'>;
+  expiresAt: string;
+}
+
 export interface AiInsight {
   title: string;
   fact: string;
@@ -183,5 +224,22 @@ export interface ResearchApi {
   /** Rekomendacje AI (serwer) albo z reguł. */
   insights(projectId: string, variantId: VariantId, locale: Locale): Promise<AiInsightsResult>;
   createShareLink(projectId: string, days: 7 | 30 | 90): Promise<ShareLinkInfo>;
+  shareLinkStatus(projectId: string): Promise<ShareLinkStatus>;
   revokeShareLink(projectId: string): Promise<void>;
+  /** Raport zbiorczy z linku (bez logowania, bez surowych sesji). */
+  sharedReport(token: string, locale: Locale): Promise<SharedReport>;
+
+  /** Zespoły (§9.6) — tylko tryb serwerowy. */
+  workspaces(): Promise<WorkspaceInfo[]>;
+  switchWorkspace(workspaceId: string): Promise<Account>;
+  renameWorkspace(workspaceId: string, name: string): Promise<void>;
+  members(workspaceId: string): Promise<MemberInfo[]>;
+  createInvite(workspaceId: string, role: Exclude<Role, 'owner'>): Promise<InviteInfo>;
+  inviteInfo(token: string): Promise<InvitePreview>;
+  acceptInvite(token: string): Promise<Account>;
+  setMemberRole(workspaceId: string, accountId: string, role: Exclude<Role, 'owner'>): Promise<void>;
+  removeMember(workspaceId: string, accountId: string): Promise<void>;
 }
+
+export const SHARE_DAYS = [7, 30, 90] as const;
+export const INVITE_DAYS = 7;

@@ -116,8 +116,8 @@ export const research: ResearchText = {
     unclear: (p) => `Różnica mieści się w granicach niepewności${p.enough ? '' : ' (za mało widzów w jednej z wersji)'}.`,
     winner: (p) => `Wersja ${p.win} utrzymuje uwagę średnio o ${p.pp} pp wyżej (${p.winVal} wobec ${p.loseVal}).`,
     biggest: (p) => `Największa różnica: ${lower(p.label)}, wersja ${p.win} o ${p.pp} pp wyżej.`,
-    testLine: (p) => `Test t Welcha na średniej uwadze widzów${p.holm ? ' (korekta Holma)' : ''}: p = ${p.p}. Różnica jest rozstrzygająca przy p < 0,05 i co najmniej ${p.min} widzach w każdej wersji.`,
-    hookLine: (p) => `Test dwóch proporcji dla utrzymania hooka @3 s${p.holm ? ' (korekta Holma)' : ''}: p = ${p.p}.`,
+    testLine: (p) => `Test t Welcha na średniej uwadze widzów${p.holm ? ' (korekta Holma)' : ''}: p ${/^[<>]/.test(p.p) ? p.p : `= ${p.p}`}. Różnica jest rozstrzygająca przy p < 0,05 i co najmniej ${p.min} widzach w każdej wersji.`,
+    hookLine: (p) => `Test dwóch proporcji dla utrzymania hooka @3 s${p.holm ? ' (korekta Holma)' : ''}: p ${/^[<>]/.test(p.p) ? p.p : `= ${p.p}`}.`,
     sharedRest: (p) => `Od ${p.from} wersje są identyczne; tam różnica średniej uwagi wynosi ${p.pp} pp.`,
   },
   demo: {

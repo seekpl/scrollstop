@@ -26,6 +26,8 @@ export type Route =
   | { name: 'study'; token: string }
   | { name: 'study-package'; payload: string }
   | { name: 'delete-session'; id: string | null }
+  | { name: 'invite'; token: string }
+  | { name: 'shared-report'; token: string }
   | { name: 'lab' }
   | { name: 'not-found' };
 
@@ -57,6 +59,10 @@ export function pathOf(r: Route): string {
       return `#/s/${encodeURIComponent(r.token)}`;
     case 'study-package':
       return `#/p/${r.payload}`;
+    case 'invite':
+      return `#/invite/${encodeURIComponent(r.token)}`;
+    case 'shared-report':
+      return `#/r/${encodeURIComponent(r.token)}`;
     case 'delete-session':
       return r.id ? `#/delete/${encodeURIComponent(r.id)}` : '#/delete';
     case 'lab':
@@ -87,11 +93,13 @@ export function parseRoute(hash: string): Route {
   if (a === 'pricing' && !b) return { name: 'pricing' };
   if (a === 'privacy' && !b) return { name: 'privacy' };
   if (a === 'sample') return (SAMPLE_IDS as string[]).includes(b ?? '') ? { name: 'sample', sample: b as SampleId } : b ? { name: 'not-found' } : { name: 'sample', sample: 'reel' };
-  if (a === 'login') return { name: 'login' };
-  if (a === 'register') return { name: 'register' };
+  if (a === 'login' && !b) return { name: 'login' };
+  if (a === 'register' && !b) return { name: 'register' };
   if (a === 'lab') return { name: 'lab' };
   if (a === 's' && b) return { name: 'study', token: b };
   if (a === 'delete') return { name: 'delete-session', id: b ?? null };
+  if (a === 'invite' && b) return { name: 'invite', token: b };
+  if (a === 'r' && b) return { name: 'shared-report', token: b };
   if (a === 'app') {
     if (!b) return { name: 'projects' };
     if (b === 'new') return { name: 'new-project' };

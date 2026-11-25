@@ -116,8 +116,8 @@ export const research: ResearchText = {
     unclear: (p) => `The difference is within the uncertainty${p.enough ? '' : ' (too few viewers in one of the versions)'}.`,
     winner: (p) => `Version ${p.win} holds attention ${p.pp} pp higher on average (${p.winVal} vs ${p.loseVal}).`,
     biggest: (p) => `Biggest difference: ${lower(p.label)}, version ${p.win} ${p.pp} pp higher.`,
-    testLine: (p) => `Welch’s t-test on viewers’ mean attention${p.holm ? ' (Holm correction)' : ''}: p = ${p.p}. A difference is conclusive at p < 0.05 with at least ${p.min} viewers in each version.`,
-    hookLine: (p) => `Two-proportion test for hook retention @3s${p.holm ? ' (Holm correction)' : ''}: p = ${p.p}.`,
+    testLine: (p) => `Welch’s t-test on viewers’ mean attention${p.holm ? ' (Holm correction)' : ''}: p ${/^[<>]/.test(p.p) ? p.p : `= ${p.p}`}. A difference is conclusive at p < 0.05 with at least ${p.min} viewers in each version.`,
+    hookLine: (p) => `Two-proportion test for hook retention @3s${p.holm ? ' (Holm correction)' : ''}: p ${/^[<>]/.test(p.p) ? p.p : `= ${p.p}`}.`,
     sharedRest: (p) => `From ${p.from} the versions are identical; there the difference in mean attention is ${p.pp} pp.`,
   },
   demo: {

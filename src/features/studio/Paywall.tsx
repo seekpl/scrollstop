@@ -12,7 +12,7 @@ export function PaywallDialog({ reason, onClose, target = 30 }: { reason: BlockR
   const { t, locale } = useI18n();
   const b = t.billing;
   const { account } = useResearch();
-  const plan = account?.plan ?? 'free';
+  const plan = account?.workspacePlan ?? 'free';
   const next = upgradeTarget(plan);
   const cur = currencyFor(locale);
   const body = reason === 'active_projects' ? b.paywall.active_projects : reason === 'project_sessions' ? b.paywall.project_sessions(target) : reason === 'month_sessions' ? b.paywall.month_sessions(PLANS[plan].limits.monthSessions ?? 0) : '';

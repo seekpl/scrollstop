@@ -34,6 +34,13 @@ export const report: Messages['report'] = {
     panel: 'From the panel',
     community: 'From your community',
   },
+  shared: {
+    title: 'Shared report',
+    kicker: (creator: string, until: string) => `Report shared by: ${creator} · link valid until ${until}`,
+    logoAlt: (creator: string) => `Logo: ${creator}`,
+    chartNote: 'The band around the curve is the 95% uncertainty interval. Yellow flags mark drops; clicking the chart marks a moment.',
+    note: 'This is a read-only view with aggregate data. Gaze maps, individual session data and exports are available only in the report author’s studio.',
+  },
   hook: {
     title: 'Hook',
     aside: 'the first seconds of the video',

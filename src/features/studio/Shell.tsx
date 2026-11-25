@@ -17,7 +17,7 @@ export function StudioShell({ children, crumbs = [], title }: { children: ReactN
   useEffect(() => {
     document.title = `${title ?? s.projects} — ${BRAND.name}`;
   }, [title, s.projects]);
-  const plan = account?.plan ?? 'free';
+  const plan = account?.workspacePlan ?? 'free';
   const statusDot = account?.planStatus === 'past_due' ? 'bg-poor' : plan === 'free' ? 'bg-field' : 'bg-good';
   return (
     <div className="min-h-dvh-safe bg-paper">
@@ -54,6 +54,11 @@ export function StudioShell({ children, crumbs = [], title }: { children: ReactN
           </nav>
           <div className="ml-auto flex shrink-0 items-center gap-2">
             <LanguageSelect className="hidden sm:inline-flex" />
+            {api.mode === 'server' && account && (
+              <a href={pathOf({ name: 'workspace' })} className="inline-flex min-h-9 items-center rounded-[10px] px-2.5 text-[13.5px] font-semibold text-ink hover:bg-ink/[0.04]">
+                {t.studio.workspace.title}
+              </a>
+            )}
             <a href={pathOf({ name: 'account' })} className="inline-flex min-h-9 items-center gap-2 rounded-[10px] px-2.5 text-[13.5px] font-semibold text-ink ring-1 ring-inset ring-field/70 hover:bg-ink/[0.04]">
               <span className={`h-2 w-2 rounded-full ${statusDot}`} aria-hidden />
               {s.plan(t.billing.planNames[plan])}

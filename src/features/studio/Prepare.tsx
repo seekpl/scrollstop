@@ -1,6 +1,6 @@
 import qrcode from 'qrcode-generator';
 import { useMemo, useState } from 'react';
-import { studyConfigFor } from '../../api/local';
+import { studyConfigFor } from '../../research/project';
 import { absoluteUrl, navigate, pathOf } from '../../app/router';
 import { useResearch } from '../../app/research';
 import { salesEmail } from '../../config/company';
@@ -10,6 +10,7 @@ import { formatTime } from '../../core/math/util';
 import { I18nProvider, LOCALE_NAMES, LOCALES, useI18n, useT, type Locale } from '../../i18n';
 import { encodeStudyConfig } from '../../research/link';
 import { AGE_BANDS, RETENTION_OPTIONS, type Aoi, type Project, type Scene, type Variant } from '../../research/model';
+import { planFor } from '../../research/plans';
 import { Badge, btnClass, Btn, Callout, CopyField, Dialog, Field, Icon, inputClass, Section, Segmented, Surface } from '../../ui/kit';
 import { registerLocalFile } from '../shared/mediaLibrary';
 import { AoiEditor } from '../report/AoiPanel';
@@ -204,6 +205,7 @@ function PanelOrder({ project }: { project: Project }) {
 
 function VariantCard({ project, variant, sessionsCount, onChange }: { project: Project; variant: Variant; sessionsCount: number; onChange(v: Variant): Promise<void> }) {
   const t = useT();
+  const { can } = useResearch();
   const p = t.studio.prepare;
   const lib = useLibraryVersion();
   const src = useVariantFrames(variant);
@@ -313,7 +315,15 @@ function VariantCard({ project, variant, sessionsCount, onChange }: { project: P
         ) : (
           <p className="text-[13.5px] text-muted">{t.report.aoi.empty}</p>
         )}
-        {editing ? (
+        {!can.aoi ? (
+          <p className="flex flex-wrap items-center gap-2 text-[13.5px] text-muted">
+            <Icon name="lock" size={15} />
+            {t.errors.feature_aoi}
+            <a href={`${pathOf({ name: 'pricing' })}?plan=${planFor('aoi')}`} className="font-semibold text-cobalt underline underline-offset-4">
+              {t.billing.locked.unlock(t.billing.planNames[planFor('aoi')])}
+            </a>
+          </p>
+        ) : editing ? (
           <AoiEditor
             src={src}
             duration={duration || 15}

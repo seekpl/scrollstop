@@ -15,7 +15,7 @@ Pełna specyfikacja produktu: [`docs/prompt-startowy.md`](docs/prompt-startowy.m
 | M2 | Warstwa badań: krzywa 0,5 s / 1 s, spadki, segmenty, heat mapy, strefy, czytelność, moment marki, A/B/n (Welch, proporcje, Holm), MDE, jakość sesji, wnioski z reguł, symulator panelu | gotowe |
 | M3 | Przebieg widza: zgoda 18+, pytania przesiewowe, przygotowanie, kamera, dźwięk, kalibracja, pełny ekran z ochroną przebiegu, pytania po, zakończenie, kolejka wysyłki, kod usunięcia, link samowystarczalny, plik sesji, `?sim=1` | gotowe |
 | M4 | Studio (tryb lokalny: projekty, kreator, przygotowanie testu, zbieranie widzów z importem plików, raport, analiza techniczna, konto) i strona publiczna (główna z żywą krzywą, cennik z zamówieniem e-mailem, prywatność, przykładowe raporty) | gotowe |
-| M5 | Tryb serwerowy, Docker | w kolejce |
+| M5 | Tryb serwerowy (konta, zespoły z rolami i zaproszeniami, media z `Range`, sesje, retencja, usuwanie kodem, linki do raportu), Docker | gotowe |
 | M6–M9 | Feed, miniatura, karuzela; plany i płatności; AI, grafika, PDF; szlif | w kolejce |
 
 ## Uruchomienie
@@ -34,7 +34,9 @@ npm run dev
 | `npm test` | testy jednostkowe (Vitest, jsdom) |
 | `npm run build` | build produkcyjny do `dist/` (z service workerem i manifestem z `brand.ts`) |
 | `npm run build:ftp` | build ze ścieżkami względnymi do `dist-ftp/` (dowolny katalog na hostingu) |
-| `npm run e2e` | testy E2E (Playwright, Chromium z fałszywą kamerą) |
+| `npm run e2e` | testy E2E (Playwright, Chromium z fałszywą kamerą): tryb lokalny na :4173 i serwerowy na :4174 (`E2E_SERVER=0` pomija serwer) |
+| `npm run server:build` | serwer API do jednego pliku `dist-server/main.js` |
+| `npm run server:start` | start serwera (zmienne środowiskowe niżej) |
 | `npm run check:colors` | kontrast tokenów (WCAG AA) i rozróżnialność kolorów wersji przy daltonizmie |
 
 **Środowisko chmurowe Claude Code:** gdy przeglądarka w kontenerze ma inną wersję niż przypięty Playwright (1.56.1), uruchamiaj E2E z `PW_CHROMIUM_PATH=/opt/pw-browsers/chromium npm run e2e`.
@@ -96,11 +98,43 @@ Kod w `src/research/` działa w przeglądarce i na serwerze (ten sam raport).
 - **Strona publiczna:** główna (żywa krzywa uwagi nad pionowym klipem demo — liczona z symulowanego panelu, nie wpisana na sztywno), `#/pricing` (waluta według języka, en: USD/EUR, okres roczny = 10 × miesięczna; zamówienie przez `mailto:` — płatności online w M7), `#/privacy` (§17.8, dane operatora z `company.ts`), `#/sample/reel|video` (feed w M6).
 - **Uczciwy cennik:** pozycje cennika, których jeszcze nie ma w kodzie, są w `PRICING_SOON` (`src/research/plans.ts`) i pokazują się z etykietą „wkrótce”. Usuń klucz z tej listy w kamieniu milowym, który dostarcza funkcję.
 
+## Tryb serwerowy (M5)
+
+Serwer w `server/` (Node ≥ 22.5, `node:sqlite`, `node:http`, bez frameworka). Ten sam kod raportu i walidacji co w przeglądarce (`src/research/`), więc oba tryby przyjmują dokładnie te same dane.
+
+- **Konta** (§9.7, §15): hasła scrypt, tokeny 32 B (w bazie skrót SHA-256, ważne 30 dni), limity prób logowania i rejestracji, ten sam komunikat dla złego e-maila i hasła.
+- **Zespoły** (§9.6): każde konto ma własny zespół; role właściciel / edytor / widz raportu; zaproszenie linkiem (jednorazowe, 7 dni); liczba miejsc według planu. Limity i funkcje zespołu wynikają z **planu właściciela**.
+- **Projekty**: budowane od zera z dozwolonych pól (`src/research/project.ts`); funkcje płatne jako 402 `feature_*` (np. strefy, więcej wersji); materiał z serwera musi należeć do tego samego zespołu.
+- **Media**: `POST /api/projects/:id/media` (surowe body, strumień na dysk z limitem `MAX_VIDEO_MB` / `MAX_IMAGE_MB`), `GET /api/media/:id` z `Range` (206/416) pod nieodgadywalnym identyfikatorem.
+- **Badanie**: `GET /api/study/:token` (przydział wersji A→D, limit planu sprawdzany przed zgodą), `POST /api/study/:token/sessions` (sanitizacja, kontrola jakości, kod usunięcia; symulacje bez limitu), `POST /api/sessions/:id/delete` (kod, porównanie stałoczasowe).
+- **Retencja**: sesje wygasają po 30/90/180/365 dniach; usuwanie przy starcie i co godzinę. Usunięcie projektu lub konta kasuje też pliki mediów.
+- **Link do raportu** (plan Pro+): `#/r/<token>` — raport **zbiorczy** liczony na serwerze, bez surowych sesji, map spojrzeń i wartości pojedynczych widzów; wygasa po 7/30/90 dniach, można go wyłączyć.
+- **Płatności i AI** dochodzą w M7–M8: do tego czasu `/api/billing/*` odpowiada 503 `billing_unavailable` (zamówienie e-mailem), a rekomendacje — wnioskami z reguł.
+- **Linia poleceń**: `node dist-server/main.js set-plan <e-mail> <free|creator|pro|agency>` (faktura, Agency).
+
+| Zmienna serwera | Znaczenie (domyślnie) |
+|---|---|
+| `DATA_DIR` | baza `attn.sqlite` i katalog `media/` (`./data`) |
+| `PORT`, `HOST` | `8787`, `0.0.0.0` |
+| `APP_URL` | adres aplikacji (linki) |
+| `APP_ORIGINS` | originy z dostępem do API (CORS), po przecinku; domyślnie origin `APP_URL` |
+| `STATIC_DIR` | zbudowany frontend do serwowania z tego samego adresu |
+| `ADMIN_EMAILS` | administratorzy (zamówienia, ręczna zmiana planu) |
+| `MAX_VIDEO_MB`, `MAX_IMAGE_MB` | limity plików (`1024`, `15`) |
+| `TRUST_PROXY` | `1` za odwrotnym proxy (IP do limitów z `X-Forwarded-For`) |
+
+Frontend w trybie serwerowym: build z `VITE_API_URL` (adres API albo `/` przy wspólnym serwerze).
+
 ## Wdrożenie
 
 1. **GitHub Pages** (tryb lokalny): workflow „CI & Pages” buduje z `BASE_PATH=/<repo>/`. Jednorazowo: Settings → Pages → Source: GitHub Actions.
 2. **FTP** (tryb lokalny): `npm run fetch-model && npm run build:ftp`, usuń `dist-ftp/models/.gitkeep`, wgraj **całą** zawartość razem z ukrytym `.htaccess`. Workflow buduje też artefakt `scrollstop-ftp`. Kamera działa tylko przez HTTPS.
-3. **Docker** (tryb serwerowy): od M5.
+3. **Docker** (tryb serwerowy, jeden kontener: aplikacja + API + SQLite):
+   ```bash
+   docker build -t scrollstop .
+   docker run -p 8787:8787 -v scrollstop-data:/data -e APP_URL=https://twoja-domena.pl/ scrollstop
+   ```
+   Obraz: `node:22-bookworm-slim`, użytkownik `node`, wolumen `/data` (kopie zapasowe!), port 8787, `HEALTHCHECK` na `/api/health`. Za proxy z TLS: `-e TRUST_PROXY=1`. Przykład z wolumenem: `docker-compose.yml`. W sieci z inspekcją TLS (proxy firmowe) certyfikat CA podaje się na czas budowania jako sekret: `docker build --secret id=extra_ca,src=ca.crt …` — nie trafia do obrazu.
 
 ## Prywatność
 

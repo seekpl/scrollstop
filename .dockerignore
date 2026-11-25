@@ -1,11 +1,15 @@
 node_modules
 dist
 dist-server
+dist-e2e
+dist-ftp
 data
 coverage
 test-results
 playwright-report
 .git
+.github
+.claude
 *.log
-dist-e2e
-dist-ftp
+public/mediapipe
+public/models/*.task

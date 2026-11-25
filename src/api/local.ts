@@ -1,11 +1,12 @@
 import { currentMessages } from '../i18n';
 import { newDeletionCode, normalizeCode, randomId, sha256Hex } from '../research/link';
-import { CONSENT_VERSION, LIMITS, type Project, type StudyConfig, type Variant, type VariantId, type ViewerSession } from '../research/model';
-import { PLANS, projectBlock, sessionBlock, type PlanId } from '../research/plans';
-import { sanitizeSession } from '../research/sanitize';
+import type { Project, ViewerSession } from '../research/model';
+import { entitlements, projectBlock, sessionBlock, type PlanId } from '../research/plans';
+import { newProjectFrom, patchProject, pickVariant, PlanLimit, studyConfigFor } from '../research/project';
+import { InvalidInput, sanitizeSession } from '../research/sanitize';
 import { assessSession, expiryDate, isExpired, monthKey } from '../research/sessions';
 import type { LocalStore } from './localStore';
-import { ApiError, type Account, type NewProject, type NewVariant, type ProjectPatch, type ResearchApi, type StudyLookup, type SubmitResult, type Usage } from './types';
+import { ApiError, type Account, type NewProject, type ProjectPatch, type ResearchApi, type StudyLookup, type SubmitResult, type Usage } from './types';
 
 
 interface Kv<T> {
@@ -16,24 +17,11 @@ interface Kv<T> {
 /** Błąd z komunikatem w języku interfejsu według kodu (helper `fail`, lekcja §24.3). */
 export const fail = (code: string, status: number) => new ApiError((currentMessages().errors as Record<string, string>)[code] ?? code, status, code);
 
-const VARIANT_IDS: VariantId[] = ['A', 'B', 'C', 'D'];
-
-export function variantFrom(v: NewVariant, i: number, label?: string): Variant {
-  const id = VARIANT_IDS[i];
-  return {
-    id,
-    label: label ?? v.label ?? `Wersja ${id}`,
-    media: v.media,
-    ...(v.slides ? { slides: v.slides } : {}),
-    mediaName: v.mediaName,
-    duration: v.duration ?? 0,
-    width: v.width ?? 1080,
-    height: v.height ?? 1920,
-    scenes: v.scenes ?? [],
-    aois: [],
-    ...(v.sharedFrom !== undefined ? { sharedFrom: v.sharedFrom } : {}),
-    ...(v.title !== undefined ? { title: v.title } : {}),
-  };
+/** Błędy walidacji i planu z warstwy badań jako `ApiError` (400 / 402). */
+function rethrow(e: unknown): never {
+  if (e instanceof PlanLimit) throw fail(e.code, 402);
+  if (e instanceof InvalidInput) throw fail(e.code, 400);
+  throw e;
 }
 
 /**
@@ -74,6 +62,7 @@ export class LocalResearchApi implements ResearchApi {
       logo: stored.logo ?? null,
       workspaceId: 'local',
       role: 'owner',
+      workspacePlan: this.opts.plan ?? 'free',
     };
   }
 
@@ -139,36 +128,12 @@ export class LocalResearchApi implements ResearchApi {
     const me = await this.me();
     const block = projectBlock(me.plan, (await this.usage()).activeProjects);
     if (block) throw fail(block, 402);
-    if (!input.variants.length) throw fail('bad_request', 400);
-    const now = new Date(this.now()).toISOString();
-    const max = PLANS[me.plan].maxVariants;
-    const project: Project = {
-      id: `prj_${randomId(9)}`,
-      workspaceId: 'local',
-      name: input.name.trim().slice(0, 120),
-      creatorName: input.creatorName.trim().slice(0, 120),
-      kind: input.kind,
-      platform: input.platform,
-      audio: input.audio,
-      context: input.context,
-      platformUi: input.platformUi,
-      ...(input.caption ? { caption: input.caption.slice(0, 300) } : {}),
-      targetDevice: input.targetDevice,
-      variants: input.variants.slice(0, Math.min(max, LIMITS.maxVariants)).map((v, i) => variantFrom(v, i)),
-      fillers: input.fillers ?? [],
-      ...(input.feed ? { feed: input.feed } : {}),
-      ...(input.grid ? { grid: input.grid } : {}),
-      ...(input.slides ? { slides: input.slides } : {}),
-      questions: input.questions.slice(0, 3),
-      audience: input.audience,
-      targetSessions: input.targetSessions ?? 30,
-      status: 'collecting',
-      linkToken: randomId(16),
-      retentionDays: input.retentionDays ?? 90,
-      locale: input.locale,
-      createdAt: now,
-      updatedAt: now,
-    };
+    let project: Project;
+    try {
+      project = newProjectFrom(input, { id: `prj_${randomId(9)}`, workspaceId: 'local', linkToken: randomId(16) }, { now: new Date(this.now()).toISOString(), entitlements: entitlements(me.plan), allowLocal: true });
+    } catch (e) {
+      return rethrow(e);
+    }
     await this.store.put('projects', project);
     return project;
   }
@@ -176,10 +141,21 @@ export class LocalResearchApi implements ResearchApi {
   async updateProject(id: string, patch: ProjectPatch): Promise<Project> {
     const p = await this.getProject(id);
     if (!p) throw fail('not_found', 404);
-    const next: Project = { ...p, ...patch, updatedAt: new Date(this.now()).toISOString() };
+    const me = await this.me();
+    let next: Project;
+    try {
+      next = patchProject(p, patch, { now: new Date(this.now()).toISOString(), entitlements: entitlements(me.plan), allowLocal: true });
+    } catch (e) {
+      return rethrow(e);
+    }
+    // Ponowne otwarcie zamkniętego projektu liczy się do limitu aktywnych projektów.
+    if (p.status === 'closed' && next.status !== 'closed') {
+      const block = projectBlock(me.plan, (await this.usage()).activeProjects);
+      if (block) throw fail(block, 402);
+    }
     // Zmiana okresu przechowywania dotyczy też zapisanych sesji.
-    if (patch.retentionDays && patch.retentionDays !== p.retentionDays) {
-      for (const s of await this.listSessions(id)) await this.store.put('sessions', { ...s, expiresAt: expiryDate(s.createdAt, patch.retentionDays) });
+    if (next.retentionDays !== p.retentionDays) {
+      for (const s of await this.listSessions(id)) await this.store.put('sessions', { ...s, expiresAt: expiryDate(s.createdAt, next.retentionDays) });
     }
     await this.store.put('projects', next);
     return next;
@@ -271,10 +247,10 @@ export class LocalResearchApi implements ResearchApi {
   }
 
   /** Wersja z najmniejszą liczbą sesji, przy remisie A→D (§13.3). */
-  private async pickVariant(project: Project): Promise<Variant> {
-    const own = await this.listSessions(project.id);
-    const counts = project.variants.map((v) => own.filter((s) => s.variantId === v.id).length);
-    return project.variants[counts.indexOf(Math.min(...counts))];
+  private async pickVariant(project: Project) {
+    const counts: Record<string, number> = {};
+    for (const s of await this.listSessions(project.id)) counts[s.variantId] = (counts[s.variantId] ?? 0) + 1;
+    return pickVariant(project, counts, { allowLocal: true }) ?? project.variants[0];
   }
 
   async submitSession(token: string, session: ViewerSession): Promise<SubmitResult> {
@@ -325,35 +301,52 @@ export class LocalResearchApi implements ResearchApi {
     throw fail('local_mode', 400);
   }
 
+  async shareLinkStatus(): Promise<never> {
+    throw fail('local_mode', 400);
+  }
+
   async revokeShareLink(): Promise<never> {
     throw fail('local_mode', 400);
   }
-}
 
-export function studyConfigFor(project: Project, variant: Variant, transport: StudyConfig['transport']): StudyConfig {
-  return {
-    projectId: project.id,
-    projectName: project.name,
-    creatorName: project.creatorName,
-    kind: project.kind,
-    platform: project.platform,
-    audio: project.audio,
-    context: project.context,
-    platformUi: project.platformUi,
-    ...(project.caption ? { caption: project.caption } : {}),
-    targetDevice: project.targetDevice,
-    variant: { id: variant.id, media: variant.media, ...(variant.slides ? { slides: variant.slides } : {}), mediaName: variant.mediaName, duration: variant.duration, width: variant.width, height: variant.height, ...(variant.title ? { title: variant.title } : {}) },
-    fillers: project.fillers,
-    ...(project.feed ? { feed: project.feed } : {}),
-    ...(project.grid ? { grid: project.grid } : {}),
-    ...(project.slides ? { slides: project.slides } : {}),
-    questions: project.questions,
-    ageBands: project.audience.ageBands,
-    screenPlatforms: project.audience.screenPlatforms,
-    consentVersion: CONSENT_VERSION,
-    transport,
-    linkToken: project.linkToken,
-    retentionDays: project.retentionDays,
-    locale: project.locale,
-  };
+  async sharedReport(): Promise<never> {
+    throw fail('local_mode', 400);
+  }
+
+  // Zespoły wymagają kont na serwerze.
+  async workspaces(): Promise<never> {
+    throw fail('local_mode', 400);
+  }
+
+  async switchWorkspace(): Promise<never> {
+    throw fail('local_mode', 400);
+  }
+
+  async renameWorkspace(): Promise<never> {
+    throw fail('local_mode', 400);
+  }
+
+  async members(): Promise<never> {
+    throw fail('local_mode', 400);
+  }
+
+  async createInvite(): Promise<never> {
+    throw fail('local_mode', 400);
+  }
+
+  async inviteInfo(): Promise<never> {
+    throw fail('local_mode', 400);
+  }
+
+  async acceptInvite(): Promise<never> {
+    throw fail('local_mode', 400);
+  }
+
+  async setMemberRole(): Promise<never> {
+    throw fail('local_mode', 400);
+  }
+
+  async removeMember(): Promise<never> {
+    throw fail('local_mode', 400);
+  }
 }

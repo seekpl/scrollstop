@@ -6,6 +6,7 @@ import { planFor } from '../../research/plans';
 import { Btn, Icon } from '../../ui/kit';
 import { ReportView } from '../report/ReportView';
 import { projectToCsv, projectToJson } from './exportRaw';
+import { ShareLinkPanel } from './ShareLink';
 import type { ProjectCtx } from './ProjectPage';
 
 /** Raport w studiu: edycja stref, eksport (PDF przez druk, surowe dane w planie z `rawExport`). */
@@ -32,6 +33,9 @@ export function ProjectReport({ project, sessions, update }: ProjectCtx) {
         <span className="text-[12.5px] text-muted">{r.rawLocked(t.billing.planNames[planFor('rawExport')])}</span>
       )}
       <span className="text-[12.5px] text-muted">{can.watermark ? r.pdfWatermark : r.pdfHint}</span>
+      <div className="w-full">
+        <ShareLinkPanel project={project} />
+      </div>
     </div>
   );
   return (

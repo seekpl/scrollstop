@@ -7,7 +7,7 @@ interface ResearchValue {
   /** null = niezalogowany (tryb serwerowy); undefined = wczytywanie. */
   account: Account | null | undefined;
   refreshAccount(): Promise<void>;
-  /** Uprawnienia planu zalogowanego konta (Free, gdy brak konta). */
+  /** Uprawnienia planu bieżącego zespołu (plan właściciela; Free, gdy brak konta). */
   can: Entitlements;
 }
 
@@ -26,7 +26,7 @@ export function ResearchProvider({ api, children }: { api: ResearchApi; children
   useEffect(() => {
     void refreshAccount();
   }, [refreshAccount]);
-  const value = useMemo(() => ({ api, account, refreshAccount, can: entitlements(account?.plan ?? 'free') }), [api, account, refreshAccount]);
+  const value = useMemo(() => ({ api, account, refreshAccount, can: entitlements(account?.workspacePlan ?? 'free') }), [api, account, refreshAccount]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

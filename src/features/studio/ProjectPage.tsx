@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { pathOf, type ProjectStep } from '../../app/router';
 import { useResearch } from '../../app/research';
+import { errorCode } from '../../core/errors';
 import { useI18n } from '../../i18n';
 import type { ProjectPatch } from '../../api/types';
 import type { Project, ViewerSession } from '../../research/model';
-import { Stepper } from '../../ui/kit';
+import { btnClass, Callout, Stepper } from '../../ui/kit';
 import { Collect } from './Collect';
 import { Prepare } from './Prepare';
 import { ProjectReport } from './ProjectReport';
@@ -30,11 +31,30 @@ export function ProjectPage({ id, step }: { id: string; step: ProjectStep }) {
     setProject(p);
     if (p) setSessions(await api.listSessions(id));
   }, [api, id]);
+  // Świeże sesje przy zmianie kroku i po powrocie do karty; na kroku „Zbierz widzów” w trybie
+  // serwerowym co 20 s (widzowie wysyłają sesje z własnych urządzeń).
   useEffect(() => {
     void reload();
-  }, [reload]);
+  }, [reload, step]);
+  useEffect(() => {
+    const onVisible = () => document.visibilityState === 'visible' && void reload();
+    document.addEventListener('visibilitychange', onVisible);
+    const timer = api.mode === 'server' && step === 'collect' ? window.setInterval(onVisible, 20_000) : null;
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      if (timer !== null) window.clearInterval(timer);
+    };
+  }, [reload, step, api.mode]);
+  // Błąd zapisu (np. funkcja spoza planu — 402) jako komunikat na stronie, nie wyjątek w tle.
+  const [error, setError] = useState<{ code: string; text: string } | null>(null);
   const update = async (patch: ProjectPatch) => {
-    setProject(await api.updateProject(id, patch));
+    setError(null);
+    try {
+      setProject(await api.updateProject(id, patch));
+    } catch (e) {
+      const code = errorCode(e);
+      setError({ code, text: (t.errors as Record<string, string>)[code] ?? t.errors.unknown });
+    }
   };
   if (project === undefined) return <StudioShell>{null}</StudioShell>;
   if (project === null) {
@@ -59,6 +79,22 @@ export function ProjectPage({ id, step }: { id: string; step: ProjectStep }) {
           <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.02em] sm:text-[34px]">{project.name}</h1>
           <Stepper label={s.stepsLabel} current={step} steps={steps.map((x) => ({ ...x, href: pathOf({ name: 'project', id, step: x.id }) }))} />
         </div>
+        {error && (
+          <div role="alert">
+            <Callout
+              tone={error.code.startsWith('feature_') || error.code === 'active_projects' ? 'locked' : 'warn'}
+              action={
+                error.code.startsWith('feature_') || error.code === 'active_projects' ? (
+                  <a href={pathOf({ name: 'pricing' })} className={btnClass('primary', 'sm')}>
+                    {t.billing.paywall.seePricing}
+                  </a>
+                ) : undefined
+              }
+            >
+              {error.text}
+            </Callout>
+          </div>
+        )}
         {step === 'prepare' && <Prepare {...ctx} />}
         {step === 'collect' && <Collect {...ctx} />}
         {step === 'report' && <ProjectReport {...ctx} />}

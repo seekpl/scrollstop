@@ -28,8 +28,26 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
-      - name: Build serwera (gdy istnieje)
-        run: if [ -f server/main.ts ]; then npm run server:build; fi
+      - name: Build serwera (jeden plik dist-server/main.js)
+        run: npm run server:build
+
+  docker:
+    # Obraz trybu serwerowego (§21.1): build i HEALTHCHECK kontenera.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t scrollstop:ci .
+      - name: Kontener przechodzi healthcheck
+        run: |
+          docker run -d --name attn-ci -p 8787:8787 -e APP_URL=http://127.0.0.1:8787/ scrollstop:ci
+          for i in $(seq 1 30); do
+            status=$(docker inspect --format '{{.State.Health.Status}}' attn-ci)
+            echo "health: $status"
+            [ "$status" = "healthy" ] && exit 0
+            sleep 2
+          done
+          docker logs attn-ci
+          exit 1
 
   e2e:
     runs-on: ubuntu-latest
@@ -41,7 +59,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - run: npm run e2e
+      - name: E2E (tryb lokalny :4173 i serwerowy :4174)
+        run: npm run e2e
         env:
           CI: '1'
       - uses: actions/upload-artifact@v4

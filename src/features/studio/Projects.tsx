@@ -28,7 +28,7 @@ export function ProjectsPage() {
     void api.listProjects().then(setProjects);
     void api.usage().then(setUsage);
   }, [api]);
-  const plan = PLANS[account?.plan ?? 'free'];
+  const plan = PLANS[account?.workspacePlan ?? 'free'];
   return (
     <StudioShell title={p.title}>
       <div className="space-y-8">

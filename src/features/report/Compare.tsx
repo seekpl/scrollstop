@@ -1,11 +1,14 @@
 import { useI18n } from '../../i18n';
 import { formatNumber, formatPct, formatPp } from '../../i18n/format';
-import type { VariantsComparison } from '../../research/report';
+import type { VariantReport, VariantsComparison } from '../../research/report';
 import { SERIES } from '../../ui/tokens';
 import { AttentionChart, ChartLegend, type ChartSeries } from './AttentionChart';
 
 /** Porównanie wersji (§7 pkt 11): wspólny wykres, tabela wersji z testami, segmenty, strefy, werdykt. */
-export function Compare({ cmp, labels }: { cmp: VariantsComparison; labels: Record<string, string> }) {
+/** Porównanie wersji; wystarczą krzywe wersji (raport udostępniany linkiem nie ma danych widzów). */
+export type ComparisonView = Omit<VariantsComparison, 'reports'> & { reports: ReadonlyArray<Pick<VariantReport, 'variantId' | 'curve' | 'duration'>> };
+
+export function Compare({ cmp, labels }: { cmp: ComparisonView; labels: Record<string, string> }) {
   const { t, locale } = useI18n();
   const tc = t.report.compare;
   const P = (v: number | null) => formatPct(v, locale);

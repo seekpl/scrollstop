@@ -29,7 +29,7 @@ export function Collect({ project, sessions, reload }: ProjectCtx) {
   const real = sessions.filter((s) => s.source !== 'simulated');
   const valid = real.filter((s) => s.status === 'valid').length;
   const rejected = real.length - valid;
-  const plan = account?.plan ?? 'free';
+  const plan = account?.workspacePlan ?? 'free';
   const block = usage ? sessionBlock(plan, { projectSessions: real.length, monthSessions: usage.monthSessions }) : null;
   const byDevice = (d: ViewerSession['device']['type']) => real.filter((s) => s.device.type === d).length;
   const byQuality = (q: 'GOOD' | 'FAIR' | 'POOR') => real.filter((s) => s.calibration?.quality === q).length;

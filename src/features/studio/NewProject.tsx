@@ -99,7 +99,8 @@ export function NewProjectPage() {
         context: 'fullscreen',
         platformUi: 'none',
         targetDevice,
-        variants: (variants as PickedMedia[]).map((v, i) => ({ ...v, label: t.common.version(VARIANT_IDS[i]) })),
+        // Tryb serwerowy: plik wgrywamy po utworzeniu projektu, więc wersja startuje bez materiału.
+        variants: (variants as PickedMedia[]).map(({ file, ...v }, i) => ({ ...v, media: file ? null : v.media, label: t.common.version(VARIANT_IDS[i]) })),
         questions,
         audience: { source, ageBands: ages, countries: [], screenPlatforms },
         targetSessions: target,

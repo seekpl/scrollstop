@@ -1,0 +1,17 @@
+# Przykład wdrożenia trybu serwerowego (§21.1). Sekrety (Stripe, AI) podawaj w pliku .env, nie w repozytorium.
+services:
+  app:
+    build: .
+    image: scrollstop
+    restart: unless-stopped
+    ports:
+      - "8787:8787"
+    environment:
+      APP_URL: ${APP_URL:-http://localhost:8787/}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+      TRUST_PROXY: ${TRUST_PROXY:-0}
+      MAX_VIDEO_MB: ${MAX_VIDEO_MB:-1024}
+    volumes:
+      - scrollstop-data:/data
+volumes:
+  scrollstop-data:

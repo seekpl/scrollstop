@@ -26,7 +26,7 @@ export function variantLabel(v: { id: string; label: string }, t: Messages): str
 }
 
 /** „18–34” z przedziałów wieku widzów w raporcie. */
-function ageSpan(byAge: Partial<Record<AgeBand, number>>): string | null {
+export function ageSpan(byAge: Partial<Record<AgeBand, number>>): string | null {
   const present = AGE_BANDS.filter((a) => (byAge[a] ?? 0) > 0);
   if (!present.length) return null;
   const lo = present[0].split(/[-+]/)[0];
@@ -34,7 +34,7 @@ function ageSpan(byAge: Partial<Record<AgeBand, number>>): string | null {
   return last === '55+' ? `${lo}+` : `${lo}–${last.split('-')[1]}`;
 }
 
-function Stat({ label, value, hint }: { label: string; value: ReactNode; hint?: string }) {
+export function Stat({ label, value, hint }: { label: string; value: ReactNode; hint?: string }) {
   return (
     <div className="min-w-0">
       <div className="text-[13px] text-muted">{label}</div>

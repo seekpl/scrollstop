@@ -229,7 +229,7 @@ const P = (v: number | null) => (v === null ? '–' : `${Math.round(v * 100)}%`)
 const pp = (v: number) => Math.abs(Math.round(v * 100));
 
 /** Zdanie otwierające raportu (§7 pkt 2), też na stronie głównej. */
-export function headline(r: VariantReport | null, tx: ResearchText): { lead: string; detail: string | null } {
+export function headline(r: Pick<VariantReport, 'viewers' | 'meanAttention' | 'drops'> | null, tx: ResearchText): { lead: string; detail: string | null } {
   if (!r || !r.viewers || r.meanAttention === null) return { lead: tx.headline.empty, detail: null };
   const d = r.drops.filter((x) => x.delta >= 0.1)[0];
   if (!d) return { lead: tx.headline.stable({ meanPct: Math.round(r.meanAttention * 100) }), detail: tx.headline.stableDetail };

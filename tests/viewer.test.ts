@@ -93,10 +93,11 @@ describe('tryb lokalny: badanie i sesje widzów', () => {
 
   it('plan Free: 1 aktywny projekt i 5 widzów w projekcie; link wstrzymany przed zgodą; symulacja się nie liczy', async () => {
     const api = new LocalResearchApi(new MemoryLocalStore());
-    const p = await api.createProject(input());
-    // Free ma jedną wersję.
+    // Free ma jedną wersję: porównanie wersji to funkcja płatna (402, a nie ciche obcięcie).
+    await expect(api.createProject(input())).rejects.toMatchObject({ code: 'feature_variants', status: 402 });
+    const p = await api.createProject(input({ kind: 'video', variants: input().variants.slice(0, 1) }));
     expect(p.variants).toHaveLength(1);
-    await expect(api.createProject(input())).rejects.toMatchObject({ code: 'active_projects', status: 402 });
+    await expect(api.createProject(input({ kind: 'video', variants: input().variants.slice(0, 1) }))).rejects.toMatchObject({ code: 'active_projects', status: 402 });
     for (const s of webcamSessions(5, p.id)) await api.submitSession(p.linkToken, s);
     expect(await api.study(p.linkToken)).toEqual({ ok: false, reason: 'project_sessions' });
     const sim = demoProject('reel', tx, { valid: 1 }).sessions[0];

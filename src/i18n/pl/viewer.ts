@@ -196,6 +196,6 @@ export const viewer = {
     codeHint: '8 znaków, np. K7QM-4XPA',
     submit: 'Usuń sesję',
     done: 'Sesja została usunięta. Dane tej sesji zniknęły z badania i z raportu.',
-    packageNote: 'Jeśli wysłałeś plik z wynikami, poproś twórcę o usunięcie pliku i sesji z projektu.',
+    packageNote: 'Jeśli wyniki zostały wysłane plikiem, poproś twórcę o usunięcie pliku i sesji z projektu.',
   },
 };
