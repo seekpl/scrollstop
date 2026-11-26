@@ -8,11 +8,11 @@ import { LegalStatus } from './Terms';
 
 function Block({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
-    <section aria-labelledby={id} className="border-t border-[var(--l-sage-line)] pt-8">
-      <h2 id={id} className="text-[24px] font-normal tracking-[-0.02em] text-[var(--l-pine)]">
+    <section aria-labelledby={id} className="border-t border-[var(--l-line)] pt-8">
+      <h2 id={id} className="text-[24px] font-normal tracking-[-0.02em] text-[var(--l-ink)]">
         {title}
       </h2>
-      <div className="mt-3 space-y-3 text-[15.5px] leading-relaxed text-[var(--l-pine)] [&_.text-muted]:text-[var(--l-moss)]">{children}</div>
+      <div className="mt-3 space-y-3 text-[15.5px] leading-relaxed text-[var(--l-ink)] [&_.text-muted]:text-[var(--l-muted)]">{children}</div>
     </section>
   );
 }
@@ -28,7 +28,7 @@ export function PrivacyPage() {
       <PageIntro title={p.title} lead={p.lead} narrow>
         <LegalStatus className="text-white/60" />
       </PageIntro>
-      <article className="l-sage">
+      <article className="l-light">
         <div className="mx-auto max-w-[808px] space-y-10 px-4 py-12 sm:px-6 md:py-16">
           <Block id="camera" title={p.cameraTitle}>
             <p>{p.camera}</p>
@@ -60,7 +60,7 @@ export function PrivacyPage() {
                 <li key={x}>{x}</li>
               ))}
             </ul>
-            <a href={hrefOf({ name: 'delete-session', id: null })} className="inline-flex min-h-10 items-center font-semibold text-[var(--l-mint-deep)] underline underline-offset-4">
+            <a href={hrefOf({ name: 'delete-session', id: null })} className="inline-flex min-h-10 items-center font-semibold text-[var(--l-accent-deep)] underline underline-offset-4">
               {p.deleteLink}
             </a>
           </Block>
@@ -104,7 +104,7 @@ export function PrivacyPage() {
             {COMPANY.name && COMPANY.address && COMPANY.nip && <p>{p.operator(COMPANY.name, COMPANY.address, COMPANY.nip)}</p>}
             <p>
               {p.contact}{' '}
-              <a href={`mailto:${email}`} className="font-semibold text-[var(--l-mint-deep)] underline underline-offset-4">
+              <a href={`mailto:${email}`} className="font-semibold text-[var(--l-accent-deep)] underline underline-offset-4">
                 {email}
               </a>
               .

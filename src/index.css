@@ -66,7 +66,10 @@ h1, h2, h3 { overflow-wrap: break-word; hyphens: auto; }
   @page { size: A4; margin: 14mm; }
   html, body { background: #fff !important; }
   /* Białe tło także w powłoce studia i kartach (§7.2). */
-  .bg-paper, .bg-mist { background: #fff !important; }
+  .bg-paper, .bg-mist, .site-theme, .site-theme .l-light { background: #fff !important; }
+  /* Granatowy pas z tytułem drukuje się jako ciemny tekst na białym. */
+  .site-theme .l-night { background: #fff !important; }
+  .site-theme .l-night, .site-theme .l-night * { color: var(--l-ink) !important; }
   .no-print { display: none !important; }
   .print-only { display: block; }
   .print-break { break-before: page; }
@@ -74,69 +77,72 @@ h1, h2, h3 { overflow-wrap: break-word; hyphens: auto; }
 }
 
 /*
- * Strona główna (wygląd z nagrania referencyjnego): nocna zieleń z miętą, jasna szałwia w sekcjach
- * treści. Tylko wewnątrz `.landing` — studio, raporty i badanie widza zostają bez zmian.
+ * Wygląd serwisu (strona, studio, raport z linku, laboratorium): granat z logo (`BRAND.themeColor`)
+ * z kobaltową poświatą w pasach z tytułem, jasne sekcje treści w kolorze tła studia. Zmienne
+ * i klasy `l-*` działają wewnątrz `.site-theme`; wartości sprawdzone pod kątem kontrastu.
  */
-.landing {
-  --l-night: #071510;
-  --l-night-2: #0b1d16;
-  --l-mint: #3debb5;
-  --l-mint-soft: #8ff7d6;
-  --l-mint-ink: #0b8c65;
-  /* Mała treść na jasnym tle (≥ 4,5:1); `--l-mint-ink` tylko dla dużego tekstu i linii. */
-  --l-mint-deep: #0a6a4c;
-  --l-sage: #eef2f0;
-  --l-sage-2: #e1e8e4;
-  --l-sage-line: #c9d4ce;
-  --l-pine: #10241c;
-  --l-moss: #55665e;
-  --l-pale: #7a8a83;
-  color: var(--l-pine);
+.site-theme {
+  --l-night: #1f2a44;
+  --l-night-2: #18213a;
+  /* Akcent na granacie: linki, ikony, wykres (7,2:1). */
+  --l-accent: #a3b4ff;
+  --l-accent-soft: #dfe5ff;
+  /* Akcent na jasnym tle — kobalt marki (6,6:1, także mała treść). */
+  --l-accent-ink: #2747d6;
+  --l-accent-deep: #2747d6;
+  --l-light: #f4f6f9;
+  --l-light-2: #e9edf4;
+  --l-line: #d3d9e4;
+  --l-ink: #1f2a44;
+  --l-muted: #5b6478;
+  /* Tylko duży tekst (≥ 24 px, 3,5:1) — słowa przed ujawnieniem. */
+  --l-faint: #7a8398;
+  color: var(--l-ink);
 }
-.landing .l-night { background-color: var(--l-night); color: #fff; }
-.landing .l-night :focus-visible { outline-color: var(--l-mint); }
-.landing .l-sage { background-color: var(--l-sage); }
+.site-theme .l-night { background-color: var(--l-night); color: #fff; }
+.site-theme .l-night :focus-visible { outline-color: var(--l-accent); }
+.site-theme .l-light { background-color: var(--l-light); }
 
-/* Poświata i siatka pierwszego ekranu. */
-.landing .l-glow {
+/* Poświata i siatka pasów z tytułem. */
+.site-theme .l-glow {
   background:
-    radial-gradient(58% 60% at 72% -8%, rgba(46, 214, 160, 0.30), transparent 70%),
-    radial-gradient(45% 55% at 8% 108%, rgba(17, 112, 78, 0.38), transparent 72%),
-    radial-gradient(80% 70% at 50% 40%, rgba(12, 52, 38, 0.55), transparent 80%);
+    radial-gradient(58% 60% at 72% -8%, rgba(76, 110, 245, 0.45), transparent 70%),
+    radial-gradient(45% 55% at 8% 108%, rgba(39, 71, 214, 0.34), transparent 72%),
+    radial-gradient(80% 70% at 50% 40%, rgba(14, 20, 38, 0.42), transparent 80%);
 }
-.landing .l-grid {
+.site-theme .l-grid {
   background-image: linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px);
   background-size: 128px 128px;
   -webkit-mask-image: radial-gradient(ellipse 75% 65% at 55% 20%, #000 20%, transparent 78%);
   mask-image: radial-gradient(ellipse 75% 65% at 55% 20%, #000 20%, transparent 78%);
 }
-.landing .l-haze {
+.site-theme .l-haze {
   background:
-    radial-gradient(70% 90% at 85% 0%, rgba(61, 235, 181, 0.28), transparent 70%),
-    radial-gradient(60% 80% at 0% 100%, rgba(61, 235, 181, 0.16), transparent 70%),
-    var(--l-sage);
+    radial-gradient(70% 90% at 85% 0%, rgba(39, 71, 214, 0.13), transparent 70%),
+    radial-gradient(60% 80% at 0% 100%, rgba(39, 71, 214, 0.08), transparent 70%),
+    var(--l-light);
 }
 
-/* Przyciski strony głównej. */
-.landing .l-btn {
+/* Przyciski serwisu. */
+.site-theme .l-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
   min-height: 3rem; padding: 0 1.25rem; border-radius: 10px;
   font-size: 15.5px; font-weight: 600; white-space: nowrap;
   transition: background-color 160ms ease, box-shadow 160ms ease, color 160ms ease;
 }
 /* Przycisk w wąskiej kolumnie (karty planów): długi napis łamie się zamiast wychodzić poza przycisk. */
-.landing .l-btn.l-btn-wrap { white-space: normal; text-align: center; line-height: 1.25; padding-block: 0.6rem; }
-.landing .l-btn-mint { background-image: linear-gradient(180deg, #67f3c8, #2fdca8); color: var(--l-night); box-shadow: 0 0 0 1px rgba(143, 247, 214, 0.35) inset, 0 10px 30px -12px rgba(61, 235, 181, 0.7); }
-.landing .l-btn-mint:hover { background-image: linear-gradient(180deg, #8ff7d6, #3debb5); }
-.landing .l-btn-ghost { color: #fff; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.28) inset; }
-.landing .l-btn-ghost:hover { background-color: rgba(255, 255, 255, 0.07); }
-.landing .l-btn-pine { color: var(--l-pine); box-shadow: 0 0 0 1px var(--l-sage-line) inset; background: #fff; }
-.landing .l-btn-pine:hover { box-shadow: 0 0 0 1px var(--l-moss) inset; }
+.site-theme .l-btn.l-btn-wrap { white-space: normal; text-align: center; line-height: 1.25; padding-block: 0.6rem; }
+.site-theme .l-btn-primary { background-image: linear-gradient(180deg, #4a69f0, #2747d6); color: #fff; box-shadow: 0 0 0 1px rgba(163, 180, 255, 0.4) inset, 0 10px 30px -12px rgba(39, 71, 214, 0.9); }
+.site-theme .l-btn-primary:hover { background-image: linear-gradient(180deg, #5b78f3, #3050dc); }
+.site-theme .l-btn-ghost { color: #fff; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.28) inset; }
+.site-theme .l-btn-ghost:hover { background-color: rgba(255, 255, 255, 0.07); }
+.site-theme .l-btn-plain { color: var(--l-ink); box-shadow: 0 0 0 1px var(--l-line) inset; background: #fff; }
+.site-theme .l-btn-plain:hover { box-shadow: 0 0 0 1px var(--l-muted) inset; }
 
-/* Hasło: miętowy błysk przechodzi raz przez tekst przy wejściu na stronę. */
+/* Hasło: jasny błysk przechodzi raz przez tekst przy wejściu na stronę. */
 @keyframes l-sweep { from { background-position: 100% 0; } to { background-position: 0 0; } }
-.landing .l-sweep {
-  background-image: linear-gradient(100deg, var(--sweep-end) 0 44%, var(--l-mint-soft) 50%, var(--sweep-start) 56% 100%);
+.site-theme .l-sweep {
+  background-image: linear-gradient(100deg, var(--sweep-end) 0 44%, var(--l-accent-soft) 50%, var(--sweep-start) 56% 100%);
   background-size: 260% 100%;
   background-position: 0 0;
   -webkit-background-clip: text;
@@ -144,22 +150,22 @@ h1, h2, h3 { overflow-wrap: break-word; hyphens: auto; }
   color: transparent;
   animation: l-sweep 1.9s cubic-bezier(0.22, 0.7, 0.2, 1) 0.25s both;
 }
-.landing .l-sweep-white { --sweep-start: #fff; --sweep-end: #fff; }
-.landing .l-sweep-mint { --sweep-start: #fff; --sweep-end: var(--l-mint); animation-delay: 0.55s; }
+.site-theme .l-sweep-white { --sweep-start: #fff; --sweep-end: #fff; }
+.site-theme .l-sweep-accent { --sweep-start: #fff; --sweep-end: var(--l-accent); animation-delay: 0.55s; }
 
-/* Tekst ujawniany przy przewijaniu: słowa od bladych przez miętowe do pełnego koloru. */
-.landing .l-reveal [data-state] { transition: color 220ms ease; }
-.landing .l-reveal-light { --r-todo: var(--l-pale); --r-lit: var(--l-mint-ink); --r-done: var(--l-pine); }
-.landing .l-reveal-night { --r-todo: rgba(255, 255, 255, 0.42); --r-lit: var(--l-mint); --r-done: #fff; }
-.landing .l-reveal [data-state='todo'] { color: var(--r-todo); }
-.landing .l-reveal [data-state='lit'] { color: var(--r-lit); }
-.landing .l-reveal [data-state='done'] { color: var(--r-done); }
+/* Tekst ujawniany przy przewijaniu: słowa od bladych przez akcent do pełnego koloru. */
+.site-theme .l-reveal [data-state] { transition: color 220ms ease; }
+.site-theme .l-reveal-light { --r-todo: var(--l-faint); --r-lit: var(--l-accent-ink); --r-done: var(--l-ink); }
+.site-theme .l-reveal-night { --r-todo: rgba(255, 255, 255, 0.42); --r-lit: var(--l-accent); --r-done: #fff; }
+.site-theme .l-reveal [data-state='todo'] { color: var(--r-todo); }
+.site-theme .l-reveal [data-state='lit'] { color: var(--r-lit); }
+.site-theme .l-reveal [data-state='done'] { color: var(--r-done); }
 
 /* Karty schematu kroków (równoległoboki). */
-.landing .l-step { transform: skewX(-18deg); transition: border-color 420ms ease, background-color 420ms ease, box-shadow 420ms ease, color 420ms ease; }
-.landing .l-step > span { transform: skewX(18deg); }
-.landing .l-step[data-active='true'] { border-color: var(--l-mint); background-color: rgba(61, 235, 181, 0.10); box-shadow: 0 0 0 1px rgba(61, 235, 181, 0.35), 0 0 34px -6px rgba(61, 235, 181, 0.55); color: #fff; }
+.site-theme .l-step { transform: skewX(-18deg); transition: border-color 420ms ease, background-color 420ms ease, box-shadow 420ms ease, color 420ms ease; }
+.site-theme .l-step > span { transform: skewX(18deg); }
+.site-theme .l-step[data-active='true'] { border-color: var(--l-accent); background-color: rgba(163, 180, 255, 0.12); box-shadow: 0 0 0 1px rgba(163, 180, 255, 0.4), 0 0 34px -6px rgba(76, 110, 245, 0.7); color: #fff; }
 
 @media (prefers-reduced-motion: reduce) {
-  .landing .l-sweep { animation: none; background-position: 0 0; }
+  .site-theme .l-sweep { animation: none; background-position: 0 0; }
 }

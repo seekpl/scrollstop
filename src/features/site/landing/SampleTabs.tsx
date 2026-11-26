@@ -17,14 +17,14 @@ function MiniCurve({ curve, duration, label }: { curve: CurvePoint[]; duration: 
     <figure className="w-full">
       <svg viewBox="0 0 320 180" className="h-auto w-full" role="img" aria-label={label}>
         {[20, 85, 150].map((y) => (
-          <line key={y} x1="10" x2="310" y1={y} y2={y} stroke="#c9d4ce" strokeWidth="1" />
+          <line key={y} x1="10" x2="310" y1={y} y2={y} stroke="#d3d9e4" strokeWidth="1" />
         ))}
-        <path d={area} fill="#3debb5" fillOpacity="0.18" />
-        <path d={line} fill="none" stroke="#0b8c65" strokeWidth="2.6" strokeLinejoin="round" strokeLinecap="round" />
-        <text x="10" y="172" fontSize="11" fill="#55665e">
+        <path d={area} fill="#2747d6" fillOpacity="0.12" />
+        <path d={line} fill="none" stroke="#2747d6" strokeWidth="2.6" strokeLinejoin="round" strokeLinecap="round" />
+        <text x="10" y="172" fontSize="11" fill="#5b6478">
           {formatTime(0, 0)}
         </text>
-        <text x="310" y="172" fontSize="11" fill="#55665e" textAnchor="end">
+        <text x="310" y="172" fontSize="11" fill="#5b6478" textAnchor="end">
           {formatTime(Math.round(duration), 0)}
         </text>
       </svg>
@@ -52,24 +52,24 @@ function SamplePanel({ id }: { id: SampleId }) {
         ]
     : [];
   return (
-    <div className="grid overflow-hidden rounded-b-[12px] rounded-tr-[12px] bg-[var(--l-sage-2)] text-[var(--l-pine)] md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+    <div className="grid overflow-hidden rounded-b-[12px] rounded-tr-[12px] bg-[var(--l-light-2)] text-[var(--l-ink)] md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <div className="flex min-w-0 flex-col gap-5 p-6 sm:p-8">
-        <span className="inline-flex w-fit items-center gap-1.5 rounded-md bg-[#cdeee1] px-2.5 py-1 text-[12.5px] font-semibold text-[#0a6a4c]">{l.sampleKinds[id]}</span>
+        <span className="inline-flex w-fit items-center gap-1.5 rounded-md bg-[#dfe5ff] px-2.5 py-1 text-[12.5px] font-semibold text-[#1d36a8]">{l.sampleKinds[id]}</span>
         <h3 className="text-[24px] font-normal leading-tight tracking-[-0.02em] sm:text-[28px]">{t.site.samplePage.tabs[id]}</h3>
-        <p className="min-h-[3em] max-w-[52ch] text-[15.5px] leading-relaxed text-[var(--l-moss)]">{data?.lead ?? ''}</p>
-        <dl className="grid grid-cols-3 gap-4 border-t border-[var(--l-sage-line)] pt-5">
+        <p className="min-h-[3em] max-w-[52ch] text-[15.5px] leading-relaxed text-[var(--l-muted)]">{data?.lead ?? ''}</p>
+        <dl className="grid grid-cols-3 gap-4 border-t border-[var(--l-line)] pt-5">
           {stats.map((s) => (
             <div key={s.label} className="min-w-0">
-              <dt className="text-[12.5px] leading-snug text-[var(--l-moss)]">{s.label}</dt>
+              <dt className="text-[12.5px] leading-snug text-[var(--l-muted)]">{s.label}</dt>
               <dd className="tabular mt-1 text-[26px] font-normal tracking-[-0.02em]">{s.value}</dd>
             </div>
           ))}
         </dl>
-        <a href={hrefOf({ name: 'sample', sample: id })} className="mt-auto inline-flex min-h-10 w-fit items-center font-semibold text-[var(--l-mint-deep)] underline decoration-[var(--l-mint-deep)]/40 underline-offset-4 hover:decoration-[var(--l-mint-deep)]">
+        <a href={hrefOf({ name: 'sample', sample: id })} className="mt-auto inline-flex min-h-10 w-fit items-center font-semibold text-[var(--l-accent-deep)] underline decoration-[var(--l-accent-deep)]/40 underline-offset-4 hover:decoration-[var(--l-accent-deep)]">
           {l.sampleOpen}
         </a>
       </div>
-      <div className="grid min-w-0 place-items-center border-t border-[var(--l-sage-line)] p-6 sm:p-8 md:border-l md:border-t-0">
+      <div className="grid min-w-0 place-items-center border-t border-[var(--l-line)] p-6 sm:p-8 md:border-l md:border-t-0">
         {id === 'reel' ? <HeroDemo compact /> : r ? <MiniCurve curve={r.curve} duration={r.duration} label={l.sampleCurve(t.site.samplePage.tabs[id])} /> : <div className="aspect-[16/9] w-full" />}
       </div>
     </div>
@@ -119,7 +119,7 @@ export function SampleTabs() {
                   aria-label={t.site.samplePage.tabs[id]}
                   tabIndex={on ? 0 : -1}
                   onClick={() => setCurrent(id)}
-                  className={`flex min-h-14 min-w-0 items-center justify-center gap-2 border-white/12 px-2 text-[13.5px] font-semibold transition-colors sm:text-[15px] [&:not(:first-child)]:border-l ${on ? 'bg-[var(--l-sage-2)] text-[var(--l-pine)]' : 'bg-white/[0.03] text-white/75 hover:bg-white/[0.07] hover:text-white'}`}
+                  className={`flex min-h-14 min-w-0 items-center justify-center gap-2 border-white/12 px-2 text-[13.5px] font-semibold transition-colors sm:text-[15px] [&:not(:first-child)]:border-l ${on ? 'bg-[var(--l-light-2)] text-[var(--l-ink)]' : 'bg-white/[0.03] text-white/75 hover:bg-white/[0.07] hover:text-white'}`}
                 >
                   <span className="min-w-0 truncate sm:hidden">{l.sampleKinds[id]}</span>
                   <span className="hidden min-w-0 truncate sm:inline">{t.site.samplePage.tabs[id]}</span>

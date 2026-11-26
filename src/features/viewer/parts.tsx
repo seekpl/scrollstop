@@ -1,11 +1,22 @@
 import type { ReactNode } from 'react';
+import { BrandMark } from '../../ui/BrandMark';
 import { Icon } from '../../ui/kit';
 
-/** Ekran widza: szerokość do 448 px (zgoda do 672 px), bezpieczne obszary telefonu, 100dvh (§10). */
+/**
+ * Ekran widza: granatowy pasek z logo jak w całym serwisie (bez menu — widz nie wychodzi z badania
+ * w trakcie), jasna treść o szerokości do 448 px (zgoda do 672 px), bezpieczne obszary telefonu,
+ * 100dvh (§10).
+ */
 export function Screen({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
+  const width = wide ? 'max-w-[672px]' : 'max-w-[448px]';
   return (
-    <div className="safe-pad min-h-dvh-safe bg-mist text-ink">
-      <main className={`mx-auto flex min-h-dvh-safe flex-col px-4 py-8 sm:px-5 sm:py-12 ${wide ? 'max-w-[672px]' : 'max-w-[448px]'}`}>{children}</main>
+    <div className="flex min-h-dvh-safe flex-col bg-paper text-ink">
+      <header className="bg-ink pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] pt-[env(safe-area-inset-top)]">
+        <div className={`mx-auto flex h-14 items-center px-4 sm:px-5 ${width}`}>
+          <BrandMark tone="night" size={26} />
+        </div>
+      </header>
+      <main className={`mx-auto flex w-full flex-1 flex-col px-4 pb-[max(2rem,env(safe-area-inset-bottom))] pt-8 sm:px-5 sm:pt-12 ${width}`}>{children}</main>
     </div>
   );
 }

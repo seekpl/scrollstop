@@ -1,94 +1,111 @@
-import { useEffect, type ReactNode } from 'react';
-import { pathOf } from '../../app/router';
+import type { ReactNode } from 'react';
+import { hrefOf, pathOf } from '../../app/router';
 import { useResearch } from '../../app/research';
 import { BRAND } from '../../config/brand';
 import { useT } from '../../i18n';
-import { BrandMark } from '../../ui/BrandMark';
-import { Btn, LanguageSelect } from '../../ui/kit';
+import { PageIntro } from '../site/PageIntro';
+import { SiteShell } from '../site/SiteShell';
 
 /**
- * Powłoka studia (§9): znak marki (na ekranach < 400 px bez nazwy), okruszki, przełącznik języka,
- * plan z kropką statusu, wylogowanie (tryb serwerowy) i pasek informacyjny trybu lokalnego.
+ * Powłoka studia (§9) w układzie całego serwisu: ten sam granatowy nagłówek z menu i stopka co na
+ * stronie publicznej, granatowy pas z okruszkami, planem i tytułem, treść na jasnym tle.
+ * W druku i PDF widać tylko tytuł i treść (nagłówek, okruszki i kroki są ukryte).
  */
-export function StudioShell({ children, crumbs = [], title }: { children: ReactNode; crumbs?: Array<{ href?: string; label: string }>; title?: string }) {
+export function StudioShell({
+  children,
+  crumbs = [],
+  title,
+  lead,
+  actions,
+  below,
+  printHeader,
+}: {
+  children: ReactNode;
+  crumbs?: Array<{ href?: string; label: string }>;
+  title?: string;
+  lead?: ReactNode;
+  /** Przyciski obok tytułu. */
+  actions?: ReactNode;
+  /** Treść pod tytułem w pasie (np. kroki projektu). */
+  below?: ReactNode;
+  /** Nagłówek wydruku (marka i data) — tylko w druku, nad tytułem. */
+  printHeader?: ReactNode;
+}) {
   const t = useT();
   const s = t.studio.shell;
   const { api, account } = useResearch();
-  useEffect(() => {
-    document.title = `${title ?? s.projects} — ${BRAND.name}`;
-  }, [title, s.projects]);
   const plan = account?.workspacePlan ?? 'free';
-  const statusDot = account?.planStatus === 'past_due' ? 'bg-poor' : plan === 'free' ? 'bg-field' : 'bg-good';
+  const statusDot = account?.planStatus === 'past_due' ? 'bg-[#ff8a8a]' : plan === 'free' ? 'bg-white/40' : 'bg-[#7ee2b0]';
+  const chip = 'inline-flex min-h-9 items-center gap-2 rounded-[10px] px-2.5 text-[13.5px] font-semibold text-white/90 ring-1 ring-inset ring-white/20 hover:bg-white/[0.07] hover:text-white';
   return (
-    <div className="min-h-dvh-safe bg-paper">
-      <a href="#studio-main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[90] focus:rounded-lg focus:bg-surface focus:px-3 focus:py-2 focus:ring-2 focus:ring-cobalt">
-        {t.ui.skipToContent}
-      </a>
-      <header className="no-print border-b border-line bg-paper">
-        <div className="mx-auto flex min-h-16 max-w-[1152px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2 sm:px-6">
-          <a href="#/" className="shrink-0 rounded-lg" aria-label={t.site.nav.home}>
-            <BrandMark hideNameBelow400 />
-          </a>
-          <nav aria-label={s.breadcrumbs} className="order-last w-full min-w-0 text-[14px] sm:order-none sm:w-auto sm:flex-1">
-            <ol className="flex min-w-0 items-center gap-1.5 text-muted">
-              <li className="shrink-0">
-                <a href={pathOf({ name: 'projects' })} className="rounded font-semibold text-ink hover:underline">
-                  {s.projects}
-                </a>
-              </li>
-              {crumbs.map((c) => (
-                <li key={c.label} className="flex min-w-0 items-center gap-1.5">
-                  <span aria-hidden>/</span>
-                  {c.href ? (
-                    <a href={c.href} className="truncate font-semibold text-ink hover:underline">
-                      {c.label}
+    <SiteShell seo={{ title: `${title ?? s.projects} — ${BRAND.name}` }} cta={{ href: hrefOf({ name: 'new-project' }), label: t.studio.projects.new }}>
+      <PageIntro
+        compact
+        title={title}
+        lead={lead}
+        actions={actions}
+        top={
+          <>
+            {printHeader && <div className="print-only mb-4">{printHeader}</div>}
+            <div className="no-print flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+              <nav aria-label={s.breadcrumbs} className="min-w-0 text-[14px]">
+                <ol className="flex min-w-0 flex-wrap items-center gap-1.5 text-white/65">
+                  <li className="shrink-0">
+                    <a href={pathOf({ name: 'projects' })} aria-current={crumbs.length ? undefined : 'page'} className="rounded font-semibold text-white/90 underline-offset-4 hover:text-white hover:underline">
+                      {s.projects}
                     </a>
-                  ) : (
-                    <span className="truncate" aria-current="page">
-                      {c.label}
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ol>
-          </nav>
-          <div className="ml-auto flex shrink-0 items-center gap-2">
-            <LanguageSelect className="hidden sm:inline-flex" />
-            {api.mode === 'server' && account && (
-              <a href={pathOf({ name: 'workspace' })} className="inline-flex min-h-9 items-center rounded-[10px] px-2.5 text-[13.5px] font-semibold text-ink hover:bg-ink/[0.04]">
-                {t.studio.workspace.title}
-              </a>
-            )}
-            <a href={pathOf({ name: 'account' })} className="inline-flex min-h-9 items-center gap-2 rounded-[10px] px-2.5 text-[13.5px] font-semibold text-ink ring-1 ring-inset ring-field/70 hover:bg-ink/[0.04]">
-              <span className={`h-2 w-2 rounded-full ${statusDot}`} aria-hidden />
-              {s.plan(t.billing.planNames[plan])}
-            </a>
-            {api.mode === 'server' && account && (
-              <Btn
-                size="sm"
-                variant="quiet"
-                onClick={async () => {
-                  await api.logout();
-                  window.location.hash = '#/login';
-                }}
-              >
-                {s.logout}
-              </Btn>
-            )}
-          </div>
+                  </li>
+                  {crumbs.map((c) => (
+                    <li key={c.label} className="flex min-w-0 items-center gap-1.5">
+                      <span aria-hidden>/</span>
+                      {c.href ? (
+                        <a href={c.href} className="truncate font-semibold text-white/90 underline-offset-4 hover:text-white hover:underline">
+                          {c.label}
+                        </a>
+                      ) : (
+                        <span className="truncate" aria-current="page">
+                          {c.label}
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ol>
+              </nav>
+              <div className="flex flex-wrap items-center gap-2">
+                {api.mode === 'server' && account && (
+                  <a href={pathOf({ name: 'workspace' })} className={chip}>
+                    {t.studio.workspace.title}
+                  </a>
+                )}
+                <a href={pathOf({ name: 'account' })} className={chip}>
+                  <span className={`h-2 w-2 rounded-full ${statusDot}`} aria-hidden />
+                  {s.plan(t.billing.planNames[plan])}
+                </a>
+                {api.mode === 'server' && account && (
+                  <button
+                    type="button"
+                    className={chip}
+                    onClick={async () => {
+                      await api.logout();
+                      window.location.hash = '#/login';
+                    }}
+                  >
+                    {s.logout}
+                  </button>
+                )}
+              </div>
+            </div>
+          </>
+        }
+      >
+        {below && <div className="no-print mt-6">{below}</div>}
+      </PageIntro>
+      <section className="l-light">
+        <div id="studio-main" className="mx-auto max-w-[1152px] px-4 pb-20 pt-8 sm:px-6">
+          {api.mode === 'local' && <p className="no-print mb-8 max-w-[96ch] border-l-2 border-cobalt/40 pl-3 text-[13.5px] leading-relaxed text-muted">{s.localBanner}</p>}
+          {children}
         </div>
-      </header>
-      {api.mode === 'local' && (
-        <div className="no-print border-b border-cobalt/15 bg-cobalt/[0.05]">
-          <p className="mx-auto max-w-[1152px] px-4 py-2.5 text-[13.5px] leading-relaxed text-ink sm:px-6">{s.localBanner}</p>
-        </div>
-      )}
-      <main id="studio-main" className="mx-auto max-w-[1152px] px-4 pb-20 pt-8 sm:px-6">
-        {children}
-      </main>
-      <div className="mx-auto max-w-[1152px] px-4 pb-8 sm:hidden">
-        <LanguageSelect />
-      </div>
-    </div>
+      </section>
+    </SiteShell>
   );
 }

@@ -8,7 +8,7 @@ export function NotFound() {
   return (
     <SiteShell>
       <PageIntro title={t.site.notFound.title} lead={t.site.notFound.body}>
-        <a href={hrefOf({ name: 'landing' })} className="l-btn l-btn-mint mt-8">
+        <a href={hrefOf({ name: 'landing' })} className="l-btn l-btn-primary mt-8">
           {t.site.notFound.home}
         </a>
       </PageIntro>

@@ -1,12 +1,12 @@
 import { Fragment, useEffect, useRef, type ElementType } from 'react';
 import { prefersReducedMotion } from './demoData';
 
-/** Szerokość miętowego pasma (w słowach) przesuwającego się przez tekst. */
+/** Szerokość podświetlonego pasma (w słowach) przesuwającego się przez tekst. */
 const BAND = 3;
 
 /**
  * Nagłówek ujawniany przy przewijaniu (jak na nagraniu referencyjnym): słowa są blade, przechodzi
- * przez nie miętowe pasmo, a za nim tekst ma pełny kolor. Postęp zależy od położenia nagłówka
+ * przez nie podświetlone pasmo, a za nim tekst ma pełny kolor. Postęp zależy od położenia nagłówka
  * w oknie, więc cofnięcie przewijania cofa ujawnienie. Treść zostaje zwykłym tekstem (czytniki
  * ekranu, wyszukiwanie); blady kolor ma kontrast ≥ 3:1 dla dużego tekstu. Przy „ogranicz ruch”
  * tekst od razu ma pełny kolor.

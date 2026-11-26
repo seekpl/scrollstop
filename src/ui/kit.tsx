@@ -34,19 +34,6 @@ export function LinkBtn({ variant = 'secondary', size = 'md', className = '', ..
   return <a className={btnClass(variant, size, className)} {...rest} />;
 }
 
-export function PageHeader({ title, lead, actions, kicker }: { title: ReactNode; lead?: ReactNode; actions?: ReactNode; kicker?: ReactNode }) {
-  return (
-    <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-      <div className="min-w-0">
-        {kicker && <div className="mb-2 text-[13px] text-muted">{kicker}</div>}
-        <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.02em] text-ink sm:text-[34px]">{title}</h1>
-        {lead && <p className="mt-2 max-w-[64ch] text-[15px] leading-relaxed text-muted">{lead}</p>}
-      </div>
-      {actions && <div className="flex shrink-0 flex-wrap gap-2">{actions}</div>}
-    </header>
-  );
-}
-
 export function Section({ title, aside, children, className = '', id }: { title?: ReactNode; aside?: ReactNode; children: ReactNode; className?: string; id?: string }) {
   return (
     <section id={id} className={`print-avoid min-w-0 ${className}`}>
@@ -224,7 +211,9 @@ export function Segmented<T extends string>({ value, options, onChange, label }:
 }
 
 /** Kroki projektu (Przygotuj, Zbierz, Raport…) z licznikiem. */
-export function Stepper({ steps, current, label }: { steps: Array<{ id: string; title: string; href?: string; count?: ReactNode }>; current: string; label: string }) {
+/** Kroki projektu; `tone="night"` — w granatowym pasie z tytułem. */
+export function Stepper({ steps, current, label, tone = 'light' }: { steps: Array<{ id: string; title: string; href?: string; count?: ReactNode }>; current: string; label: string; tone?: 'light' | 'night' }) {
+  const night = tone === 'night';
   return (
     <nav aria-label={label} className="-mx-1 relative overflow-x-auto">
       <ol className="flex min-w-max gap-1 px-1">
@@ -232,12 +221,12 @@ export function Stepper({ steps, current, label }: { steps: Array<{ id: string; 
           const on = s.id === current;
           const inner = (
             <>
-              <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-[12px] font-bold ${on ? 'bg-cobalt text-white' : 'bg-ink/[0.07] text-ink'}`}>{i + 1}</span>
+              <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-[12px] font-bold ${on ? 'bg-cobalt text-white' : night ? 'bg-white/[0.12] text-white' : 'bg-ink/[0.07] text-ink'}`}>{i + 1}</span>
               <span>{s.title}</span>
-              {s.count !== undefined && <span className="tabular text-muted">{s.count}</span>}
+              {s.count !== undefined && <span className={`tabular ${on || !night ? 'text-muted' : 'text-white/65'}`}>{s.count}</span>}
             </>
           );
-          const cls = `flex min-h-10 items-center gap-2 rounded-[10px] px-3 text-[14px] font-semibold ${on ? 'bg-surface text-ink ring-1 ring-line' : 'text-muted hover:text-ink'}`;
+          const cls = `flex min-h-10 items-center gap-2 rounded-[10px] px-3 text-[14px] font-semibold ${on ? 'bg-surface text-ink ring-1 ring-line' : night ? 'text-white/80 ring-1 ring-inset ring-white/15 hover:bg-white/[0.07] hover:text-white' : 'text-muted hover:text-ink'}`;
           return (
             <li key={s.id}>
               {s.href ? (

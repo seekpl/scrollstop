@@ -7,7 +7,7 @@ import { useI18n } from '../../i18n';
 import { formatDate } from '../../i18n/format';
 import type { Usage } from '../../api/types';
 import { PLANS } from '../../research/plans';
-import { Badge, btnClass, Btn, Callout, Dialog, Field, inputClass, PageHeader, Section, Surface } from '../../ui/kit';
+import { Badge, btnClass, Btn, Callout, Dialog, Field, inputClass, Section, Surface } from '../../ui/kit';
 import { leaveTo } from '../shared/browser';
 import { StudioShell } from './Shell';
 
@@ -78,7 +78,6 @@ export function AccountPage() {
   return (
     <StudioShell crumbs={[{ label: a.title }]} title={a.title}>
       <div className="space-y-10">
-        <PageHeader title={a.title} />
         {payment === 'ok' && <Callout title={activated ? a.paymentActive(t.billing.planNames[account.plan]) : a.paymentOk} />}
         {payment === 'cancelled' && <Callout tone="warn" title={a.paymentCancelled} />}
         <Section title={a.planTitle}>

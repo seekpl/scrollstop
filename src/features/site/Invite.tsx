@@ -38,9 +38,9 @@ export function InvitePage({ token }: { token: string }) {
   return (
     <SiteShell seo={{ title: `${v.title} — ${BRAND.name}` }}>
       <PageIntro title={v.title} narrow />
-      <section className="l-sage">
+      <section className="l-light">
       <div className="mx-auto max-w-[808px] px-4 py-10 sm:px-6 md:py-14">
-      <div className="max-w-[520px] rounded-[14px] border border-[var(--l-sage-line)] bg-[var(--l-sage-2)] p-6 sm:p-8 [&_.text-muted]:text-[var(--l-moss)]">
+      <div className="max-w-[520px] rounded-[14px] border border-[var(--l-line)] bg-[var(--l-light-2)] p-6 sm:p-8 [&_.text-muted]:text-[var(--l-muted)]">
         {api.mode !== 'server' ? (
           <p className="mt-3 text-[15px] text-muted">{t.errors.local_mode}</p>
         ) : error ? (
@@ -52,15 +52,15 @@ export function InvitePage({ token }: { token: string }) {
             <p className="text-[16px] leading-relaxed text-ink">{v.body(info.workspaceName, t.studio.workspace.roles[info.role])}</p>
             <p className="text-[13.5px] text-muted">{v.roleHint[info.role]}</p>
             {account ? (
-              <button type="button" className="l-btn l-btn-mint disabled:opacity-60" onClick={() => void accept()} disabled={busy}>
+              <button type="button" className="l-btn l-btn-primary disabled:opacity-60" onClick={() => void accept()} disabled={busy}>
                 {v.join}
               </button>
             ) : account === null ? (
               <div className="flex flex-col gap-2 min-[420px]:flex-row">
-                <a href={`${hrefOf({ name: 'login' })}?next=${encodeURIComponent(here)}`} className="l-btn l-btn-mint">
+                <a href={`${hrefOf({ name: 'login' })}?next=${encodeURIComponent(here)}`} className="l-btn l-btn-primary">
                   {v.login}
                 </a>
-                <a href={`${hrefOf({ name: 'register' })}?next=${encodeURIComponent(here)}`} className="l-btn l-btn-pine">
+                <a href={`${hrefOf({ name: 'register' })}?next=${encodeURIComponent(here)}`} className="l-btn l-btn-plain">
                   {v.register}
                 </a>
               </div>

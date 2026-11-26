@@ -11,10 +11,10 @@ import { SiteShell } from './SiteShell';
 const FORMATS: FormatId[] = ['reel', 'video', 'feed', 'thumbnail', 'carousel', 'versions'];
 
 /**
- * Strona główna w wyglądzie z nagrania referencyjnego: nocna zieleń z miętową poświatą, ukośny
+ * Strona główna w wyglądzie z nagrania referencyjnego: granat z logo z kobaltową poświatą, ukośny
  * schemat kroków, pas formatów, zakładki z przykładowymi raportami, jasne sekcje z tekstem
  * ujawnianym przy przewijaniu i krzywa uwagi rysowana z danych. Treść i liczby pochodzą ze
- * słownika i z symulowanego panelu; studio i raporty zachowują swój wygląd.
+ * słownika i z symulowanego panelu. Ten sam układ (nagłówek, pas z tytułem, stopka) mają podstrony i studio.
  */
 export function LandingPage() {
   const t = useT();
@@ -30,11 +30,11 @@ export function LandingPage() {
         <div className="relative mx-auto grid max-w-[1152px] gap-12 px-4 pb-10 pt-12 sm:px-6 md:pt-20 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:items-center lg:gap-8 lg:pb-14 lg:pt-24">
           <div className="min-w-0">
             <h1 className="max-w-[21ch] text-[38px] font-normal leading-[1.05] tracking-[-0.035em] min-[400px]:text-[42px] md:text-[54px]">
-              <span className="l-sweep l-sweep-white">{h.titleStart}</span> <span className="l-sweep l-sweep-mint">{h.titleEnd}</span>
+              <span className="l-sweep l-sweep-white">{h.titleStart}</span> <span className="l-sweep l-sweep-accent">{h.titleEnd}</span>
             </h1>
             <p className="mt-6 max-w-[54ch] text-[16.5px] leading-relaxed text-white/75 md:text-[17.5px]">{h.lead}</p>
             <div className="mt-8 flex flex-col gap-3 min-[480px]:flex-row min-[480px]:flex-wrap">
-              <a href={hrefOf({ name: 'new-project' })} className="l-btn l-btn-mint">
+              <a href={hrefOf({ name: 'new-project' })} className="l-btn l-btn-primary">
                 {h.ctaPrimary}
               </a>
               <a href={hrefOf({ name: 'sample', sample: 'reel' })} className="l-btn l-btn-ghost">
@@ -64,17 +64,17 @@ export function LandingPage() {
       <SampleTabs />
 
       {/* Problem */}
-      <section className="l-sage" aria-labelledby="problem">
+      <section className="l-light" aria-labelledby="problem">
         <div className="mx-auto max-w-[1152px] px-4 py-16 sm:px-6 md:py-24">
           <div className="mx-auto max-w-[820px] text-center">
-            <p className="text-[14px] font-semibold text-[var(--l-mint-deep)]">{l.problemLabel}</p>
+            <p className="text-[14px] font-semibold text-[var(--l-accent-deep)]">{l.problemLabel}</p>
             <RevealText id="problem" tone="light" text={l.problemTitle} className="mt-3 text-[28px] font-normal leading-[1.15] tracking-[-0.03em] sm:text-[38px]" />
           </div>
-          <ul className="mt-12 grid gap-px overflow-hidden rounded-[12px] border border-[var(--l-sage-line)] bg-[var(--l-sage-line)] md:grid-cols-3">
+          <ul className="mt-12 grid gap-px overflow-hidden rounded-[12px] border border-[var(--l-line)] bg-[var(--l-line)] md:grid-cols-3">
             {l.problems.map((p, i) => (
-              <li key={p} className="flex min-w-0 flex-col gap-5 bg-[var(--l-sage-2)] p-6 sm:p-7">
+              <li key={p} className="flex min-w-0 flex-col gap-5 bg-[var(--l-light-2)] p-6 sm:p-7">
                 <ProblemIcon i={i} />
-                <p className="max-w-[40ch] text-[15.5px] leading-relaxed text-[var(--l-pine)]">{p}</p>
+                <p className="max-w-[40ch] text-[15.5px] leading-relaxed text-[var(--l-ink)]">{p}</p>
               </li>
             ))}
           </ul>
@@ -82,12 +82,12 @@ export function LandingPage() {
       </section>
 
       {/* Rozwiązanie */}
-      <section className="l-haze border-t border-[var(--l-sage-line)]" aria-labelledby="answer">
+      <section className="l-haze border-t border-[var(--l-line)]" aria-labelledby="answer">
         <div className="mx-auto max-w-[860px] px-4 py-16 text-center sm:px-6 md:py-24">
-          <p className="text-[14px] font-semibold text-[var(--l-mint-deep)]">{l.answerLabel}</p>
+          <p className="text-[14px] font-semibold text-[var(--l-accent-deep)]">{l.answerLabel}</p>
           <RevealText id="answer" tone="light" text={l.answerTitle} className="mt-3 text-[28px] font-normal leading-[1.15] tracking-[-0.03em] sm:text-[38px]" />
-          <p className="mx-auto mt-6 max-w-[62ch] text-[16px] leading-relaxed text-[var(--l-moss)]">{l.answerBody}</p>
-          <a href="#krzywa" onClick={(e) => (e.preventDefault(), document.getElementById('krzywa')?.scrollIntoView({ behavior: 'smooth' }))} className="mx-auto mt-8 grid h-11 w-11 place-items-center rounded-full text-[var(--l-pine)] ring-1 ring-inset ring-[var(--l-sage-line)] hover:bg-white/60" aria-label={l.answerNext}>
+          <p className="mx-auto mt-6 max-w-[62ch] text-[16px] leading-relaxed text-[var(--l-muted)]">{l.answerBody}</p>
+          <a href="#krzywa" onClick={(e) => (e.preventDefault(), document.getElementById('krzywa')?.scrollIntoView({ behavior: 'smooth' }))} className="mx-auto mt-8 grid h-11 w-11 place-items-center rounded-full text-[var(--l-ink)] ring-1 ring-inset ring-[var(--l-line)] hover:bg-white/60" aria-label={l.answerNext}>
             <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden focusable="false">
               <path d="M10 3v13M4.5 10.5L10 16l5.5-5.5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -105,7 +105,7 @@ export function LandingPage() {
               {l.privacyTitle}
             </h2>
             <p className="mt-5 max-w-[56ch] text-[16px] leading-relaxed text-white/75">{l.privacyBody}</p>
-            <a href={hrefOf({ name: 'privacy' })} className="mt-6 inline-flex min-h-10 items-center font-semibold text-[var(--l-mint)] underline decoration-[var(--l-mint)]/40 underline-offset-4 hover:decoration-[var(--l-mint)]">
+            <a href={hrefOf({ name: 'privacy' })} className="mt-6 inline-flex min-h-10 items-center font-semibold text-[var(--l-accent)] underline decoration-[var(--l-accent)]/40 underline-offset-4 hover:decoration-[var(--l-accent)]">
               {l.privacyLink}
             </a>
           </div>
@@ -114,7 +114,7 @@ export function LandingPage() {
             <ul className="mt-5 space-y-4">
               {l.not.map((x) => (
                 <li key={x} className="flex gap-3 text-[15.5px] leading-relaxed text-white/85">
-                  <span className="mt-0.5 shrink-0 text-[var(--l-mint)]">
+                  <span className="mt-0.5 shrink-0 text-[var(--l-accent)]">
                     <Icon name="close" size={18} />
                   </span>
                   {x}
@@ -133,7 +133,7 @@ export function LandingPage() {
             {l.ctaTitle}
           </h2>
           <div className="flex flex-col gap-3 min-[480px]:flex-row">
-            <a href={hrefOf({ name: 'new-project' })} className="l-btn l-btn-mint">
+            <a href={hrefOf({ name: 'new-project' })} className="l-btn l-btn-primary">
               {h.ctaPrimary}
             </a>
             <a href={hrefOf({ name: 'pricing' })} className="l-btn l-btn-ghost">

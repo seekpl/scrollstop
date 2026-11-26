@@ -60,11 +60,7 @@ export function ProjectPage({ id, step }: { id: string; step: ProjectStep }) {
   };
   if (project === undefined) return <StudioShell>{null}</StudioShell>;
   if (project === null) {
-    return (
-      <StudioShell>
-        <h1 className="text-[28px] font-semibold">{t.errors.not_found}</h1>
-      </StudioShell>
-    );
+    return <StudioShell title={t.errors.not_found}>{null}</StudioShell>;
   }
   const valid = sessions.filter((x) => x.status === 'valid' && x.source !== 'simulated').length;
   const ctx: ProjectCtx = { project, sessions, reload, update };
@@ -75,23 +71,21 @@ export function ProjectPage({ id, step }: { id: string; step: ProjectStep }) {
     { id: 'technical', title: s.steps.technical },
   ];
   return (
-    <StudioShell crumbs={[{ label: project.name }]} title={project.name}>
-      <div className="space-y-8">
-        <div className="space-y-4">
-          {/* Nagłówek wydruku i PDF raportu: marka i data (powłoka studia jest ukryta w druku). */}
-          {step === 'report' && (
-            <div className="print-only border-b border-line pb-3">
-              <div className="flex items-center justify-between gap-4">
-                <BrandMark size={24} />
-                <span className="text-[12px] text-muted">{t.studio.report.printHeader(formatDate(new Date().toISOString(), locale))}</span>
-              </div>
-            </div>
-          )}
-          <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.02em] sm:text-[34px]">{project.name}</h1>
-          <div className="no-print">
-            <Stepper label={s.stepsLabel} current={step} steps={steps.map((x) => ({ ...x, href: pathOf({ name: 'project', id, step: x.id }) }))} />
+    <StudioShell
+      crumbs={[{ label: project.name }]}
+      title={project.name}
+      below={<Stepper tone="night" label={s.stepsLabel} current={step} steps={steps.map((x) => ({ ...x, href: pathOf({ name: 'project', id, step: x.id }) }))} />}
+      // Nagłówek wydruku i PDF raportu: marka i data (powłoka serwisu jest ukryta w druku).
+      printHeader={
+        step === 'report' && (
+          <div className="flex items-center justify-between gap-4 border-b border-line pb-3">
+            <BrandMark size={24} />
+            <span className="text-[12px] text-muted">{t.studio.report.printHeader(formatDate(new Date().toISOString(), locale))}</span>
           </div>
-        </div>
+        )
+      }
+    >
+      <div className="space-y-8">
         {error && (
           <div role="alert">
             <Callout

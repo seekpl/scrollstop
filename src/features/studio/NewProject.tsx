@@ -11,7 +11,7 @@ import { AGE_BANDS, VARIANT_IDS, type AgeBand, type AudioMode, type FillerItem, 
 import { planFor, type BlockReason } from '../../research/plans';
 import { RECOMMENDED_AB_SAMPLE, RELIABLE_SAMPLE } from '../../research/sessions';
 import { minimumDetectableDifference, sampleSizeForProportions } from '../../research/statsMath';
-import { Badge, Btn, Callout, ChoiceCards, Field, inputClass, PageHeader, Segmented } from '../../ui/kit';
+import { Badge, Btn, Callout, ChoiceCards, Field, inputClass, Segmented } from '../../ui/kit';
 import { FillersPicker, SlidesPicker, ThumbnailPicker, type PickedFiller, type PickedImage } from './FormatPickers';
 import { MediaPicker, type PickedMedia } from './MediaPicker';
 import { PaywallDialog } from './Paywall';
@@ -173,9 +173,8 @@ export function NewProjectPage() {
   };
 
   return (
-    <StudioShell crumbs={[{ label: n.crumb }]} title={n.title}>
+    <StudioShell crumbs={[{ label: n.crumb }]} title={n.title} lead={n.lead}>
       <div className="space-y-6">
-        <PageHeader title={n.title} lead={n.lead} />
         <Step n={1} title={n.kindTitle}>
           <ChoiceCards<StudyKind>
             label={n.kindTitle}

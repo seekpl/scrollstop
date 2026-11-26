@@ -24,7 +24,7 @@ export function SamplePage({ sample }: { sample: SampleId }) {
           key={id}
           href={hrefOf({ name: 'sample', sample: id })}
           aria-current={sample === id ? 'page' : undefined}
-          className={`flex min-h-12 min-w-0 items-center justify-center px-3 text-center text-[13.5px] font-semibold leading-tight sm:px-5 sm:text-[14.5px] ${i ? 'border-l border-white/15' : ''} ${sample === id ? 'bg-[var(--l-sage-2)] text-[var(--l-pine)]' : 'bg-white/[0.03] text-white/80 hover:bg-white/[0.08] hover:text-white'}`}
+          className={`flex min-h-12 min-w-0 items-center justify-center px-3 text-center text-[13.5px] font-semibold leading-tight sm:px-5 sm:text-[14.5px] ${i ? 'border-l border-white/15' : ''} ${sample === id ? 'bg-[var(--l-light-2)] text-[var(--l-ink)]' : 'bg-white/[0.03] text-white/80 hover:bg-white/[0.08] hover:text-white'}`}
         >
           {s.tabs[id]}
         </a>
@@ -36,12 +36,12 @@ export function SamplePage({ sample }: { sample: SampleId }) {
       <PageIntro title={s.title} lead={s.lead}>
         <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
           {tabs}
-          <a href={hrefOf({ name: 'new-project' })} className="l-btn l-btn-mint w-fit">
+          <a href={hrefOf({ name: 'new-project' })} className="l-btn l-btn-primary w-fit">
             {s.cta}
           </a>
         </div>
       </PageIntro>
-      <section className="l-sage">
+      <section className="l-light">
         <div className="mx-auto max-w-[1152px] px-4 py-10 sm:px-6 md:py-14">
           <ReportView key={sample} project={{ ...demo.project, locale }} sessions={demo.sessions} can={FULL_ACCESS} sample />
         </div>

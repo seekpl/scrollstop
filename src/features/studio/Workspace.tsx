@@ -6,7 +6,7 @@ import { useI18n } from '../../i18n';
 import { formatDate } from '../../i18n/format';
 import type { InviteInfo, MemberInfo, Role, WorkspaceInfo } from '../../api/types';
 import { PLANS } from '../../research/plans';
-import { Badge, Btn, Callout, CopyField, Field, inputClass, PageHeader, Section, Segmented } from '../../ui/kit';
+import { Badge, Btn, Callout, CopyField, Field, inputClass, Section, Segmented } from '../../ui/kit';
 import { StudioShell } from './Shell';
 
 type InviteRole = Exclude<Role, 'owner'>;
@@ -55,15 +55,14 @@ export function WorkspacePage() {
 
   if (!server)
     return (
-      <StudioShell crumbs={[{ label: w.title }]} title={w.title}>
-        <PageHeader title={w.title} lead={w.serverOnly} />
+      <StudioShell crumbs={[{ label: w.title }]} title={w.title} lead={w.serverOnly}>
+        {null}
       </StudioShell>
     );
   const seats = current ? PLANS[current.plan].limits.seats : 1;
   return (
-    <StudioShell crumbs={[{ label: w.title }]} title={w.title}>
+    <StudioShell crumbs={[{ label: w.title }]} title={w.title} lead={w.lead}>
       <div className="space-y-10">
-        <PageHeader title={w.title} lead={w.lead} />
         {error && <Callout tone="warn">{error}</Callout>}
 
         {list.length > 1 && (

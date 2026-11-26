@@ -21,9 +21,9 @@ function AuthCard({ title, lead, children }: { title: string; lead?: string; chi
   return (
     <SiteShell seo={{ title: `${title} — ${BRAND.name}` }}>
       <PageIntro title={title} lead={lead} narrow />
-      <section className="l-sage">
+      <section className="l-light">
         <div className="mx-auto max-w-[808px] px-4 py-10 sm:px-6 md:py-14">
-          <div className="max-w-[480px] rounded-[14px] border border-[var(--l-sage-line)] bg-[var(--l-sage-2)] p-6 sm:p-8 [&_.text-cobalt]:text-[var(--l-mint-deep)] [&_.text-muted]:text-[var(--l-moss)]">{children}</div>
+          <div className="max-w-[480px] rounded-[14px] border border-[var(--l-line)] bg-[var(--l-light-2)] p-6 sm:p-8 [&_.text-cobalt]:text-[var(--l-accent-deep)] [&_.text-muted]:text-[var(--l-muted)]">{children}</div>
         </div>
       </section>
     </SiteShell>
@@ -35,7 +35,7 @@ function LocalNotice({ title }: { title: string }) {
   const { t } = useI18n();
   return (
     <AuthCard title={title} lead={t.site.auth.localMode}>
-      <a href={hrefOf({ name: 'projects' })} className="l-btn l-btn-mint">
+      <a href={hrefOf({ name: 'projects' })} className="l-btn l-btn-primary">
         {t.site.auth.toStudio}
       </a>
     </AuthCard>
@@ -88,7 +88,7 @@ export function LoginPage() {
             {error}
           </p>
         )}
-        <button type="submit" className="l-btn l-btn-mint w-full disabled:opacity-60" disabled={busy || !email || !password}>
+        <button type="submit" className="l-btn l-btn-primary w-full disabled:opacity-60" disabled={busy || !email || !password}>
           {busy ? a.busy : a.login}
         </button>
       </form>
@@ -146,7 +146,7 @@ export function RegisterPage() {
             {error}
           </p>
         )}
-        <button type="submit" className="l-btn l-btn-mint w-full disabled:opacity-60" disabled={busy}>
+        <button type="submit" className="l-btn l-btn-primary w-full disabled:opacity-60" disabled={busy}>
           {busy ? a.busy : a.createAccount}
         </button>
         <p className="text-[12.5px] leading-relaxed text-muted">

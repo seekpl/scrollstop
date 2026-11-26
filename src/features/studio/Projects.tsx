@@ -5,7 +5,7 @@ import { useI18n } from '../../i18n';
 import type { Usage } from '../../api/types';
 import type { Project } from '../../research/model';
 import { PLANS } from '../../research/plans';
-import { Badge, btnClass, Empty, Icon, Meter, PageHeader } from '../../ui/kit';
+import { Badge, btnClass, Empty, Icon, Meter } from '../../ui/kit';
 import { StudioShell } from './Shell';
 
 export function aspectName(w: number, h: number): string {
@@ -30,17 +30,8 @@ export function ProjectsPage() {
   }, [api]);
   const plan = PLANS[account?.workspacePlan ?? 'free'];
   return (
-    <StudioShell title={p.title}>
+    <StudioShell title={p.title} lead={p.lead}>
       <div className="space-y-8">
-        <PageHeader
-          title={p.title}
-          lead={p.lead}
-          actions={
-            <a href={pathOf({ name: 'new-project' })} className={btnClass('primary', 'md')}>
-              {p.new}
-            </a>
-          }
-        />
         {usage && <p className="text-[13.5px] text-muted">{p.limits(t.billing.planNames[plan.id], usage.activeProjects, plan.limits.activeProjects, usage.monthSessions, plan.limits.monthSessions)}</p>}
         {projects && projects.length === 0 && (
           <Empty
