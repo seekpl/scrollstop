@@ -137,27 +137,27 @@ export function useI18n(): I18nValue {
   return useContext(Ctx);
 }
 
-/** Słownik bieżącego języka: `const t = useT(); t.site.hero.title`. */
+/** Słownik bieżącego języka: `const t = useT(); t.site.hero.lead`. */
 export function useT(): Messages {
   return useContext(Ctx).t;
 }
 
 /** Przełącznik języka (lista rozwijana z nazwami języków w ich brzmieniu, ikona globu). */
-export function LanguageSelect({ className = '' }: { className?: string }) {
+export function LanguageSelect({ className = '', tone = 'light' }: { className?: string; tone?: 'light' | 'night' }) {
   const { locale, setLocale, t } = useI18n();
   // Widoczność ustawia wywołujący (np. „hidden sm:inline-flex”); domyślnie zawsze widoczny.
   const display = /(^|\s)(hidden|inline-flex|flex)(\s|$)/.test(className) ? '' : 'inline-flex';
   return (
     <label className={`relative items-center ${display} ${className}`}>
       <span className="sr-only">{t.ui.languageLabel}</span>
-      <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden className="pointer-events-none absolute left-2 text-muted">
+      <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden className={`pointer-events-none absolute left-2 ${tone === 'night' ? 'text-white/70' : 'text-muted'}`}>
         <circle cx="10" cy="10" r="7.2" fill="none" stroke="currentColor" strokeWidth="1.5" />
         <path d="M2.8 10h14.4M10 2.8c2.2 2.4 2.2 12 0 14.4M10 2.8c-2.2 2.4-2.2 12 0 14.4" fill="none" stroke="currentColor" strokeWidth="1.3" />
       </svg>
       <select
         value={locale}
         onChange={(e) => setLocale(e.target.value as Locale)}
-        className="h-9 cursor-pointer appearance-none rounded-[10px] bg-transparent pl-7 pr-2 text-[13.5px] font-semibold text-ink ring-1 ring-inset ring-field hover:ring-ink/50"
+        className={`h-9 cursor-pointer appearance-none rounded-[10px] bg-transparent pl-7 pr-2 text-[13.5px] font-semibold ring-1 ring-inset ${tone === 'night' ? 'text-white ring-white/25 hover:ring-white/50 [&>option]:text-ink' : 'text-ink ring-field hover:ring-ink/50'}`}
       >
         {LOCALES.map((l) => (
           <option key={l} value={l}>

@@ -44,8 +44,9 @@ describe('strona publiczna (M4)', () => {
   it('pierwszy ekran: krzywa i podpis liczone z symulowanego panelu', async () => {
     renderAt('#/');
     expect(await screen.findByText('Przykład: krzywa uwagi rolki demo, symulowany panel 31 widzów')).toBeInTheDocument();
-    // Zdanie z raportu (spadek w hooku wersji A), nie wpisany na sztywno tekst.
-    expect(screen.getByText(/^Widzowie/)).toBeInTheDocument();
+    // Zdanie i liczby z raportu przykładu (spadek w hooku wersji A), nie wpisane na sztywno.
+    expect(await screen.findByText(/^Największy spadek uwagi wystąpił między 00:00 a 00:0\d/)).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Rolka: test hooka A/B' })).toHaveAttribute('aria-selected', 'true');
   });
 
   it('cennik w PLN: zamówienie e-mailem, okres roczny = 10 × miesięczna, „wkrótce” przy brakujących funkcjach', () => {

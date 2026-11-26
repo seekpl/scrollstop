@@ -49,7 +49,7 @@ function pathFor(curve: CurvePoint[], duration: number, upTo: number): string {
  * Krzywa i podpis liczą się z symulowanego panelu (`demoProject`), więc liczby pochodzą z danych.
  * Przy `prefers-reduced-motion` klip stoi na kadrze spadku, a krzywa jest pełna.
  */
-export function HeroDemo() {
+export function HeroDemo({ compact = false }: { compact?: boolean } = {}) {
   const { t, locale } = useI18n();
   const l = t.site.landing;
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -107,7 +107,7 @@ export function HeroDemo() {
   const headY = current !== null ? (BAND_TOP + (1 - current) * (BAND_BOTTOM - BAND_TOP)) * 100 : null;
 
   return (
-    <figure className="mx-auto w-full max-w-[300px]">
+    <figure className={`mx-auto w-full ${compact ? 'max-w-[236px]' : 'max-w-[300px]'}`}>
       <div className="relative overflow-hidden rounded-[30px] bg-ink p-2.5 shadow-[0_24px_48px_-24px_rgba(31,42,68,0.55)]">
         <div className="relative overflow-hidden rounded-[22px]" style={{ aspectRatio: `${W} / ${H}` }}>
           <canvas ref={canvas} className="absolute inset-0 h-full w-full" role="img" aria-label={l.demoAlt} />
@@ -129,15 +129,18 @@ export function HeroDemo() {
       <figcaption className="mt-4 space-y-1.5 text-[13.5px] leading-snug text-muted">
         {data ? (
           <>
-            <span className="block font-semibold text-ink">{data.lead}</span>
+            {!compact && <span className="block font-semibold text-ink">{data.lead}</span>}
             <span className="block">{l.demoLabel(data.viewers)}</span>
           </>
         ) : (
           <span className="block h-10" />
         )}
-        <a href={pathOf({ name: 'sample', sample: 'reel' })} className="inline-flex min-h-9 items-center font-semibold text-cobalt underline underline-offset-4">
-          {l.demoLink}
-        </a>
+        {/* W karcie przykładu (strona główna) link do raportu jest obok — tu go nie powtarzamy. */}
+        {!compact && (
+          <a href={pathOf({ name: 'sample', sample: 'reel' })} className="inline-flex min-h-9 items-center font-semibold text-cobalt underline underline-offset-4">
+            {l.demoLink}
+          </a>
+        )}
       </figcaption>
     </figure>
   );
