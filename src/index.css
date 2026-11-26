@@ -124,6 +124,8 @@ h1, h2, h3 { overflow-wrap: break-word; hyphens: auto; }
   font-size: 15.5px; font-weight: 600; white-space: nowrap;
   transition: background-color 160ms ease, box-shadow 160ms ease, color 160ms ease;
 }
+/* Przycisk w wąskiej kolumnie (karty planów): długi napis łamie się zamiast wychodzić poza przycisk. */
+.landing .l-btn.l-btn-wrap { white-space: normal; text-align: center; line-height: 1.25; padding-block: 0.6rem; }
 .landing .l-btn-mint { background-image: linear-gradient(180deg, #67f3c8, #2fdca8); color: var(--l-night); box-shadow: 0 0 0 1px rgba(143, 247, 214, 0.35) inset, 0 10px 30px -12px rgba(61, 235, 181, 0.7); }
 .landing .l-btn-mint:hover { background-image: linear-gradient(180deg, #8ff7d6, #3debb5); }
 .landing .l-btn-ghost { color: #fff; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.28) inset; }

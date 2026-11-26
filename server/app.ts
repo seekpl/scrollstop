@@ -984,6 +984,8 @@ function serveStatic(root: string, path: string, req: IncomingMessage, res: Serv
   }
   let file = resolve(base, `.${decoded}`);
   if (!file.startsWith(base + sep) && file !== base) file = join(base, 'index.html');
+  // Katalog z własnym index.html (podstrony publiczne, np. /pricing/) — jego plik; reszta → aplikacja.
+  if (existsSync(file) && statSync(file).isDirectory() && existsSync(join(file, 'index.html'))) file = join(file, 'index.html');
   if (!existsSync(file) || statSync(file).isDirectory()) file = join(base, 'index.html');
   if (!existsSync(file)) throw fail(404, 'not_found');
   const name = file.slice(base.length);

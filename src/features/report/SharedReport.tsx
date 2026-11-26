@@ -53,7 +53,7 @@ export function SharedReportPage({ token }: { token: string }) {
 
   if (!data || !report)
     return (
-      <SiteShell nav={[]} cta={null}>
+      <SiteShell variant="paper" nav={[]} cta={null}>
         <div className="mx-auto max-w-[1152px] px-4 py-16 sm:px-6">
           <h1 className="text-[28px] font-semibold text-ink">{ts.title}</h1>
           {error && (
@@ -77,7 +77,7 @@ export function SharedReportPage({ token }: { token: string }) {
   const jump = (sec: number) => setSelected(Math.floor(sec / report.bin) * report.bin);
 
   return (
-    <SiteShell nav={[]} cta={null}>
+    <SiteShell variant="paper" nav={[]} cta={null}>
       <article className="mx-auto min-w-0 max-w-[1152px] space-y-12 px-4 py-10 sm:px-6 md:py-14">
         <header className="space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-4">

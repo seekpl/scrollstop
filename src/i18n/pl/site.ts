@@ -3,8 +3,24 @@ import { plural } from '../../core/math/util';
 
 /** Strona publiczna: nagłówek, stopka, strona główna, cennik, prywatność, przykłady, 404. */
 export const site = {
-  meta: {
-    title: `${BRAND.name} — w której sekundzie widzowie przestają patrzeć?`,
+  /** Tytuły i opisy stron publicznych: w przeglądarce i w plikach HTML dla wyszukiwarek (sitemap.xml). */
+  seo: {
+    landing: {
+      title: `${BRAND.name} — w której sekundzie widzowie przestają patrzeć?`,
+      description: 'Sprawdź hook, montaż i napisy na prawdziwych widzach, zanim opublikujesz: krzywa uwagi sekunda po sekundzie, mapa spojrzeń i konkretne poprawki. Obraz z kamery nie opuszcza urządzenia widza.',
+    },
+    pricing: { title: `Cennik — ${BRAND.name}`, description: 'Plany Free, Creator, Pro i Agency oraz badanie z panelem widzów. Ceny netto, widzowie nie płacą niczego.' },
+    privacy: {
+      title: `Prywatność i zasady etyczne — ${BRAND.name}`,
+      description: 'Obraz z kamery nie opuszcza urządzenia widza. Co zapisujemy, kto ma dostęp, jak długo przechowujemy dane i jakie prawa mają widzowie i twórcy.',
+    },
+    terms: { title: `Regulamin — ${BRAND.name}`, description: 'Zasady korzystania z serwisu: usługi, konto, plany i płatności, prawa konsumenta, reklamacje oraz dane właściciela serwisu.' },
+    sample: {
+      reel: { title: `Przykładowy raport: test hooka A/B — ${BRAND.name}`, description: 'Krzywa uwagi dwóch wersji rolki, spadki, sceny do poprawy i porównanie A/B policzone z symulowanego panelu widzów.' },
+      video: { title: `Przykładowy raport: film na YouTube — ${BRAND.name}`, description: 'Krzywa uwagi filmu 16:9, sceny, momenty spadku uwagi i wnioski w języku montażu, policzone z symulowanego panelu widzów.' },
+      feed: { title: `Przykładowy raport: rolka w feedzie — ${BRAND.name}`, description: 'Zatrzymanie scrolla, czas na klipie wobec innych materiałów i krzywa uwagi rolki w feedzie, policzone z symulowanego panelu widzów.' },
+    },
+    other: { title: `${BRAND.name}` },
   },
   nav: {
     home: 'Strona główna',
@@ -121,8 +137,8 @@ export const site = {
     ethics: ['badają osoby poniżej 18 lat,', 'oceniają, profilują albo porównują pojedynczych widzów, sugerują diagnozy lub stany psychiczne,', 'rozpoznają emocje,', 'badają widzów bez ich wiedzy albo w miejscu pracy i szkole,', 'sprzedają dane albo kontakty widzów,', 'testują treści wprowadzające w błąd lub szkodliwe.'],
     contentTitle: 'Zasady treści',
     content: 'Twórca oświadcza, że ma prawa do materiału i że materiał nie zawiera treści seksualnych, przemocy, mowy nienawiści, oszustw ani reklam politycznych. Widz może zgłosić treść w panelu pauzy; projekt zostaje wtedy wstrzymany do wyjaśnienia.',
-    contactTitle: 'Kontakt i operator serwisu',
-    operator: (name: string, address: string, nip: string) => `Operator: ${name}, ${address}, NIP ${nip}.`,
+    contactTitle: 'Kontakt i właściciel serwisu',
+    operator: (name: string, address: string, nip: string) => `Właściciel i operator serwisu (administrator danych z kont twórców): ${name}, ${address}, NIP ${nip}.`,
     contact: 'W sprawach danych osobowych napisz na',
   },
   samplePage: {
@@ -165,7 +181,7 @@ export const site = {
     register: 'Załóż konto',
   },
   footer: {
-    operator: (name: string, address: string, nip: string) => `Serwis prowadzi ${name}, ${address}, NIP ${nip}.`,
+    operator: (name: string, address: string, nip: string) => `Właściciel i operator serwisu: ${name}, ${address}, NIP ${nip}.`,
     contact: 'Kontakt',
     rights: (year: number) => `© ${year} ${BRAND.name}`,
     note: 'Szacowanie kierunku wzroku kamerą internetową. Obraz z kamery nie opuszcza urządzenia widza.',

@@ -2,12 +2,11 @@ import { BRAND } from '../../config/brand';
 import type { Messages } from '..';
 
 export const legal: Messages['legal'] = {
-  draft: 'Draft for legal review.',
   updated: (date: string) => `Effective from ${date}.`,
   terms: {
     title: 'Terms of service',
     lead: `The rules for using ${BRAND.name}: who provides the service, what it covers, what it costs and how to report a problem.`,
-    operator: (name: string, address: string, nip: string, email: string) => `${BRAND.name} is operated by ${name}, ${address}, Polish tax ID (NIP) ${nip} (the operator). Contact: ${email}.`,
+    operator: (name: string, address: string, nip: string, email: string) => `${BRAND.name} is owned and operated by ${name}, ${address}, Polish tax ID (NIP) ${nip} (the operator). Contact: ${email}.`,
     sections: [
       {
         id: 'definitions',

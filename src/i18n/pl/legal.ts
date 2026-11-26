@@ -1,16 +1,15 @@
 import { BRAND } from '../../config/brand';
 
 /**
- * Teksty prawne (M9): regulamin i uzupełnienie polityki prywatności o dane twórców. Wersja robocza
- * do przeglądu prawnika (§17); notatka „wersja robocza” znika po ustawieniu `COMPANY.legalReviewed`.
+ * Teksty prawne: regulamin i uzupełnienie polityki prywatności o dane twórców. Data wejścia
+ * w życie — `LEGAL.effective` w `src/config/company.ts`.
  */
 export const legal = {
-  draft: 'Wersja robocza do przeglądu prawnego.',
   updated: (date: string) => `Obowiązuje od ${date}.`,
   terms: {
     title: 'Regulamin',
     lead: `Zasady korzystania z ${BRAND.name}: kto świadczy usługę, co obejmuje, ile kosztuje i jak zgłosić problem.`,
-    operator: (name: string, address: string, nip: string, email: string) => `Serwis ${BRAND.name} prowadzi ${name}, ${address}, NIP ${nip} (dalej: operator). Kontakt: ${email}.`,
+    operator: (name: string, address: string, nip: string, email: string) => `Właścicielem i operatorem serwisu ${BRAND.name} jest ${name}, ${address}, NIP ${nip} (dalej: operator). Kontakt: ${email}.`,
     sections: [
       {
         id: 'definitions',

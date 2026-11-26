@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { pathOf } from '../../app/router';
+import { hrefOf } from '../../app/router';
 import { DEMO_SPECS, drawDemoScene } from '../../demo/demoScene';
 import { useI18n } from '../../i18n';
 import { formatPct } from '../../i18n/format';
@@ -137,7 +137,7 @@ export function HeroDemo({ compact = false }: { compact?: boolean } = {}) {
         )}
         {/* W karcie przykładu (strona główna) link do raportu jest obok — tu go nie powtarzamy. */}
         {!compact && (
-          <a href={pathOf({ name: 'sample', sample: 'reel' })} className="inline-flex min-h-9 items-center font-semibold text-cobalt underline underline-offset-4">
+          <a href={hrefOf({ name: 'sample', sample: 'reel' })} className="inline-flex min-h-9 items-center font-semibold text-cobalt underline underline-offset-4">
             {l.demoLink}
           </a>
         )}

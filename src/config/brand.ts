@@ -9,8 +9,8 @@ export const BRAND = {
   name: 'ScrollStop',
   /** Kod wewnętrzny — nie zmieniać. */
   code: 'attn',
-  /** Domena produkcyjna; null, dopóki nie wybrano (§26.1). */
-  domain: null as string | null,
+  /** Domena produkcyjna: adresy kanoniczne, sitemap.xml, robots.txt, stopka grafiki do udostępnienia. */
+  domain: 'scroll-stop.com' as string | null,
   /** Kolor motywu przeglądarki i manifestu PWA. */
   themeColor: '#1f2a44',
   /** Akcent marki (przyciski główne, wersja A na wykresach). Zmiana = ponowne sprawdzenie kontrastu (`npm run check:colors`). */

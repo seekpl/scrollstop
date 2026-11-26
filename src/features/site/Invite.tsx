@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
-import { navigate, pathOf } from '../../app/router';
+import { hrefOf, navigate, pathOf } from '../../app/router';
 import { useResearch } from '../../app/research';
 import { errorCode } from '../../core/errors';
 import { useI18n } from '../../i18n';
 import type { InvitePreview } from '../../api/types';
-import { btnClass, Btn, Callout } from '../../ui/kit';
+import { Callout } from '../../ui/kit';
+import { BRAND } from '../../config/brand';
+import { PageIntro } from './PageIntro';
 import { SiteShell } from './SiteShell';
 
 /** Zaproszenie do zespołu (§9.6): podgląd zespołu i roli, dołączenie po zalogowaniu. */
@@ -34,9 +36,11 @@ export function InvitePage({ token }: { token: string }) {
     }
   };
   return (
-    <SiteShell>
-      <div className="mx-auto max-w-[520px] px-4 py-12 sm:px-6 md:py-16">
-        <h1 className="text-[30px] font-semibold tracking-[-0.03em] text-ink">{v.title}</h1>
+    <SiteShell seo={{ title: `${v.title} — ${BRAND.name}` }}>
+      <PageIntro title={v.title} narrow />
+      <section className="l-sage">
+      <div className="mx-auto max-w-[808px] px-4 py-10 sm:px-6 md:py-14">
+      <div className="max-w-[520px] rounded-[14px] border border-[var(--l-sage-line)] bg-[var(--l-sage-2)] p-6 sm:p-8 [&_.text-muted]:text-[var(--l-moss)]">
         {api.mode !== 'server' ? (
           <p className="mt-3 text-[15px] text-muted">{t.errors.local_mode}</p>
         ) : error ? (
@@ -48,15 +52,15 @@ export function InvitePage({ token }: { token: string }) {
             <p className="text-[16px] leading-relaxed text-ink">{v.body(info.workspaceName, t.studio.workspace.roles[info.role])}</p>
             <p className="text-[13.5px] text-muted">{v.roleHint[info.role]}</p>
             {account ? (
-              <Btn variant="primary" size="lg" onClick={() => void accept()} disabled={busy}>
+              <button type="button" className="l-btn l-btn-mint disabled:opacity-60" onClick={() => void accept()} disabled={busy}>
                 {v.join}
-              </Btn>
+              </button>
             ) : account === null ? (
               <div className="flex flex-col gap-2 min-[420px]:flex-row">
-                <a href={`${pathOf({ name: 'login' })}?next=${encodeURIComponent(here)}`} className={btnClass('primary', 'md')}>
+                <a href={`${hrefOf({ name: 'login' })}?next=${encodeURIComponent(here)}`} className="l-btn l-btn-mint">
                   {v.login}
                 </a>
-                <a href={`${pathOf({ name: 'register' })}?next=${encodeURIComponent(here)}`} className={btnClass('secondary', 'md')}>
+                <a href={`${hrefOf({ name: 'register' })}?next=${encodeURIComponent(here)}`} className="l-btn l-btn-pine">
                   {v.register}
                 </a>
               </div>
@@ -64,6 +68,8 @@ export function InvitePage({ token }: { token: string }) {
           </div>
         ) : null}
       </div>
+      </div>
+      </section>
     </SiteShell>
   );
 }

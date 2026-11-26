@@ -19,7 +19,7 @@ Pełna specyfikacja produktu: [`docs/prompt-startowy.md`](docs/prompt-startowy.m
 | M6 | Test w feedzie (gesty, pętle, zatrzymanie scrolla), test miniatury w siatce (spojrzenia, wybór, efekt pozycji), karuzela i slajdy — widz, metryki, raport, kreator | gotowe |
 | M7 | Plany i paywall, płatności Stripe (Checkout, portal, podpisany webhook), zamówienie badania z panelem, powroty do dostawcy panelu | gotowe |
 | M8 | Rekomendacje AI (kontrakt, walidacja liczb i treści, pamięć podręczna, limity), grafika do udostępnienia 4:5 i 9:16, PDF przez druk | gotowe |
-| M9 | Szlif: audyt dostępności WCAG 2.2 AA, podział paczek, regulamin i prywatność (robocze), kopie zapasowe, lista startowa | gotowe |
+| M9 | Szlif: audyt dostępności WCAG 2.2 AA, podział paczek, regulamin i prywatność, kopie zapasowe, lista startowa | gotowe |
 
 ## Uruchomienie
 
@@ -169,9 +169,9 @@ Frontend w trybie serwerowym: build z `VITE_API_URL` (adres API albo `/` przy ws
 
 - **Dostępność:** `e2e/a11y.spec.ts` sprawdza axe-core (WCAG 2.2 AA) ok. 20 ekranów na komputerze i telefonie; każde naruszenie zatrzymuje test z listą elementów.
 - **Wydajność:** strona publiczna w paczce głównej, a badanie widza, studio, raporty i laboratorium jako osobne pliki (`React.lazy` w `src/app/Root.tsx`); wczytywanie fragmentu pokazuje komunikat dopiero po 400 ms.
-- **Teksty prawne:** regulamin `#/terms` i polityka prywatności (dane widzów i twórców, podmioty przetwarzające, prawa z RODO) w słowniku `legal`; to wersje robocze do przeglądu prawnika — po przeglądzie ustaw `LEGAL` w `src/config/company.ts`.
+- **Teksty prawne:** regulamin `/terms/` i polityka prywatności `/privacy/` (dane widzów i twórców, podmioty przetwarzające, prawa z RODO) w słowniku `legal`; właściciel serwisu i data wejścia w życie — `COMPANY` i `LEGAL` w `src/config/company.ts`.
 - **Języki:** zgodnie z decyzją §26.2 startujemy z pl i en; kolejne języki dodaje się bez zmian w kodzie aplikacji (lista w `docs/launch-checklist.md`).
-- **Lista startowa:** [`docs/launch-checklist.md`](docs/launch-checklist.md) — co jest gotowe w kodzie i co zostaje właścicielowi (domena, SSL, DNS, Stripe na żywo, kopie `/data`, prawnik, pilotaż).
+- **Lista startowa:** [`docs/launch-checklist.md`](docs/launch-checklist.md) — co jest gotowe w kodzie i co zostaje właścicielowi (DNS, SSL, Stripe na żywo, kopie `/data`, pilotaż).
 
 ## Wdrożenie
 

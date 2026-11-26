@@ -1,17 +1,18 @@
 import type { ReactNode } from 'react';
-import { pathOf } from '../../app/router';
+import { hrefOf } from '../../app/router';
 import { COMPANY, salesEmail } from '../../config/company';
 import { useT } from '../../i18n';
+import { PageIntro } from './PageIntro';
 import { SiteShell } from './SiteShell';
 import { LegalStatus } from './Terms';
 
 function Block({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
-    <section aria-labelledby={id} className="border-t border-line pt-8">
-      <h2 id={id} className="text-[22px] font-semibold tracking-[-0.01em] text-ink">
+    <section aria-labelledby={id} className="border-t border-[var(--l-sage-line)] pt-8">
+      <h2 id={id} className="text-[24px] font-normal tracking-[-0.02em] text-[var(--l-pine)]">
         {title}
       </h2>
-      <div className="mt-3 space-y-3 text-[15.5px] leading-relaxed text-ink">{children}</div>
+      <div className="mt-3 space-y-3 text-[15.5px] leading-relaxed text-[var(--l-pine)] [&_.text-muted]:text-[var(--l-moss)]">{children}</div>
     </section>
   );
 }
@@ -23,12 +24,12 @@ export function PrivacyPage() {
   const x = t.legal.privacyExtra;
   const email = salesEmail();
   return (
-    <SiteShell>
-      <article className="mx-auto max-w-[760px] px-4 py-10 sm:px-6 md:py-16">
-        <h1 className="text-[34px] font-semibold leading-tight tracking-[-0.03em] text-ink md:text-[42px]">{p.title}</h1>
-        <p className="mt-4 text-[17px] leading-relaxed text-ink">{p.lead}</p>
-        <LegalStatus />
-        <div className="mt-10 space-y-10">
+    <SiteShell seo={t.site.seo.privacy}>
+      <PageIntro title={p.title} lead={p.lead} narrow>
+        <LegalStatus className="text-white/60" />
+      </PageIntro>
+      <article className="l-sage">
+        <div className="mx-auto max-w-[808px] space-y-10 px-4 py-12 sm:px-6 md:py-16">
           <Block id="camera" title={p.cameraTitle}>
             <p>{p.camera}</p>
           </Block>
@@ -59,7 +60,7 @@ export function PrivacyPage() {
                 <li key={x}>{x}</li>
               ))}
             </ul>
-            <a href={pathOf({ name: 'delete-session', id: null })} className="inline-flex min-h-10 items-center font-semibold text-cobalt underline underline-offset-4">
+            <a href={hrefOf({ name: 'delete-session', id: null })} className="inline-flex min-h-10 items-center font-semibold text-[var(--l-mint-deep)] underline underline-offset-4">
               {p.deleteLink}
             </a>
           </Block>
@@ -103,7 +104,7 @@ export function PrivacyPage() {
             {COMPANY.name && COMPANY.address && COMPANY.nip && <p>{p.operator(COMPANY.name, COMPANY.address, COMPANY.nip)}</p>}
             <p>
               {p.contact}{' '}
-              <a href={`mailto:${email}`} className="font-semibold text-cobalt underline underline-offset-4">
+              <a href={`mailto:${email}`} className="font-semibold text-[var(--l-mint-deep)] underline underline-offset-4">
                 {email}
               </a>
               .

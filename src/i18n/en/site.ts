@@ -2,8 +2,23 @@ import type { Messages } from '..';
 import { BRAND } from '../../config/brand';
 
 export const site: Messages['site'] = {
-  meta: {
-    title: `${BRAND.name} — at which second do viewers stop watching?`,
+  seo: {
+    landing: {
+      title: `${BRAND.name} — at which second do viewers stop watching?`,
+      description: 'Test your hook, edit and captions on real viewers before you post: a second-by-second attention curve, a gaze map and specific fixes. The camera image never leaves the viewer’s device.',
+    },
+    pricing: { title: `Pricing — ${BRAND.name}`, description: 'Free, Creator, Pro and Agency plans and studies with a viewer panel. Prices exclude VAT; viewers never pay anything.' },
+    privacy: {
+      title: `Privacy and ethics — ${BRAND.name}`,
+      description: 'The camera image never leaves the viewer’s device. What we store, who has access, how long we keep data and the rights of viewers and creators.',
+    },
+    terms: { title: `Terms of service — ${BRAND.name}`, description: 'The rules for using the service: services, account, plans and payments, consumer rights, complaints and the service owner’s details.' },
+    sample: {
+      reel: { title: `Sample report: A/B hook test — ${BRAND.name}`, description: 'The attention curve of two reel versions, drops, scenes to fix and an A/B comparison computed from a simulated viewer panel.' },
+      video: { title: `Sample report: YouTube video — ${BRAND.name}`, description: 'The attention curve of a 16:9 video, scenes, attention drops and editing findings computed from a simulated viewer panel.' },
+      feed: { title: `Sample report: reel in a feed — ${BRAND.name}`, description: 'Scroll stop, time on the clip compared with other content and the attention curve of a reel in a feed, computed from a simulated viewer panel.' },
+    },
+    other: { title: `${BRAND.name}` },
   },
   nav: {
     home: 'Home',
@@ -120,8 +135,8 @@ export const site: Messages['site'] = {
     ethics: ['study people under 18,', 'assess, profile or compare individual viewers, or suggest diagnoses or mental states,', 'recognise emotions,', 'study viewers without their knowledge, or at work or school,', 'sell viewer data or contacts,', 'test misleading or harmful content.'],
     contentTitle: 'Content rules',
     content: 'The creator confirms they hold the rights to the content and that it contains no sexual content, violence, hate speech, scams or political advertising. Viewers can report content from the pause panel; the project is then paused until clarified.',
-    contactTitle: 'Contact and service operator',
-    operator: (name: string, address: string, nip: string) => `Operator: ${name}, ${address}, tax ID (NIP) ${nip}.`,
+    contactTitle: 'Contact and service owner',
+    operator: (name: string, address: string, nip: string) => `Owner and operator of the service (controller of creator account data): ${name}, ${address}, Polish tax ID (NIP) ${nip}.`,
     contact: 'For personal data matters, write to',
   },
   samplePage: {
@@ -164,7 +179,7 @@ export const site: Messages['site'] = {
     register: 'Create an account',
   },
   footer: {
-    operator: (name: string, address: string, nip: string) => `Operated by ${name}, ${address}, VAT ID ${nip}.`,
+    operator: (name: string, address: string, nip: string) => `Owner and operator: ${name}, ${address}, Polish tax ID (NIP) ${nip}.`,
     contact: 'Contact',
     rights: (year: number) => `© ${year} ${BRAND.name}`,
     note: 'Webcam-based gaze estimation. The camera image never leaves the viewer’s device.',

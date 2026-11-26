@@ -1,18 +1,18 @@
+import { hrefOf } from '../../app/router';
 import { useT } from '../../i18n';
-import { btnClass } from '../../ui/kit';
+import { PageIntro } from './PageIntro';
 import { SiteShell } from './SiteShell';
 
 export function NotFound() {
   const t = useT();
   return (
     <SiteShell>
-      <div className="mx-auto max-w-[1152px] px-4 py-20 sm:px-6">
-        <h1 className="text-[34px] font-semibold tracking-[-0.02em] text-ink">{t.site.notFound.title}</h1>
-        <p className="mt-3 text-[16px] text-muted">{t.site.notFound.body}</p>
-        <a href="#/" className={btnClass('primary', 'md', 'mt-6')}>
+      <PageIntro title={t.site.notFound.title} lead={t.site.notFound.body}>
+        <a href={hrefOf({ name: 'landing' })} className="l-btn l-btn-mint mt-8">
           {t.site.notFound.home}
         </a>
-      </div>
+      </PageIntro>
+      <div className="h-24" />
     </SiteShell>
   );
 }
@@ -22,13 +22,12 @@ export function SoonPage() {
   const t = useT();
   return (
     <SiteShell>
-      <div className="mx-auto max-w-[1152px] px-4 py-20 sm:px-6">
-        <h1 className="text-[34px] font-semibold tracking-[-0.02em] text-ink">{t.site.soonPage.title}</h1>
-        <p className="mt-3 text-[16px] text-muted">{t.site.soonPage.body}</p>
-        <a href="#/" className={btnClass('secondary', 'md', 'mt-6')}>
+      <PageIntro title={t.site.soonPage.title} lead={t.site.soonPage.body}>
+        <a href={hrefOf({ name: 'landing' })} className="l-btn l-btn-ghost mt-8">
           {t.common.actions.home}
         </a>
-      </div>
+      </PageIntro>
+      <div className="h-24" />
     </SiteShell>
   );
 }

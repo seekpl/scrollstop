@@ -1,5 +1,6 @@
 # ScrollStop na hostingu z Apache (wgrywanie przez FTP).
-# Aplikacja używa adresów z „#” (np. /#/cennik), więc nie potrzebuje przepisywania adresów.
+# Strony publiczne mają własne katalogi z index.html (/pricing/, /privacy/, /terms/, /sample/…),
+# a studio i badanie działają pod adresami z „#” — przepisywanie adresów nie jest potrzebne.
 
 Options -Indexes
 DirectoryIndex index.html
@@ -23,7 +24,7 @@ DirectoryIndex index.html
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
   Header always set Permissions-Policy "camera=(self), microphone=()"
   # Strona, service worker i manifest zawsze świeże; pliki z hashem w nazwie — na rok.
-  <FilesMatch "^(index\.html|sw\.js|manifest\.webmanifest)$">
+  <FilesMatch "^(index\.html|sw\.js|manifest\.webmanifest|sitemap\.xml|robots\.txt)$">
     Header set Cache-Control "no-cache"
   </FilesMatch>
   <FilesMatch "-[A-Za-z0-9_-]{8}\.(js|css|woff2)$">

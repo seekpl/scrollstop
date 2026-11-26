@@ -1,6 +1,6 @@
 # Lista kontrolna startu (M9)
 
-Stan na koniec M9. Pozycje odhaczone są zrobione w kodzie i sprawdzane testami. Pozostałe wymagają decyzji albo kont właściciela (domena, Stripe na żywo, prawnik) — kod jest na nie gotowy.
+Stan na koniec M9. Pozycje odhaczone są zrobione w kodzie i sprawdzane testami. Pozostałe wymagają decyzji albo kont właściciela (DNS, Stripe na żywo) — kod jest na nie gotowy.
 
 ## Gotowe w kodzie
 
@@ -13,16 +13,18 @@ Stan na koniec M9. Pozycje odhaczone są zrobione w kodzie i sprawdzane testami.
 - [x] **AI:** walidacja liczb i treści, pamięć podręczna, limit; bez klucza — wnioski z reguł — `tests/ai.test.ts`, `e2e/ai.spec.ts`.
 - [x] **Kopie zapasowe:** `node dist-server/main.js backup <plik.sqlite>` (spójna kopia w trakcie działania) — test serwera.
 - [x] **Stan serwera:** `GET /api/health` (`HEALTHCHECK` w obrazie Docker).
-- [x] **Teksty prawne (wersje robocze):** regulamin (`#/terms`), prywatność z danymi twórców, podmiotami przetwarzającymi i prawami z RODO; linki w stopce i przy rejestracji.
+- [x] **Teksty prawne:** regulamin (`/terms/`), prywatność z danymi twórców, podmiotami przetwarzającymi i prawami z RODO; właściciel serwisu (Sebastian Biel, NIP 8681879901) w stopce, regulaminie i prywatności; linki w stopce i przy rejestracji.
+- [x] **Wyszukiwarki:** strony publiczne pod własnymi adresami (`/pricing/`, `/privacy/`, `/terms/`, `/sample/…`) z tytułem, opisem, adresem kanonicznym i Open Graph; `sitemap.xml` i `robots.txt` generowane przy budowaniu dla https://scroll-stop.com/ (inny adres: zmienna `SITE_URL`).
 
 ## Do zrobienia przed startem (właściciel)
 
 ### Marka i domena (§21.4, §26.1)
-- [ ] Wybrać nazwę, sprawdzić znaki towarowe (EUIPO, UPRP) i domenę; ustawić `name` i `domain` w `src/config/brand.ts`.
-- [ ] Zarejestrować domenę i **w ciągu 15 dni potwierdzić e-mail właściciela** (ICANN) — inaczej rejestrator zawiesza domenę.
+- [x] Domena: scroll-stop.com (`domain` w `src/config/brand.ts`).
+- [ ] **W ciągu 15 dni od rejestracji domeny potwierdzić e-mail właściciela** (ICANN) — inaczej rejestrator zawiesza domenę.
 - [ ] DNS: serwery nazw na hosting; rekordy A (i AAAA) dla domeny, `www` i `mail`.
 - [ ] Certyfikat SSL (Let's Encrypt) po rozejściu się DNS — **kamera działa tylko przez HTTPS**.
-- [ ] Sprawdzenie z zewnątrz: `https://dns.google/resolve?name=<domena>` i RDAP rejestru (status, serwery nazw).
+- [ ] Sprawdzenie z zewnątrz: `https://dns.google/resolve?name=scroll-stop.com` i RDAP rejestru (status, serwery nazw).
+- [ ] Po uruchomieniu: zgłoszenie `https://scroll-stop.com/sitemap.xml` w Google Search Console.
 - [ ] Adres kontaktowy w domenie: `email` w `src/config/company.ts` albo `VITE_SALES_EMAIL`.
 
 ### Serwer (Docker, §21.1)
@@ -41,13 +43,12 @@ Stan na koniec M9. Pozycje odhaczone są zrobione w kodzie i sprawdzane testami.
 - [ ] Portal klienta: zmiana planu między cenami Creator/Pro, anulowanie z końcem okresu, faktury.
 - [ ] Ponawianie nieudanych płatności: po ostatniej próbie **anuluj subskrypcję** (tak opisuje regulamin).
 - [ ] VAT: Stripe Tax i `STRIPE_AUTOMATIC_TAX=1`, jeśli sprzedaż trafia do konsumentów w UE; dane firmy na fakturach.
-- [ ] Zakup testową kartą w trybie testowym, potem klucze live; adres regulaminu w ustawieniach Checkout.
+- [ ] Zakup testową kartą w trybie testowym, potem klucze live; adres regulaminu (https://scroll-stop.com/terms/) w ustawieniach Checkout.
 
 ### AI (§8.4)
 - [ ] `ANTHROPIC_API_KEY` i `AI_MODEL` (domyślnie `claude-opus-5-5`); miesięczny limit wydatków w konsoli Anthropic.
 
 ### Prawo (§17)
-- [ ] Przegląd prawnika: regulamin, polityka prywatności, ekran zgody widza, wzór umowy powierzenia (plan Agency), zgodność z AI Act. Potem w `src/config/company.ts`: `LEGAL.reviewed = true` i `LEGAL.effective = 'RRRR-MM-DD'` (znika notatka „wersja robocza”).
 - [ ] Ocena skutków dla ochrony danych (DPIA) i rejestr czynności przetwarzania.
 - [ ] Decyzja o reklamach politycznych (domyślnie nie, §26.7).
 - [ ] Umowa powierzenia z hostingiem; potwierdzenie, że Stripe i Anthropic są wskazani jako podmioty przetwarzające.

@@ -46,6 +46,8 @@ self.addEventListener('fetch', (event) => {
   if (url.pathname.startsWith(`${BASE}api/`) || req.headers.has('authorization') || req.headers.has('range')) return;
 
   if (req.mode === 'navigate') {
+    // Podstrony publiczne (/pricing/ itd.) mają własne pliki HTML — tylko z sieci.
+    if (url.pathname !== BASE && url.pathname !== `${BASE}index.html`) return;
     // Sieć najpierw (świeża wersja), bez sieci — zapisana powłoka aplikacji.
     event.respondWith(
       fetch(req).catch(() => caches.open(SHELL).then((c) => c.match('./').then((r) => r || Response.error()))),

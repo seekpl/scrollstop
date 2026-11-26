@@ -18,7 +18,8 @@ describe('strona główna', () => {
     );
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('W której sekundzie widzowie przestają patrzeć na Twoją rolkę?');
     expect(screen.getAllByRole('link', { name: 'Przetestuj rolkę za darmo' })[0]).toHaveAttribute('href', '#/app/new');
-    expect(screen.getByRole('link', { name: 'Zobacz przykładowy raport' })).toHaveAttribute('href', '#/sample/reel');
+    // Strony publiczne pod czystymi adresami (indeksowane), aplikacja pod „#/…”.
+    expect(screen.getByRole('link', { name: 'Zobacz przykładowy raport' })).toHaveAttribute('href', 'sample/reel/');
     expect(screen.getAllByRole('link', { name: /sebastian\.biel@me\.com/ }).length).toBeGreaterThan(0);
   });
 

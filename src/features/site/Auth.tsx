@@ -1,9 +1,11 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
-import { hashQuery, navigate, pathOf } from '../../app/router';
+import { hashQuery, hrefOf, navigate, pathOf } from '../../app/router';
 import { useResearch } from '../../app/research';
 import { errorCode } from '../../core/errors';
 import { useI18n } from '../../i18n';
-import { btnClass, Btn, Field, inputClass } from '../../ui/kit';
+import { Field, inputClass } from '../../ui/kit';
+import { BRAND } from '../../config/brand';
+import { PageIntro } from './PageIntro';
 import { SiteShell } from './SiteShell';
 
 const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,24}$/;
@@ -17,12 +19,13 @@ export function nextTarget(): string {
 
 function AuthCard({ title, lead, children }: { title: string; lead?: string; children: ReactNode }) {
   return (
-    <SiteShell>
-      <div className="mx-auto max-w-[440px] px-4 py-12 sm:px-6 md:py-16">
-        <h1 className="text-[30px] font-semibold tracking-[-0.03em] text-ink">{title}</h1>
-        {lead && <p className="mt-2 text-[15px] leading-relaxed text-muted">{lead}</p>}
-        <div className="mt-6">{children}</div>
-      </div>
+    <SiteShell seo={{ title: `${title} — ${BRAND.name}` }}>
+      <PageIntro title={title} lead={lead} narrow />
+      <section className="l-sage">
+        <div className="mx-auto max-w-[808px] px-4 py-10 sm:px-6 md:py-14">
+          <div className="max-w-[480px] rounded-[14px] border border-[var(--l-sage-line)] bg-[var(--l-sage-2)] p-6 sm:p-8 [&_.text-cobalt]:text-[var(--l-mint-deep)] [&_.text-muted]:text-[var(--l-moss)]">{children}</div>
+        </div>
+      </section>
     </SiteShell>
   );
 }
@@ -32,7 +35,7 @@ function LocalNotice({ title }: { title: string }) {
   const { t } = useI18n();
   return (
     <AuthCard title={title} lead={t.site.auth.localMode}>
-      <a href={pathOf({ name: 'projects' })} className={btnClass('primary', 'md')}>
+      <a href={hrefOf({ name: 'projects' })} className="l-btn l-btn-mint">
         {t.site.auth.toStudio}
       </a>
     </AuthCard>
@@ -85,13 +88,13 @@ export function LoginPage() {
             {error}
           </p>
         )}
-        <Btn type="submit" variant="primary" size="lg" className="w-full" disabled={busy || !email || !password}>
+        <button type="submit" className="l-btn l-btn-mint w-full disabled:opacity-60" disabled={busy || !email || !password}>
           {busy ? a.busy : a.login}
-        </Btn>
+        </button>
       </form>
       <p className="mt-6 text-[14px] text-muted">
         {a.noAccount}{' '}
-        <a className="font-semibold text-cobalt underline underline-offset-4" href={`${pathOf({ name: 'register' })}${next ? `?next=${encodeURIComponent(next)}` : ''}`}>
+        <a className="font-semibold text-cobalt underline underline-offset-4" href={`${hrefOf({ name: 'register' })}${next ? `?next=${encodeURIComponent(next)}` : ''}`}>
           {a.register}
         </a>
       </p>
@@ -143,23 +146,23 @@ export function RegisterPage() {
             {error}
           </p>
         )}
-        <Btn type="submit" variant="primary" size="lg" className="w-full" disabled={busy}>
+        <button type="submit" className="l-btn l-btn-mint w-full disabled:opacity-60" disabled={busy}>
           {busy ? a.busy : a.createAccount}
-        </Btn>
+        </button>
         <p className="text-[12.5px] leading-relaxed text-muted">
           {a.terms}{' '}
-          <a className="font-semibold text-ink underline underline-offset-4" href={pathOf({ name: 'terms' })} target="_blank" rel="noopener">
+          <a className="font-semibold text-ink underline underline-offset-4" href={hrefOf({ name: 'terms' })} target="_blank" rel="noopener">
             {t.site.nav.terms}
           </a>
           {' · '}
-          <a className="font-semibold text-ink underline underline-offset-4" href={pathOf({ name: 'privacy' })} target="_blank" rel="noopener">
+          <a className="font-semibold text-ink underline underline-offset-4" href={hrefOf({ name: 'privacy' })} target="_blank" rel="noopener">
             {t.site.nav.privacy}
           </a>
         </p>
       </form>
       <p className="mt-6 text-[14px] text-muted">
         {a.haveAccount}{' '}
-        <a className="font-semibold text-cobalt underline underline-offset-4" href={`${pathOf({ name: 'login' })}${next ? `?next=${encodeURIComponent(next)}` : ''}`}>
+        <a className="font-semibold text-cobalt underline underline-offset-4" href={`${hrefOf({ name: 'login' })}${next ? `?next=${encodeURIComponent(next)}` : ''}`}>
           {a.login}
         </a>
       </p>

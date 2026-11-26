@@ -11,19 +11,15 @@ export interface Company {
 }
 
 export const COMPANY: Company = {
-  name: 'Sebastian Biel', // jednoosobowa działalność; nazwa z rejestru VAT
+  name: 'Sebastian Biel', // właściciel serwisu: jednoosobowa działalność, dane z rejestru VAT (NIP 8681879901)
   address: 'Wąska 5, 32-765 Rzezawa',
   nip: '8681879901',
   email: 'sebastian.biel@me.com', // publiczny na stronie; rozważ adres w domenie produktu (kontakt@…)
 };
 
-/**
- * Teksty prawne (regulamin, prywatność): po przeglądzie prawnika ustaw `reviewed: true` (znika notatka
- * „wersja robocza”) i datę wejścia w życie (`effective`, RRRR-MM-DD) — lista startowa, docs/launch-checklist.md.
- */
-export const LEGAL: { reviewed: boolean; effective: string | null } = {
-  reviewed: false,
-  effective: null,
+/** Regulamin i polityka prywatności: data wejścia w życie (RRRR-MM-DD), pokazywana pod tytułem. */
+export const LEGAL: { effective: string } = {
+  effective: '2026-11-26',
 };
 
 /** E-mail sprzedaży: zmienna z budowania albo adres operatora. */

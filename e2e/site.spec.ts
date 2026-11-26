@@ -16,7 +16,7 @@ test.describe('strona publiczna', () => {
     const first = await label.textContent();
     await expect.poll(async () => label.textContent(), { timeout: 8_000 }).not.toBe(first);
     await expect(page.getByRole('link', { name: /^Kontakt: / })).toHaveAttribute('href', /^mailto:/);
-    await expect(page.getByText(/Serwis prowadzi Sebastian Biel, .*NIP 8681879901\./)).toBeVisible();
+    await expect(page.getByText(/Właściciel i operator serwisu: Sebastian Biel, .*NIP 8681879901\./)).toBeVisible();
     await expectNoHorizontalScroll(page);
     expect(errors).toEqual([]);
   });
@@ -57,7 +57,8 @@ test.describe('strona publiczna', () => {
   test('prywatność z danymi operatora', async ({ page }) => {
     await page.goto('/#/privacy');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Prywatność i zasady etyczne');
-    await expect(page.getByText('Operator: Sebastian Biel, Wąska 5, 32-765 Rzezawa, NIP 8681879901.')).toBeVisible();
+    await expect(page.getByText('Właściciel i operator serwisu (administrator danych z kont twórców): Sebastian Biel, Wąska 5, 32-765 Rzezawa, NIP 8681879901.')).toBeVisible();
+    await expect(page.getByText(/wersja robocza|przeglądu prawn/i)).toHaveCount(0);
     await expect(page.getByRole('heading', { name: 'Co zapisujemy' })).toBeVisible();
     await expectNoHorizontalScroll(page);
   });
@@ -83,6 +84,30 @@ test.describe('strona publiczna', () => {
     await page.setViewportSize({ width: 390, height: 780 });
     await page.goto('/#/pricing');
     await expect(page.getByRole('banner').getByRole('link', { name: 'Przetestuj za darmo' }).first()).toBeVisible();
+  });
+
+  test('podstrony pod własnymi adresami: tytuł, opis, adres kanoniczny; sitemap.xml i robots.txt', async ({ page, request }) => {
+    const robots = await (await request.get('/robots.txt')).text();
+    expect(robots).toContain('Sitemap: https://scroll-stop.com/sitemap.xml');
+    expect(robots).toContain('Disallow: /api/');
+    const sitemap = await (await request.get('/sitemap.xml')).text();
+    for (const path of ['', 'pricing/', 'privacy/', 'terms/', 'sample/reel/', 'sample/video/', 'sample/feed/']) expect(sitemap).toContain(`<loc>https://scroll-stop.com/${path}</loc>`);
+
+    await page.goto('/pricing/');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Cennik');
+    await expect(page).toHaveTitle('Cennik — ScrollStop');
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://scroll-stop.com/pricing/');
+    // Linki między podstronami prowadzą pod czyste adresy, do aplikacji — przez „#”.
+    await page.getByRole('contentinfo').getByRole('link', { name: 'Regulamin' }).click();
+    await expect(page).toHaveURL(/\/terms\/$/);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Regulamin');
+    await expect(page.getByText(/^Właścicielem i operatorem serwisu ScrollStop jest Sebastian Biel, .*NIP 8681879901/)).toBeVisible();
+    await expect(page.getByText(/^Obowiązuje od /)).toBeVisible();
+    await expect(page.getByRole('banner').getByRole('link', { name: 'Przetestuj za darmo' }).first()).toHaveAttribute('href', '../#/app/new');
+    await page.goto('/sample/video/');
+    await expect(page.getByRole('link', { name: 'Film na YouTube' })).toHaveAttribute('aria-current', 'page');
+    await expect(page.getByText('Przykładowy raport z symulowanego panelu')).toBeVisible();
+    await expectNoHorizontalScroll(page);
   });
 
   test('404 dla nieznanego adresu', async ({ page }) => {

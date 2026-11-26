@@ -1,8 +1,13 @@
 import { useEffect, useState } from 'react';
+import { PUBLIC_PAGES, type PublicPageKey } from '../config/publicPages';
 
 /**
  * Routing przez fragment adresu (`#/…`, §9, §10, §12.1): działa na GitHub Pages i zwykłym hostingu
  * bez reguł przepisywania. Ścieżki po angielsku; jedno miejsce prawdy o adresach.
+ *
+ * Strony publiczne mają też własne adresy (`/pricing/`, `/sample/reel/`…) — osobne pliki HTML
+ * generowane przy budowaniu (tytuł, opis, adres kanoniczny, sitemap.xml). Wyszukiwarki pomijają
+ * część adresu po „#”, więc tylko te adresy mogą trafić do wyników wyszukiwania.
  */
 export type ProjectStep = 'prepare' | 'collect' | 'report' | 'technical';
 export const PROJECT_STEPS: ProjectStep[] = ['prepare', 'collect', 'report', 'technical'];
@@ -128,10 +133,60 @@ export function navigate(r: Route | string, opts: { replace?: boolean } = {}): v
   window.scrollTo({ top: 0 });
 }
 
+const PAGE_ROUTE: Record<PublicPageKey, Route> = {
+  'sample-reel': { name: 'sample', sample: 'reel' },
+  'sample-video': { name: 'sample', sample: 'video' },
+  'sample-feed': { name: 'sample', sample: 'feed' },
+  pricing: { name: 'pricing' },
+  privacy: { name: 'privacy' },
+  terms: { name: 'terms' },
+  landing: { name: 'landing' },
+};
+
+/** Strony publiczne z własnym adresem i ich trasy (lista w `src/config/publicPages.ts`). */
+export const PUBLIC_ROUTES: ReadonlyArray<{ path: string; route: Route }> = PUBLIC_PAGES.map((p) => ({ path: p.path, route: PAGE_ROUTE[p.key] }));
+
+/** Strona publiczna z samej ścieżki adresu (np. `…/pricing/`) i jej głębokość w katalogach. */
+export function pathRoute(pathname: string): { route: Route; path: string; depth: number } | null {
+  const p = `${pathname.replace(/index\.html$/, '').replace(/\/+$/, '')}/`;
+  for (const page of PUBLIC_ROUTES) {
+    if (page.path && p.endsWith(`/${page.path}`)) return { route: page.route, path: page.path, depth: page.path.split('/').filter(Boolean).length };
+  }
+  return null;
+}
+
+/** Ścieżka względna z bieżącej strony do katalogu głównego serwisu: '' albo '../', '../../'. */
+export function rootPrefix(pathname = window.location.pathname): string {
+  const m = pathRoute(pathname);
+  return m ? '../'.repeat(m.depth) : '';
+}
+
+/** Bieżąca trasa: część po „#”, a bez niej — czysty adres strony publicznej. */
+export function currentRoute(): Route {
+  const { hash, pathname } = window.location;
+  if (!hash || hash === '#') {
+    const m = pathRoute(pathname);
+    if (m) return m.route;
+  }
+  return parseRoute(hash);
+}
+
+/**
+ * Adres linku: strony publiczne pod czystym adresem (indeksowane), reszta przez `#/…` — zawsze
+ * względem katalogu głównego serwisu, więc działa z każdej podstrony i z każdego katalogu na serwerze.
+ */
+export function hrefOf(r: Route): string {
+  const root = rootPrefix();
+  const key = pathOf(r);
+  const page = PUBLIC_ROUTES.find((x) => pathOf(x.route) === key);
+  if (page) return page.path ? root + page.path : root || './';
+  return root + key;
+}
+
 export function useRoute(): Route {
-  const [route, setRoute] = useState(() => parseRoute(window.location.hash));
+  const [route, setRoute] = useState(currentRoute);
   useEffect(() => {
-    const on = () => setRoute(parseRoute(window.location.hash));
+    const on = () => setRoute(currentRoute());
     window.addEventListener('hashchange', on);
     return () => window.removeEventListener('hashchange', on);
   }, []);
@@ -141,5 +196,8 @@ export function useRoute(): Route {
 /** Pełny adres do udostępnienia (link dla widzów, link do raportu). */
 export function absoluteUrl(r: Route | string): string {
   const { origin, pathname } = window.location;
-  return `${origin}${pathname}${typeof r === 'string' ? r : pathOf(r)}`;
+  // Z podstrony publicznej (np. /pricing/) adres aplikacji liczymy od katalogu głównego serwisu.
+  const m = pathRoute(pathname);
+  const base = m ? pathname.replace(/index\.html$/, '').replace(new RegExp(`${m.path.replace(/\//g, '\\/')}?$`), '') : pathname;
+  return `${origin}${base}${typeof r === 'string' ? r : pathOf(r)}`;
 }

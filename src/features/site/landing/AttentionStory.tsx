@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { pathOf } from '../../../app/router';
+import { hrefOf } from '../../../app/router';
 import { formatTime } from '../../../core/math/util';
 import { useI18n } from '../../../i18n';
 import { PLANS } from '../../../research/plans';
@@ -102,7 +102,7 @@ export function AttentionStory() {
                 {l.chartTitle}
               </h2>
               <p className="min-h-[3em] max-w-[56ch] text-[15.5px] leading-relaxed text-[var(--l-moss)]">{data?.detail ?? ''}</p>
-              <a href={pathOf({ name: 'new-project' })} className="l-btn l-btn-mint mt-auto w-fit">
+              <a href={hrefOf({ name: 'new-project' })} className="l-btn l-btn-mint mt-auto w-fit">
                 {t.site.hero.ctaPrimary}
               </a>
             </div>

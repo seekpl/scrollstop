@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { parseRoute, pathOf, type Route } from '../src/app/router';
+import { afterEach } from 'vitest';
+import { currentRoute, hrefOf, parseRoute, pathOf, pathRoute, PUBLIC_ROUTES, rootPrefix, type Route } from '../src/app/router';
+import { PUBLIC_PAGES } from '../src/config/publicPages';
 
 describe('router (hash, §9–§10)', () => {
   const routes: Route[] = [
@@ -36,5 +38,37 @@ describe('router (hash, §9–§10)', () => {
     expect(parseRoute(`#/p/${payload}`)).toEqual({ name: 'study-package', payload });
     expect(parseRoute('#/s/tok?sim=1')).toEqual({ name: 'study', token: 'tok' });
     expect(parseRoute('#/app/account?payment=ok')).toEqual({ name: 'account' });
+  });
+});
+
+describe('czyste adresy stron publicznych (wyszukiwarki, sitemap.xml)', () => {
+  afterEach(() => window.history.replaceState(null, '', '/'));
+
+  it('ścieżka → strona publiczna, także w podkatalogu serwera i z index.html', () => {
+    expect(pathRoute('/pricing/')).toMatchObject({ route: { name: 'pricing' }, depth: 1 });
+    expect(pathRoute('/pricing')).toMatchObject({ route: { name: 'pricing' } });
+    expect(pathRoute('/scrollstop/sample/video/index.html')).toMatchObject({ route: { name: 'sample', sample: 'video' }, depth: 2 });
+    expect(pathRoute('/')).toBeNull();
+    expect(pathRoute('/xpricing/')).toBeNull();
+    expect(rootPrefix('/sample/feed/')).toBe('../../');
+    expect(PUBLIC_ROUTES.map((r) => r.path)).toEqual(PUBLIC_PAGES.map((p) => p.path));
+  });
+
+  it('część po „#” ma pierwszeństwo; bez niej trasa z czystego adresu', () => {
+    window.history.replaceState(null, '', '/privacy/');
+    expect(currentRoute()).toEqual({ name: 'privacy' });
+    window.history.replaceState(null, '', '/privacy/#/app');
+    expect(currentRoute()).toEqual({ name: 'projects' });
+  });
+
+  it('linki: strony publiczne pod czystym adresem, aplikacja przez „#” — względem katalogu głównego', () => {
+    window.history.replaceState(null, '', '/');
+    expect(hrefOf({ name: 'pricing' })).toBe('pricing/');
+    expect(hrefOf({ name: 'landing' })).toBe('./');
+    expect(hrefOf({ name: 'new-project' })).toBe('#/app/new');
+    window.history.replaceState(null, '', '/sample/reel/');
+    expect(hrefOf({ name: 'sample', sample: 'video' })).toBe('../../sample/video/');
+    expect(hrefOf({ name: 'landing' })).toBe('../../');
+    expect(hrefOf({ name: 'register' })).toBe('../../#/register');
   });
 });

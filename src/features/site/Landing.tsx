@@ -1,4 +1,4 @@
-import { pathOf } from '../../app/router';
+import { hrefOf } from '../../app/router';
 import { useT } from '../../i18n';
 import { Icon } from '../../ui/kit';
 import { FormatArt, ProblemIcon, type FormatId } from './landing/art';
@@ -21,7 +21,7 @@ export function LandingPage() {
   const h = t.site.hero;
   const l = t.site.landing;
   return (
-    <SiteShell variant="night">
+    <SiteShell seo={t.site.seo.landing}>
       {/* Pierwszy ekran */}
       <section className="l-night relative -mt-16 overflow-hidden pt-16">
         <div aria-hidden className="l-glow pointer-events-none absolute inset-0" />
@@ -34,10 +34,10 @@ export function LandingPage() {
             </h1>
             <p className="mt-6 max-w-[54ch] text-[16.5px] leading-relaxed text-white/75 md:text-[17.5px]">{h.lead}</p>
             <div className="mt-8 flex flex-col gap-3 min-[480px]:flex-row min-[480px]:flex-wrap">
-              <a href={pathOf({ name: 'new-project' })} className="l-btn l-btn-mint">
+              <a href={hrefOf({ name: 'new-project' })} className="l-btn l-btn-mint">
                 {h.ctaPrimary}
               </a>
-              <a href={pathOf({ name: 'sample', sample: 'reel' })} className="l-btn l-btn-ghost">
+              <a href={hrefOf({ name: 'sample', sample: 'reel' })} className="l-btn l-btn-ghost">
                 {h.ctaSample}
               </a>
             </div>
@@ -105,7 +105,7 @@ export function LandingPage() {
               {l.privacyTitle}
             </h2>
             <p className="mt-5 max-w-[56ch] text-[16px] leading-relaxed text-white/75">{l.privacyBody}</p>
-            <a href={pathOf({ name: 'privacy' })} className="mt-6 inline-flex min-h-10 items-center font-semibold text-[var(--l-mint)] underline decoration-[var(--l-mint)]/40 underline-offset-4 hover:decoration-[var(--l-mint)]">
+            <a href={hrefOf({ name: 'privacy' })} className="mt-6 inline-flex min-h-10 items-center font-semibold text-[var(--l-mint)] underline decoration-[var(--l-mint)]/40 underline-offset-4 hover:decoration-[var(--l-mint)]">
               {l.privacyLink}
             </a>
           </div>
@@ -133,10 +133,10 @@ export function LandingPage() {
             {l.ctaTitle}
           </h2>
           <div className="flex flex-col gap-3 min-[480px]:flex-row">
-            <a href={pathOf({ name: 'new-project' })} className="l-btn l-btn-mint">
+            <a href={hrefOf({ name: 'new-project' })} className="l-btn l-btn-mint">
               {h.ctaPrimary}
             </a>
-            <a href={pathOf({ name: 'pricing' })} className="l-btn l-btn-ghost">
+            <a href={hrefOf({ name: 'pricing' })} className="l-btn l-btn-ghost">
               {t.site.nav.pricing}
             </a>
           </div>

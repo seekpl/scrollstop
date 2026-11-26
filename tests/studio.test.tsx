@@ -77,7 +77,9 @@ describe('strona publiczna (M4)', () => {
   it('prywatność: dane operatora z company.ts i link do usuwania sesji', () => {
     renderAt('#/privacy');
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Prywatność i zasady etyczne');
-    expect(screen.getByText(/Operator: Sebastian Biel, Wąska 5, 32-765 Rzezawa, NIP 8681879901\./)).toBeInTheDocument();
+    expect(screen.getByText(/^Właściciel i operator serwisu \(administrator danych z kont twórców\): Sebastian Biel, Wąska 5, 32-765 Rzezawa, NIP 8681879901\./)).toBeInTheDocument();
+    expect(screen.getByText(/^Obowiązuje od 26 listopada 2026/)).toBeInTheDocument();
+    expect(screen.queryByText(/wersja robocza|przeglądu prawn/i)).toBeNull();
     expect(screen.getByRole('link', { name: 'Usuń swoją sesję' })).toHaveAttribute('href', '#/delete');
   });
 

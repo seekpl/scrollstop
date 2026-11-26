@@ -66,7 +66,7 @@ describe('grafika do udostępnienia (§7.1)', () => {
       const all = texts.map((t) => t.text);
       expect(all).toContain('ScrollStop');
       expect(all).toContain('Rolka o kawie');
-      expect(all).toContain('Zbadane w ScrollStop');
+      expect(all).toContain('Zbadane w ScrollStop · scroll-stop.com');
       expect(all).toContain(s.hookLabel);
       expect(all).toContain(`${Math.round((report.hook.at3 ?? 0) * 100)}%`);
       // Wszystkie teksty mieszczą się na płótnie.

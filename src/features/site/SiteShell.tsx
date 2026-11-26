@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { pathOf } from '../../app/router';
+import { hrefOf } from '../../app/router';
 import { COMPANY, salesEmail } from '../../config/company';
 import { useT } from '../../i18n';
 import { BrandMark } from '../../ui/BrandMark';
@@ -15,25 +15,42 @@ export interface NavItem {
  * Przełącznik języka w nagłówku od 640 px, na telefonie w menu. Poniżej 370 px przycisk główny
  * tylko w menu (lekcja §24.8). Kontener 1152 px, marginesy 16 px (telefon) / 24 px.
  */
-export function SiteShell({ children, nav: navProp, cta: ctaProp, variant = 'paper' }: { children: ReactNode; nav?: NavItem[]; cta?: NavItem | null; variant?: 'paper' | 'night' }) {
+export function SiteShell({
+  children,
+  nav: navProp,
+  cta: ctaProp,
+  variant = 'night',
+  seo,
+}: {
+  children: ReactNode;
+  nav?: NavItem[];
+  cta?: NavItem | null;
+  /** „night” — wygląd strony publicznej; „paper” — raport dla klienta z linku (jak w studiu). */
+  variant?: 'paper' | 'night';
+  /** Tytuł karty i opis strony (te same teksty trafiają do plików HTML dla wyszukiwarek). */
+  seo?: { title: string; description?: string };
+}) {
   const night = variant === 'night';
   const t = useT();
   const nav = navProp ?? [
-    { href: pathOf({ name: 'sample', sample: 'reel' }), label: t.site.nav.sample },
-    { href: pathOf({ name: 'pricing' }), label: t.site.nav.pricing },
-    { href: pathOf({ name: 'privacy' }), label: t.site.nav.privacy },
-    { href: pathOf({ name: 'projects' }), label: t.site.nav.studio },
+    { href: hrefOf({ name: 'sample', sample: 'reel' }), label: t.site.nav.sample },
+    { href: hrefOf({ name: 'pricing' }), label: t.site.nav.pricing },
+    { href: hrefOf({ name: 'privacy' }), label: t.site.nav.privacy },
+    { href: hrefOf({ name: 'projects' }), label: t.site.nav.studio },
   ];
-  const cta = ctaProp === undefined ? { href: pathOf({ name: 'new-project' }), label: t.site.nav.startFree } : ctaProp;
+  const cta = ctaProp === undefined ? { href: hrefOf({ name: 'new-project' }), label: t.site.nav.startFree } : ctaProp;
   const [open, setOpen] = useState(false);
   useEffect(() => {
     const close = () => setOpen(false);
     window.addEventListener('hashchange', close);
     return () => window.removeEventListener('hashchange', close);
   }, []);
+  const title = seo?.title ?? t.site.seo.other.title;
+  const description = seo?.description;
   useEffect(() => {
-    document.title = t.site.meta.title;
-  }, [t]);
+    document.title = title;
+    if (description) document.querySelector('meta[name="description"]')?.setAttribute('content', description);
+  }, [title, description]);
   return (
     // Wariant „night” — tylko strona główna (wygląd z nagrania referencyjnego); reszta serwisu bez zmian.
     <div className={`flex min-h-dvh-safe flex-col ${night ? 'landing bg-[var(--l-night)]' : 'bg-paper'}`}>
@@ -42,7 +59,7 @@ export function SiteShell({ children, nav: navProp, cta: ctaProp, variant = 'pap
       </a>
       <header className={`sticky top-0 z-40 border-b backdrop-blur ${night ? 'l-night border-white/10 !bg-[var(--l-night)]/80' : 'border-line bg-paper/95'}`}>
         <div className="mx-auto flex h-16 max-w-[1152px] items-center justify-between gap-3 px-4 sm:px-6">
-          <a href="#/" className="min-w-0 rounded-lg" aria-label={t.site.nav.home}>
+          <a href={hrefOf({ name: 'landing' })} className="min-w-0 rounded-lg" aria-label={t.site.nav.home}>
             <BrandMark tone={night ? 'night' : 'light'} />
           </a>
           {night ? (
@@ -104,7 +121,7 @@ export function SiteShell({ children, nav: navProp, cta: ctaProp, variant = 'pap
           </div>
         )}
       </header>
-      <main id="main" className="flex-1">
+      <main id="main" className={night ? 'flex flex-1 flex-col [&>section:last-child]:flex-1' : 'flex-1'}>
         {children}
       </main>
       <SiteFooter night={night} />
@@ -124,10 +141,10 @@ export function SiteFooter({ night = false }: { night?: boolean }) {
           <a href={`mailto:${email}`} className={`inline-flex min-h-9 items-center font-semibold underline underline-offset-4 ${night ? 'text-white decoration-white/40 hover:decoration-white' : 'text-ink decoration-field hover:decoration-ink'}`}>
             {t.site.footer.contact}: {email}
           </a>
-          <a href={pathOf({ name: 'privacy' })} className={`inline-flex min-h-9 items-center font-semibold underline underline-offset-4 ${night ? 'text-white decoration-white/40 hover:decoration-white' : 'text-ink decoration-field hover:decoration-ink'}`}>
+          <a href={hrefOf({ name: 'privacy' })} className={`inline-flex min-h-9 items-center font-semibold underline underline-offset-4 ${night ? 'text-white decoration-white/40 hover:decoration-white' : 'text-ink decoration-field hover:decoration-ink'}`}>
             {t.site.nav.privacy}
           </a>
-          <a href={pathOf({ name: 'terms' })} className={`inline-flex min-h-9 items-center font-semibold underline underline-offset-4 ${night ? 'text-white decoration-white/40 hover:decoration-white' : 'text-ink decoration-field hover:decoration-ink'}`}>
+          <a href={hrefOf({ name: 'terms' })} className={`inline-flex min-h-9 items-center font-semibold underline underline-offset-4 ${night ? 'text-white decoration-white/40 hover:decoration-white' : 'text-ink decoration-field hover:decoration-ink'}`}>
             {t.site.nav.terms}
           </a>
           <span>{t.site.footer.rights(new Date().getFullYear())}</span>

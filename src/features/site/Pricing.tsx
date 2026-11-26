@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { hashQuery, pathOf } from '../../app/router';
+import { hashQuery, hrefOf, pathOf } from '../../app/router';
 import { useCapabilities, useResearch } from '../../app/research';
 import { bookingUrl, salesEmail } from '../../config/company';
 import { errorCode } from '../../core/errors';
@@ -7,9 +7,10 @@ import { useI18n } from '../../i18n';
 import { formatMoney } from '../../i18n/format';
 import { currencyFor, type Currency } from '../../i18n/locales';
 import { PANEL, PLAN_IDS, PLANS, PRICING_ITEMS, PRICING_SOON, type PlanId } from '../../research/plans';
-import { Badge, Btn, btnClass, Icon, Segmented } from '../../ui/kit';
+import { Badge, Icon, Segmented } from '../../ui/kit';
 import { leaveTo } from '../shared/browser';
 import { PanelOrderDialog } from '../shared/PanelOrder';
+import { PageIntro } from './PageIntro';
 import { SiteShell } from './SiteShell';
 
 type Interval = 'monthly' | 'yearly';
@@ -35,7 +36,7 @@ function BuyButton({ plan, interval, label, mailHref, billing }: { plan: PaidPla
   const [error, setError] = useState<string | null>(null);
   if (!billing) {
     return (
-      <a href={mailHref} className={btnClass('primary', 'md')}>
+      <a href={mailHref} className="l-btn l-btn-mint l-btn-wrap">
         {label}
       </a>
     );
@@ -44,7 +45,7 @@ function BuyButton({ plan, interval, label, mailHref, billing }: { plan: PaidPla
     // Najpierw konto, potem powrót do cennika z wybranym planem.
     const next = `${pathOf({ name: 'pricing' })}?plan=${plan}`;
     return (
-      <a href={`${pathOf({ name: 'register' })}?next=${encodeURIComponent(next)}`} className={btnClass('primary', 'md')}>
+      <a href={`${hrefOf({ name: 'register' })}?next=${encodeURIComponent(next)}`} className="l-btn l-btn-mint l-btn-wrap">
         {p.buy(t.billing.planNames[plan])}
       </a>
     );
@@ -63,15 +64,15 @@ function BuyButton({ plan, interval, label, mailHref, billing }: { plan: PaidPla
   };
   return (
     <>
-      <Btn variant="primary" disabled={busy} onClick={() => void go()}>
+      <button type="button" className="l-btn l-btn-mint l-btn-wrap disabled:opacity-60" disabled={busy} onClick={() => void go()}>
         {busy ? p.redirecting : subscribed ? (account.plan === plan ? p.manage : p.changeInPortal) : p.buy(t.billing.planNames[plan])}
-      </Btn>
+      </button>
       {error && (
         <>
           <p role="alert" className="text-[13.5px] font-semibold text-poor">
             {error}
           </p>
-          <a href={mailHref} className={btnClass('secondary', 'md')}>
+          <a href={mailHref} className="l-btn l-btn-pine l-btn-wrap">
             {p.orderByMail}
           </a>
         </>
@@ -103,16 +104,16 @@ export function PricingPage() {
   const panelPrice = formatMoney(PANEL.from[panelCur], locale, panelCur);
 
   return (
-    <SiteShell>
-      <div className="mx-auto max-w-[1152px] px-4 py-10 sm:px-6 md:py-16">
-        <h1 className="text-[34px] font-semibold tracking-[-0.03em] text-ink md:text-[44px]">{p.title}</h1>
-        <p className="mt-3 max-w-[64ch] text-[16px] leading-relaxed text-muted">{p.lead}</p>
-        <div className="mt-6 flex flex-wrap items-center gap-3">
+    <SiteShell seo={t.site.seo.pricing}>
+      <PageIntro title={p.title} lead={p.lead} />
+      <section className="l-sage" aria-label={p.title}>
+      <div className="mx-auto max-w-[1152px] px-4 py-12 sm:px-6 md:py-16">
+        <div className="flex flex-wrap items-center gap-3">
           <Segmented<Interval> label={p.intervalLabel} value={interval} onChange={setInterval} options={[{ value: 'monthly', label: p.monthly }, { value: 'yearly', label: p.yearly }]} />
           {locale === 'en' && <Segmented<'USD' | 'EUR'> label={p.currencyLabel} value={eur ? 'EUR' : 'USD'} onChange={(v) => setEur(v === 'EUR')} options={[{ value: 'USD', label: 'USD' }, { value: 'EUR', label: 'EUR' }]} />}
         </div>
 
-        <ul className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <ul className="mt-8 grid gap-px overflow-hidden rounded-[14px] border border-[var(--l-sage-line)] bg-[var(--l-sage-line)] md:grid-cols-2 xl:grid-cols-4">
           {PLAN_IDS.map((id, i) => {
             const plan = PLANS[id];
             const name = b.planNames[id];
@@ -120,37 +121,37 @@ export function PricingPage() {
             const per = interval === 'yearly' ? p.perYear : p.perMonth;
             const current = account?.plan === id;
             return (
-              <li key={id} className={`flex min-w-0 flex-col rounded-2xl bg-surface p-5 ring-inset sm:p-6 ${highlight === id ? 'ring-2 ring-cobalt' : 'ring-1 ring-line'}`} aria-labelledby={`plan-${id}`}>
+              <li key={id} className={`flex min-w-0 flex-col bg-[var(--l-sage-2)] p-5 sm:p-7 ${highlight === id ? 'relative ring-2 ring-inset ring-[var(--l-mint-ink)]' : ''}`} aria-labelledby={`plan-${id}`}>
                 <div className="flex items-center justify-between gap-2">
-                  <h2 id={`plan-${id}`} className="text-[20px] font-semibold text-ink">
+                  <h2 id={`plan-${id}`} className="text-[22px] font-normal tracking-[-0.02em] text-[var(--l-pine)]">
                     {name}
                   </h2>
                   {current && <Badge tone="good">{p.current}</Badge>}
                 </div>
-                <p className="mt-1 text-[14px] leading-snug text-muted">{p.taglines[id]}</p>
+                <p className="mt-1 text-[14px] leading-snug text-[var(--l-moss)]">{p.taglines[id]}</p>
                 <p className="mt-4 flex flex-wrap items-baseline gap-x-1.5">
                   {id === 'free' ? (
-                    <span className="text-[28px] font-semibold tracking-[-0.02em] text-ink">{p.free}</span>
+                    <span className="text-[32px] font-normal tracking-[-0.03em] text-[var(--l-pine)]">{p.free}</span>
                   ) : (
                     <>
-                      {plan.fromPrice && <span className="text-[15px] text-muted">{p.from}</span>}
-                      <span className="tabular text-[28px] font-semibold tracking-[-0.02em] text-ink">{price}</span>
-                      <span className="text-[14px] text-muted">{per}</span>
+                      {plan.fromPrice && <span className="text-[15px] text-[var(--l-moss)]">{p.from}</span>}
+                      <span className="tabular text-[32px] font-normal tracking-[-0.03em] text-[var(--l-pine)]">{price}</span>
+                      <span className="text-[14px] text-[var(--l-moss)]">{per}</span>
                     </>
                   )}
                 </p>
-                <ul className="mt-4 space-y-1 text-[14px] text-ink">
+                <ul className="mt-4 space-y-1 text-[14px] text-[var(--l-pine)]">
                   <li>{p.limits.projects(plan.limits.activeProjects)}</li>
                   {plan.limits.projectSessions !== null && <li>{p.limits.projectViewers(plan.limits.projectSessions)}</li>}
                   {plan.limits.monthSessions !== null && <li>{p.limits.monthViewers(plan.limits.monthSessions, plan.fromPrice)}</li>}
                   {plan.limits.seats > 1 && <li>{p.limits.seats(plan.limits.seats)}</li>}
                 </ul>
-                <div className="mt-4 border-t border-line pt-4">
-                  {i > 0 && <p className="mb-2 text-[13px] text-muted">{p.everythingIn(b.planNames[PLAN_IDS[i - 1]])}</p>}
+                <div className="mt-4 border-t border-[var(--l-sage-line)] pt-4">
+                  {i > 0 && <p className="mb-2 text-[13px] text-[var(--l-moss)]">{p.everythingIn(b.planNames[PLAN_IDS[i - 1]])}</p>}
                   <ul className="space-y-2">
                     {PRICING_ITEMS[id].map((item) => (
-                      <li key={item} className="flex gap-2 text-[14px] leading-snug text-ink">
-                        <span className="mt-0.5 shrink-0 text-good">
+                      <li key={item} className="flex gap-2 text-[14px] leading-snug text-[var(--l-pine)]">
+                        <span className="mt-0.5 shrink-0 text-[var(--l-mint-deep)]">
                           <Icon name="check" size={16} />
                         </span>
                         <span className="min-w-0">
@@ -162,16 +163,16 @@ export function PricingPage() {
                 </div>
                 <div className="mt-auto flex flex-col gap-2 pt-6">
                   {id === 'free' ? (
-                    <a href={pathOf({ name: 'new-project' })} className={btnClass('secondary', 'md')}>
+                    <a href={hrefOf({ name: 'new-project' })} className="l-btn l-btn-pine l-btn-wrap">
                       {p.startFree}
                     </a>
                   ) : id === 'agency' ? (
                     <>
-                      <a href={mailto(p.mailSubject(name, interval === 'yearly' ? p.yearly : p.monthly), p.mailBody(name, `${p.from} ${price} ${per}`))} className={btnClass('primary', 'md')}>
+                      <a href={mailto(p.mailSubject(name, interval === 'yearly' ? p.yearly : p.monthly), p.mailBody(name, `${p.from} ${price} ${per}`))} className="l-btn l-btn-mint l-btn-wrap">
                         {p.talk(name)}
                       </a>
                       {booking && (
-                        <a href={booking} className={btnClass('quiet', 'md')} target="_blank" rel="noopener noreferrer">
+                        <a href={booking} className="l-btn l-btn-pine l-btn-wrap" target="_blank" rel="noopener noreferrer">
                           {p.booking}
                         </a>
                       )}
@@ -184,47 +185,53 @@ export function PricingPage() {
             );
           })}
         </ul>
-        {caps && <p className="mt-4 text-[13.5px] text-muted">{billing ? p.cardNote : p.noServer}</p>}
+        {caps && <p className="mt-4 text-[13.5px] text-[var(--l-moss)]">{billing ? p.cardNote : p.noServer}</p>}
+      </div>
+      </section>
 
-        <section className="mt-14 grid gap-6 rounded-2xl bg-surface p-5 ring-1 ring-line sm:p-8 md:grid-cols-[minmax(0,1fr)_auto] md:items-center" aria-labelledby="panel">
+      <section className="l-night relative overflow-hidden" aria-labelledby="panel">
+        <div aria-hidden className="l-glow pointer-events-none absolute inset-0 opacity-70" />
+        <div className="relative mx-auto grid max-w-[1152px] gap-10 px-4 py-16 sm:px-6 md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:py-20">
           <div className="min-w-0">
-            <h2 id="panel" className="text-[24px] font-semibold tracking-[-0.02em] text-ink">
+            <h2 id="panel" className="text-[28px] font-normal leading-tight tracking-[-0.03em] md:text-[36px]">
               {b.panel.title}
             </h2>
-            <p className="mt-2 max-w-[64ch] text-[15px] leading-relaxed text-muted">{b.panel.lead}</p>
-            <ul className="mt-4 space-y-1.5 text-[14.5px] text-ink">
+            <p className="mt-4 max-w-[62ch] text-[16px] leading-relaxed text-white/75">{b.panel.lead}</p>
+            <ul className="mt-6 grid gap-px overflow-hidden rounded-[12px] border border-white/12 bg-white/12 sm:grid-cols-3">
               {b.panel.points.map((x) => (
-                <li key={x} className="flex gap-2">
-                  <span className="mt-0.5 shrink-0 text-good">
+                <li key={x} className="flex gap-2.5 bg-[color-mix(in_srgb,var(--l-night)_88%,white)] p-4 text-[14.5px] leading-snug text-white/90">
+                  <span className="mt-0.5 shrink-0 text-[var(--l-mint)]">
                     <Icon name="check" size={16} />
                   </span>
                   {x}
                 </li>
               ))}
             </ul>
-            <p className="mt-4 text-[15px] font-semibold text-ink">{b.panel.priceFrom(panelPrice)}</p>
-            <p className="mt-1 text-[13.5px] text-muted">{b.panel.quoteNote}</p>
+            <p className="mt-6 text-[17px] text-white">{b.panel.priceFrom(panelPrice)}</p>
+            <p className="mt-1 text-[13.5px] text-white/65">{b.panel.quoteNote}</p>
           </div>
-          <Btn variant="primary" size="lg" onClick={() => setPanelOpen(true)}>
+          <button type="button" className="l-btn l-btn-mint" onClick={() => setPanelOpen(true)}>
             {b.panel.order}
-          </Btn>
-        </section>
-        <PanelOrderDialog open={panelOpen} onClose={() => setPanelOpen(false)} />
+          </button>
+        </div>
+      </section>
+      <PanelOrderDialog open={panelOpen} onClose={() => setPanelOpen(false)} />
 
-        <section className="mt-14" aria-labelledby="faq">
-          <h2 id="faq" className="text-[24px] font-semibold tracking-[-0.02em] text-ink">
+      <section className="l-sage" aria-labelledby="faq">
+        <div className="mx-auto max-w-[1152px] px-4 py-16 sm:px-6 md:py-20">
+          <h2 id="faq" className="text-[28px] font-normal tracking-[-0.03em] text-[var(--l-pine)] md:text-[34px]">
             {t.site.pricingPage.faqTitle}
           </h2>
-          <dl className="mt-6 grid gap-6 md:grid-cols-3">
+          <dl className="mt-8 grid gap-px overflow-hidden rounded-[14px] border border-[var(--l-sage-line)] bg-[var(--l-sage-line)] md:grid-cols-3">
             {t.site.pricingPage.faq.map((f) => (
-              <div key={f.q} className="min-w-0">
-                <dt className="text-[16px] font-semibold text-ink">{f.q}</dt>
-                <dd className="mt-1.5 text-[15px] leading-relaxed text-muted">{f.a}</dd>
+              <div key={f.q} className="min-w-0 bg-[var(--l-sage-2)] p-6">
+                <dt className="text-[16px] font-medium text-[var(--l-pine)]">{f.q}</dt>
+                <dd className="mt-2 text-[15px] leading-relaxed text-[var(--l-moss)]">{f.a}</dd>
               </div>
             ))}
           </dl>
-        </section>
-      </div>
+        </div>
+      </section>
     </SiteShell>
   );
 }

@@ -1,5 +1,5 @@
 import { useRef, useState, type KeyboardEvent } from 'react';
-import { pathOf, SAMPLE_IDS, type SampleId } from '../../../app/router';
+import { hrefOf, SAMPLE_IDS, type SampleId } from '../../../app/router';
 import { formatTime } from '../../../core/math/util';
 import { useI18n } from '../../../i18n';
 import { formatPct } from '../../../i18n/format';
@@ -65,7 +65,7 @@ function SamplePanel({ id }: { id: SampleId }) {
             </div>
           ))}
         </dl>
-        <a href={pathOf({ name: 'sample', sample: id })} className="mt-auto inline-flex min-h-10 w-fit items-center font-semibold text-[var(--l-mint-deep)] underline decoration-[var(--l-mint-deep)]/40 underline-offset-4 hover:decoration-[var(--l-mint-deep)]">
+        <a href={hrefOf({ name: 'sample', sample: id })} className="mt-auto inline-flex min-h-10 w-fit items-center font-semibold text-[var(--l-mint-deep)] underline decoration-[var(--l-mint-deep)]/40 underline-offset-4 hover:decoration-[var(--l-mint-deep)]">
           {l.sampleOpen}
         </a>
       </div>
