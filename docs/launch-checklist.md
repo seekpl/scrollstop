@@ -14,7 +14,7 @@ Stan na koniec M9. Pozycje odhaczone są zrobione w kodzie i sprawdzane testami.
 - [x] **Kopie zapasowe:** `node dist-server/main.js backup <plik.sqlite>` (spójna kopia w trakcie działania) — test serwera.
 - [x] **Stan serwera:** `GET /api/health` (`HEALTHCHECK` w obrazie Docker).
 - [x] **Teksty prawne:** regulamin (`/terms/`), prywatność z danymi twórców, podmiotami przetwarzającymi i prawami z RODO; właściciel serwisu (Sebastian Biel, NIP 8681879901) w stopce, regulaminie i prywatności; linki w stopce i przy rejestracji.
-- [x] **Wyszukiwarki:** strony publiczne pod własnymi adresami (`/pricing/`, `/privacy/`, `/terms/`, `/sample/…`) z tytułem, opisem, adresem kanonicznym i Open Graph; `sitemap.xml` i `robots.txt` generowane przy budowaniu dla https://scroll-stop.com/ (inny adres: zmienna `SITE_URL`).
+- [x] **Wyszukiwarki:** strony publiczne pod własnymi adresami (`/pricing/`, `/privacy/`, `/terms/`, `/sample/…`, podstrony formatów `/formats/reel|video|feed|thumbnail|carousel|versions/` z FAQ w danych strukturalnych) z tytułem, opisem, adresem kanonicznym i Open Graph; `sitemap.xml` i `robots.txt` generowane przy budowaniu dla https://scroll-stop.com/ (inny adres: zmienna `SITE_URL`).
 
 ## Do zrobienia przed startem (właściciel)
 

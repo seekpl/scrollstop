@@ -1,9 +1,17 @@
+import { isFormatId, type FormatId } from './formats';
+
 /**
  * Strony publiczne z własnym adresem (indeksowane): jedno źródło dla routera, plików HTML
  * generowanych przy budowaniu (tytuł, opis, adres kanoniczny) oraz sitemap.xml.
  * Kolejność: od najdłuższej ścieżki; pusta ścieżka to strona główna.
  */
 export const PUBLIC_PAGES = [
+  { path: 'formats/reel/', key: 'format-reel' },
+  { path: 'formats/video/', key: 'format-video' },
+  { path: 'formats/feed/', key: 'format-feed' },
+  { path: 'formats/thumbnail/', key: 'format-thumbnail' },
+  { path: 'formats/carousel/', key: 'format-carousel' },
+  { path: 'formats/versions/', key: 'format-versions' },
   { path: 'sample/reel/', key: 'sample-reel' },
   { path: 'sample/video/', key: 'sample-video' },
   { path: 'sample/feed/', key: 'sample-feed' },
@@ -20,8 +28,16 @@ interface SeoText {
   description: string;
 }
 
+/** Podstrona formatu badania z klucza strony (`format-reel` → `reel`). */
+export function formatOfPage(key: PublicPageKey): FormatId | null {
+  const id = key.startsWith('format-') ? key.slice('format-'.length) : null;
+  return isFormatId(id) ? id : null;
+}
+
 /** Tytuł i opis strony ze słownika (`site.seo`). */
-export function seoText(seo: { landing: SeoText; pricing: SeoText; privacy: SeoText; terms: SeoText; sample: { reel: SeoText; video: SeoText; feed: SeoText } }, key: PublicPageKey): SeoText {
+export function seoText(seo: { landing: SeoText; pricing: SeoText; privacy: SeoText; terms: SeoText; sample: { reel: SeoText; video: SeoText; feed: SeoText }; formats: Record<FormatId, SeoText> }, key: PublicPageKey): SeoText {
+  const format = formatOfPage(key);
+  if (format) return seo.formats[format];
   switch (key) {
     case 'sample-reel':
       return seo.sample.reel;
@@ -29,8 +45,13 @@ export function seoText(seo: { landing: SeoText; pricing: SeoText; privacy: SeoT
       return seo.sample.video;
     case 'sample-feed':
       return seo.sample.feed;
-    default:
+    case 'landing':
+    case 'pricing':
+    case 'privacy':
+    case 'terms':
       return seo[key];
+    default:
+      return seo.landing;
   }
 }
 

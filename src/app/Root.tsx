@@ -21,6 +21,7 @@ const DeleteSessionPage = lazy(() => import('../features/viewer/DeleteSession').
 const LabRoute = lazy(() => import('../features/lab/LabRoute').then((m) => ({ default: m.LabRoute })));
 const SharedReportPage = lazy(() => import('../features/report/SharedReport').then((m) => ({ default: m.SharedReportPage })));
 const SamplePage = lazy(() => import('../features/site/Sample').then((m) => ({ default: m.SamplePage })));
+const FormatPage = lazy(() => import('../features/site/FormatPage').then((m) => ({ default: m.FormatPage })));
 const InvitePage = lazy(() => import('../features/site/Invite').then((m) => ({ default: m.InvitePage })));
 const ProjectsPage = lazy(() => import('../features/studio/Projects').then((m) => ({ default: m.ProjectsPage })));
 const NewProjectPage = lazy(() => import('../features/studio/NewProject').then((m) => ({ default: m.NewProjectPage })));
@@ -65,6 +66,8 @@ function RouteView({ route }: { route: Route }) {
       return <TermsPage />;
     case 'sample':
       return <SamplePage sample={route.sample} />;
+    case 'format':
+      return <FormatPage key={route.format} format={route.format} />;
     case 'projects':
       return (
         <RequireAccount>

@@ -71,4 +71,16 @@ describe('czyste adresy stron publicznych (wyszukiwarki, sitemap.xml)', () => {
     expect(hrefOf({ name: 'landing' })).toBe('../../');
     expect(hrefOf({ name: 'register' })).toBe('../../#/register');
   });
+
+  it('podstrony formatów: /formats/<id>/ i #/formats/<id>, nieznany format to 404', () => {
+    expect(parseRoute('#/formats/reel')).toEqual({ name: 'format', format: 'reel' });
+    expect(parseRoute('#/formats/versions')).toEqual({ name: 'format', format: 'versions' });
+    expect(parseRoute('#/formats/podcast')).toEqual({ name: 'not-found' });
+    expect(pathOf({ name: 'format', format: 'thumbnail' })).toBe('#/formats/thumbnail');
+    expect(pathRoute('/formats/carousel/')).toEqual({ route: { name: 'format', format: 'carousel' }, path: 'formats/carousel/', depth: 2 });
+    window.history.replaceState(null, '', '/formats/feed/');
+    expect(currentRoute()).toEqual({ name: 'format', format: 'feed' });
+    expect(hrefOf({ name: 'format', format: 'video' })).toBe('../../formats/video/');
+    expect(hrefOf({ name: 'pricing' })).toBe('../../pricing/');
+  });
 });

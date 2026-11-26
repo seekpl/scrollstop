@@ -1,5 +1,6 @@
 import type { Messages } from '..';
 import { BRAND } from '../../config/brand';
+import { MAX_VARIANTS } from '../../research/plans';
 
 export const site: Messages['site'] = {
   seo: {
@@ -17,6 +18,14 @@ export const site: Messages['site'] = {
       reel: { title: `Sample report: A/B hook test — ${BRAND.name}`, description: 'The attention curve of two reel versions, drops, scenes to fix and an A/B comparison computed from a simulated viewer panel.' },
       video: { title: `Sample report: YouTube video — ${BRAND.name}`, description: 'The attention curve of a 16:9 video, scenes, attention drops and editing findings computed from a simulated viewer panel.' },
       feed: { title: `Sample report: reel in a feed — ${BRAND.name}`, description: 'Scroll stop, time on the clip compared with other content and the attention curve of a reel in a feed, computed from a simulated viewer panel.' },
+    },
+    formats: {
+      reel: { title: `Test a reel before posting: TikTok, Reels, Shorts — ${BRAND.name}`, description: 'Test your 9:16 reel on real viewers before posting: a second-by-second attention curve, hook at 1 and 3 s, scenes to fix and heat maps.' },
+      video: { title: `Test a YouTube video before publishing — ${BRAND.name}`, description: 'See when viewers stop watching your 16:9 video: attention curve, drop-off moments, scene heat maps and caption readability.' },
+      feed: { title: `Feed test: will your clip stop the scroll — ${BRAND.name}`, description: 'Your clip among other posts in a scrolling feed: scroll-stop rate, time on clip versus the rest of the feed and when viewers swipe away.' },
+      thumbnail: { title: `YouTube thumbnail test before publishing — ${BRAND.name}`, description: 'Does your thumbnail catch the eye in a video grid? Glances, time to first glance, share of looking and viewers’ choices.' },
+      carousel: { title: `Instagram and LinkedIn carousel test — ${BRAND.name}`, description: 'Which slide viewers reach, how long they stay on each and where they stop swiping. Test your carousel before you post it.' },
+      versions: { title: `Video and hook A/B test before publishing — ${BRAND.name}`, description: `Compare up to ${MAX_VARIANTS} versions of a reel or video on the same measures: attention curves, hook, mean attention difference and a significance test.` },
     },
     other: { title: `${BRAND.name}` },
   },

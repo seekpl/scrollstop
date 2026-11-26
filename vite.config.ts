@@ -7,8 +7,12 @@ import tailwindcss from '@tailwindcss/vite';
 import { manifestJson } from './pwa/manifest.ts';
 import { BRAND } from './src/config/brand.ts';
 import { COMPANY } from './src/config/company.ts';
-import { PUBLIC_PAGES, seoText, siteUrl } from './src/config/publicPages.ts';
+import { formatOfPage, PUBLIC_PAGES, seoText, siteUrl } from './src/config/publicPages.ts';
+import type { FormatId } from './src/config/formats.ts';
+import { billing as plBilling } from './src/i18n/pl/billing.ts';
+import { formats as plFormats } from './src/i18n/pl/formats.ts';
 import { site as plSite } from './src/i18n/pl/site.ts';
+import { formatFacts } from './src/research/formatFacts.ts';
 
 /**
  * PWA: generuje `sw.js` z listą plików powłoki aplikacji (JS, CSS, czcionki) i wersją
@@ -68,6 +72,28 @@ function organizationJsonLd(url: string): string {
   return `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>`;
 }
 
+const jsonLd = (data: object): string => `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>`;
+
+/** Podstrona formatu: najczęstsze pytania (FAQPage) i ścieżka nawigacji (BreadcrumbList) z treści pl. */
+function formatJsonLd(site: string, path: string, format: FormatId): string {
+  const c = plFormats.pages[format](formatFacts((id) => plBilling.planNames[id]));
+  return [
+    jsonLd({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: c.faq.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })),
+    }),
+    jsonLd({
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: BRAND.name, item: site },
+        { '@type': 'ListItem', position: 2, name: c.title, item: site + path },
+      ],
+    }),
+  ].join('\n    ');
+}
+
 /**
  * Strony publiczne dla wyszukiwarek (§20, M9+): każda strona z `PUBLIC_PAGES` dostaje własny plik
  * `<ścieżka>/index.html` z tytułem, opisem, adresem kanonicznym i Open Graph (teksty ze słownika pl).
@@ -105,6 +131,7 @@ function seoPages(): Plugin {
           site ? `<meta property="og:image" content="${site}icons/icon-512.png" />` : '',
           `<meta name="twitter:card" content="summary" />`,
           page.key === 'landing' && site ? organizationJsonLd(site) : '',
+          formatOfPage(page.key) && site ? formatJsonLd(site, page.path, formatOfPage(page.key) as FormatId) : '',
         ]
           .filter(Boolean)
           .join('\n    ');

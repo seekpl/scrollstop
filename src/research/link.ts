@@ -4,6 +4,7 @@
 import type { CalibrationSummary } from '../core/contracts/types';
 import { CodedError } from '../core/errors';
 import { isLocale } from '../i18n/locales';
+import { DEFAULT_GRID, GRID_EXPOSURE } from './grid';
 import { CONSENT_VERSION, LIMITS, RETENTION_OPTIONS, type CalibrationInfo, type DeviceInfo, type DeviceType, type StudyConfig } from './model';
 import { cleanText, isId, isNum, isObj, pickAgeBands, pickAudio, pickContext, pickEnum, pickKind, pickPlatform, pickQuestions, sanitizeFillers, sanitizeMedia, InvalidInput } from './sanitize';
 
@@ -42,7 +43,7 @@ export function sanitizeStudyConfig(raw: unknown, transport: StudyConfig['transp
   if (!media && !slides?.length) throw new CodedError('link_incomplete');
   const feed = isObj(raw.feed) ? { items: isNum(raw.feed.items, 2, 20) ? Math.round(raw.feed.items) : 6, stopSeconds: isNum(raw.feed.stopSeconds, 1, 3) ? raw.feed.stopSeconds : 2, capSeconds: isNum(raw.feed.capSeconds, 30, 900) ? raw.feed.capSeconds : 180 } : undefined;
   const grid = isObj(raw.grid)
-    ? { layout: pickEnum(raw.grid.layout, ['yt_home', 'yt_search_mobile', 'profile_grid'] as const, 'yt_home'), exposureSeconds: isNum(raw.grid.exposureSeconds, 3, 10) ? raw.grid.exposureSeconds : 6, askChoice: raw.grid.askChoice !== false }
+    ? { layout: pickEnum(raw.grid.layout, ['yt_home', 'yt_search_mobile', 'profile_grid'] as const, 'yt_home'), exposureSeconds: isNum(raw.grid.exposureSeconds, GRID_EXPOSURE.min, GRID_EXPOSURE.max) ? raw.grid.exposureSeconds : DEFAULT_GRID.exposureSeconds, askChoice: raw.grid.askChoice !== false }
     : undefined;
   const slidesCfg = isObj(raw.slides) ? { mode: raw.slides.mode === 'self' ? ('self' as const) : ('auto' as const), secondsPerSlide: isNum(raw.slides.secondsPerSlide, 1, 60) ? raw.slides.secondsPerSlide : 5 } : undefined;
   const panel =

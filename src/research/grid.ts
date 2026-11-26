@@ -6,6 +6,8 @@
 import { GazeCode, type GridSettings, type ItemLog, type ViewerSession } from './model';
 import { reportSessions } from './sessions';
 
+/** Czas pokazania siatki miniatur (s): zakres ustawienia w kreatorze. */
+export const GRID_EXPOSURE = { min: 3, max: 10 } as const;
 export const DEFAULT_GRID: GridSettings = { layout: 'yt_home', exposureSeconds: 6, askChoice: true };
 export const GRID_LAYOUTS: GridSettings['layout'][] = ['yt_home', 'yt_search_mobile', 'profile_grid'];
 /** Liczba komórek układu (badana + wypełniacze). */

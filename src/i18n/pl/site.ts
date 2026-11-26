@@ -1,5 +1,6 @@
 import { BRAND } from '../../config/brand';
 import { plural } from '../../core/math/util';
+import { MAX_VARIANTS } from '../../research/plans';
 
 /** Strona publiczna: nagłówek, stopka, strona główna, cennik, prywatność, przykłady, 404. */
 export const site = {
@@ -19,6 +20,15 @@ export const site = {
       reel: { title: `Przykładowy raport: test hooka A/B — ${BRAND.name}`, description: 'Krzywa uwagi dwóch wersji rolki, spadki, sceny do poprawy i porównanie A/B policzone z symulowanego panelu widzów.' },
       video: { title: `Przykładowy raport: film na YouTube — ${BRAND.name}`, description: 'Krzywa uwagi filmu 16:9, sceny, momenty spadku uwagi i wnioski w języku montażu, policzone z symulowanego panelu widzów.' },
       feed: { title: `Przykładowy raport: rolka w feedzie — ${BRAND.name}`, description: 'Zatrzymanie scrolla, czas na klipie wobec innych materiałów i krzywa uwagi rolki w feedzie, policzone z symulowanego panelu widzów.' },
+    },
+    // Podstrony formatów: fraza główna na początku tytułu, opis do 160 znaków.
+    formats: {
+      reel: { title: `Test rolki przed publikacją: TikTok, Reels, Shorts — ${BRAND.name}`, description: 'Sprawdź rolkę 9:16 na prawdziwych widzach przed publikacją: krzywa uwagi sekunda po sekundzie, hook po 1 i 3 s, sceny do poprawy i heat mapy.' },
+      video: { title: `Test filmu YouTube przed publikacją — ${BRAND.name}`, description: 'Zobacz, w którym momencie filmu 16:9 widzowie przestają patrzeć: krzywa uwagi, momenty spadku, heat mapy scen i czytelność napisów.' },
+      feed: { title: `Test w feedzie: czy klip zatrzyma scroll — ${BRAND.name}`, description: 'Twój klip między innymi postami w przewijanym feedzie: zatrzymanie scrolla, czas na klipie wobec reszty feedu i moment przewinięcia.' },
+      thumbnail: { title: `Test miniatury YouTube przed publikacją — ${BRAND.name}`, description: 'Czy miniatura przyciąga wzrok w siatce filmów? Spojrzenia, czas do pierwszego spojrzenia, udział w patrzeniu i wybór widzów.' },
+      carousel: { title: `Test karuzeli na Instagram i LinkedIn — ${BRAND.name}`, description: 'Do którego slajdu dochodzą widzowie, ile czasu zostają na każdym i gdzie przestają przesuwać. Test karuzeli przed publikacją.' },
+      versions: { title: `Test A/B wideo i hooka przed publikacją — ${BRAND.name}`, description: `Porównaj do ${MAX_VARIANTS} wersji rolki lub filmu na tych samych miarach: krzywe uwagi, hook, różnica średniej uwagi i test istotności.` },
     },
     other: { title: `${BRAND.name}` },
   },

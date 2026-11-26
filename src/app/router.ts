@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { PUBLIC_PAGES, type PublicPageKey } from '../config/publicPages';
+import { isFormatId, type FormatId } from '../config/formats';
+import { formatOfPage, PUBLIC_PAGES, type PublicPageKey } from '../config/publicPages';
 
 /**
  * Routing przez fragment adresu (`#/…`, §9, §10, §12.1): działa na GitHub Pages i zwykłym hostingu
@@ -22,6 +23,7 @@ export type Route =
   | { name: 'privacy' }
   | { name: 'terms' }
   | { name: 'sample'; sample: SampleId }
+  | { name: 'format'; format: FormatId }
   | { name: 'login' }
   | { name: 'register' }
   | { name: 'projects' }
@@ -49,6 +51,8 @@ export function pathOf(r: Route): string {
       return '#/terms';
     case 'sample':
       return `#/sample/${r.sample}`;
+    case 'format':
+      return `#/formats/${r.format}`;
     case 'login':
       return '#/login';
     case 'register':
@@ -102,6 +106,7 @@ export function parseRoute(hash: string): Route {
   if (a === 'privacy' && !b) return { name: 'privacy' };
   if (a === 'terms' && !b) return { name: 'terms' };
   if (a === 'sample') return (SAMPLE_IDS as string[]).includes(b ?? '') ? { name: 'sample', sample: b as SampleId } : b ? { name: 'not-found' } : { name: 'sample', sample: 'reel' };
+  if (a === 'formats') return isFormatId(b) && !c ? { name: 'format', format: b } : { name: 'not-found' };
   if (a === 'login' && !b) return { name: 'login' };
   if (a === 'register' && !b) return { name: 'register' };
   if (a === 'lab') return { name: 'lab' };
@@ -133,7 +138,7 @@ export function navigate(r: Route | string, opts: { replace?: boolean } = {}): v
   window.scrollTo({ top: 0 });
 }
 
-const PAGE_ROUTE: Record<PublicPageKey, Route> = {
+const PAGE_ROUTE: Record<Exclude<PublicPageKey, `format-${FormatId}`>, Route> = {
   'sample-reel': { name: 'sample', sample: 'reel' },
   'sample-video': { name: 'sample', sample: 'video' },
   'sample-feed': { name: 'sample', sample: 'feed' },
@@ -144,7 +149,10 @@ const PAGE_ROUTE: Record<PublicPageKey, Route> = {
 };
 
 /** Strony publiczne z własnym adresem i ich trasy (lista w `src/config/publicPages.ts`). */
-export const PUBLIC_ROUTES: ReadonlyArray<{ path: string; route: Route }> = PUBLIC_PAGES.map((p) => ({ path: p.path, route: PAGE_ROUTE[p.key] }));
+export const PUBLIC_ROUTES: ReadonlyArray<{ path: string; route: Route }> = PUBLIC_PAGES.map((p) => {
+  const format = formatOfPage(p.key);
+  return { path: p.path, route: format ? { name: 'format', format } : PAGE_ROUTE[p.key as keyof typeof PAGE_ROUTE] };
+});
 
 /** Strona publiczna z samej ścieżki adresu (np. `…/pricing/`) i jej głębokość w katalogach. */
 export function pathRoute(pathname: string): { route: Route; path: string; depth: number } | null {

@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react';
+import type { FormatId } from '../../../config/formats';
 /**
  * Ilustracje strony głównej (SVG, bez zewnętrznych plików): formaty badań na ciemnym tle,
  * ikony problemów na jasnym tle i znaczniki momentów na wykresie. Wszystkie dekoracyjne
@@ -7,7 +8,7 @@ import type { ReactElement } from 'react';
 const ACCENT = '#f2b705';
 const W = { stroke: '#ffffff', strokeOpacity: 0.85, strokeWidth: 1.6, fill: 'rgba(255,255,255,0.06)' } as const;
 
-export type FormatId = 'reel' | 'video' | 'feed' | 'thumbnail' | 'carousel' | 'versions';
+export type { FormatId };
 
 function Shadow() {
   return <ellipse cx="60" cy="74" rx="26" ry="3.2" fill={ACCENT} fillOpacity="0.16" />;

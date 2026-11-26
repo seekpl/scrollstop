@@ -3,6 +3,7 @@ import { billing } from './billing';
 import { legal } from './legal';
 import { common } from './common';
 import { errors } from './errors';
+import { formats } from './formats';
 import { lab } from './lab';
 import { report } from './report';
 import { site } from './site';
@@ -10,4 +11,4 @@ import { studio } from './studio';
 import { ui } from './ui';
 import { viewer } from './viewer';
 
-export const en: Messages = { common, errors, ui, site, lab, viewer, report, billing, studio, legal };
+export const en: Messages = { common, errors, ui, site, formats, lab, viewer, report, billing, studio, legal };

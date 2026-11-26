@@ -79,6 +79,9 @@ export function hasFeature(plan: PlanId, f: Feature): boolean {
   return PLANS[plan].features[f];
 }
 
+/** Najwięcej wersji materiału w jednym badaniu (najwyższy plan). */
+export const MAX_VARIANTS = Math.max(...Object.values(PLANS).map((p) => p.maxVariants));
+
 /** Najtańszy plan z daną funkcją. */
 export function planFor(f: Feature | 'variants4' | 'variants2'): PlanId {
   if (f === 'variants2') return PLAN_IDS.find((p) => PLANS[p].maxVariants >= 2) ?? 'creator';

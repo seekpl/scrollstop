@@ -110,6 +110,33 @@ test.describe('strona publiczna', () => {
     await expectNoHorizontalScroll(page);
   });
 
+  test('formaty badań: kafelki na stronie głównej prowadzą do podstron z treścią SEO i rozwijanym FAQ', async ({ page, request }) => {
+    const sitemap = await (await request.get('/sitemap.xml')).text();
+    for (const f of ['reel', 'video', 'feed', 'thumbnail', 'carousel', 'versions']) expect(sitemap).toContain(`<loc>https://scroll-stop.com/formats/${f}/</loc>`);
+    const html = await (await request.get('/formats/versions/')).text();
+    expect(html).toContain('"@type":"FAQPage"');
+    expect(html).toContain('"@type":"BreadcrumbList"');
+
+    await page.goto('/');
+    await page.getByRole('link', { name: 'Miniatura — dowiedz się więcej' }).click();
+    await expect(page).toHaveURL(/\/formats\/thumbnail\/$/);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Test miniatury YouTube: czy przyciąga wzrok');
+    await expect(page).toHaveTitle('Test miniatury YouTube przed publikacją — ScrollStop');
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://scroll-stop.com/formats/thumbnail/');
+    await expect(page.getByText('Od planu Pro.')).toBeVisible();
+    // FAQ: odpowiedź widoczna dopiero po rozwinięciu pytania.
+    const answer = page.getByText('Nie. To deklaracja po obejrzeniu siatki.', { exact: false });
+    await expect(answer).toBeHidden();
+    await page.getByText('Czy wybór widza to to samo co kliknięcie?').click();
+    await expect(answer).toBeVisible();
+    // Inne formaty bez bieżącego; przejście dalej.
+    await expect(page.getByRole('link', { name: 'Miniatura — dowiedz się więcej' })).toHaveCount(0);
+    await page.getByRole('link', { name: 'Wersje A/B/C/D — dowiedz się więcej' }).click();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Test A/B wideo: porównaj do 4 wersji');
+    await expect(page.getByText('Werdykt pojawia się od 15 widzów w każdej wersji.', { exact: false })).toBeVisible();
+    await expectNoHorizontalScroll(page);
+  });
+
   test('404 dla nieznanego adresu', async ({ page }) => {
     await page.goto('/#/nie-ma-takiej');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Nie ma takiej strony');

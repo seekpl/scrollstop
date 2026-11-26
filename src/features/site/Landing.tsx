@@ -1,14 +1,13 @@
 import { hrefOf } from '../../app/router';
 import { useT } from '../../i18n';
 import { Icon } from '../../ui/kit';
-import { FormatArt, ProblemIcon, type FormatId } from './landing/art';
+import { ProblemIcon } from './landing/art';
 import { AttentionStory } from './landing/AttentionStory';
+import { FormatTiles } from './landing/FormatTiles';
 import { RevealText } from './landing/RevealText';
 import { SampleTabs } from './landing/SampleTabs';
 import { StepCascade } from './landing/StepCascade';
 import { SiteShell } from './SiteShell';
-
-const FORMATS: FormatId[] = ['reel', 'video', 'feed', 'thumbnail', 'carousel', 'versions'];
 
 /**
  * Strona główna w wyglądzie z nagrania referencyjnego: granat z logo z kobaltową poświatą, ukośny
@@ -48,16 +47,7 @@ export function LandingPage() {
 
         <div className="relative mx-auto max-w-[1152px] px-4 pb-16 sm:px-6 md:pb-20">
           <h2 className="sr-only">{l.formatsLabel}</h2>
-          <ul className="grid grid-cols-2 gap-px overflow-hidden rounded-[12px] border border-white/12 bg-white/12 sm:grid-cols-3 lg:grid-cols-6">
-            {FORMATS.map((f) => (
-              <li key={f} className="flex min-h-[132px] min-w-0 flex-col justify-between gap-3 bg-[color-mix(in_srgb,var(--l-night)_88%,white)] p-4 transition-colors hover:bg-[color-mix(in_srgb,var(--l-night)_80%,white)]">
-                <span className="self-center">
-                  <FormatArt id={f} />
-                </span>
-                <span className="text-[14px] font-medium text-white/90">{l.formats[f]}</span>
-              </li>
-            ))}
-          </ul>
+          <FormatTiles />
         </div>
       </section>
 

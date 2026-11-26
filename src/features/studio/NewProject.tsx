@@ -6,7 +6,7 @@ import { errorCode } from '../../core/errors';
 import { LOCALE_NAMES, LOCALES, useI18n, type Locale } from '../../i18n';
 import { formatPct } from '../../i18n/format';
 import type { NewProject } from '../../api/types';
-import { GRID_LAYOUTS } from '../../research/grid';
+import { DEFAULT_GRID, GRID_EXPOSURE, GRID_LAYOUTS } from '../../research/grid';
 import { AGE_BANDS, VARIANT_IDS, type AgeBand, type AudioMode, type FillerItem, type GridSettings, type MediaSource, type QuestionId, type StudyKind, type TargetDevice, type Variant } from '../../research/model';
 import { planFor, type BlockReason } from '../../research/plans';
 import { RECOMMENDED_AB_SAMPLE, RELIABLE_SAMPLE } from '../../research/sessions';
@@ -320,7 +320,7 @@ export function NewProjectPage() {
                   )}
                 </Field>
                 <Field label={n.exposure} hint={n.exposureHint}>
-                  {(id, d) => <input id={id} aria-describedby={d} type="number" min={3} max={10} className={inputClass} value={exposure} onChange={(e) => setExposure(Math.max(3, Math.min(10, Number(e.target.value) || 6)))} />}
+                  {(id, d) => <input id={id} aria-describedby={d} type="number" min={GRID_EXPOSURE.min} max={GRID_EXPOSURE.max} className={inputClass} value={exposure} onChange={(e) => setExposure(Math.max(GRID_EXPOSURE.min, Math.min(GRID_EXPOSURE.max, Number(e.target.value) || DEFAULT_GRID.exposureSeconds)))} />}
                 </Field>
                 <label className="flex items-start gap-3 text-[14px] sm:col-span-2">
                   <input type="checkbox" className="mt-0.5 h-5 w-5 accent-cobalt" checked={askChoice} onChange={(e) => setAskChoice(e.target.checked)} />

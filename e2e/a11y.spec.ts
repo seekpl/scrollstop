@@ -28,8 +28,11 @@ test.describe('dostępność (WCAG 2.2 AA)', () => {
       ['/#/terms', 'regulamin'],
       ['/#/sample/reel', 'przykładowy raport A/B'],
       ['/#/sample/video', 'przykładowy raport filmu'],
+      ['/formats/reel/', 'podstrona formatu: rolka'],
+      ['/formats/versions/', 'podstrona formatu: wersje'],
       ['/#/nie-ma', '404'],
       ['/?lang=en#/pricing', 'cennik po angielsku'],
+      ['/?lang=en#/formats/feed', 'podstrona formatu po angielsku'],
     ] as const) {
       await page.goto(path);
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
