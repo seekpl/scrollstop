@@ -84,11 +84,12 @@ h1, h2, h3 { overflow-wrap: break-word; hyphens: auto; }
 .site-theme {
   --l-night: #1f2a44;
   --l-night-2: #18213a;
-  /* Akcent na granacie: linki, ikony, wykres (7,2:1). */
-  --l-accent: #a3b4ff;
-  --l-accent-soft: #dfe5ff;
-  /* Akcent na jasnym tle — kobalt marki (6,6:1, także mała treść). */
-  --l-accent-ink: #2747d6;
+  /* Akcent — złoty z logo (krzywa uwagi, `TOKENS.marker`). Na granacie: przyciski, linki, ikony (7,8:1). */
+  --l-accent: #f2b705;
+  --l-accent-soft: #ffe7a3;
+  /* Złoty na jasnym tle tylko dla dużego tekstu i linii (3,7:1); sam #f2b705 — wyłącznie dekoracja. */
+  --l-accent-ink: #a67800;
+  /* Mała treść akcentowa na jasnym tle — kobalt marki (6,6:1). */
   --l-accent-deep: #2747d6;
   --l-light: #f4f6f9;
   --l-light-2: #e9edf4;
@@ -132,8 +133,8 @@ h1, h2, h3 { overflow-wrap: break-word; hyphens: auto; }
 }
 /* Przycisk w wąskiej kolumnie (karty planów): długi napis łamie się zamiast wychodzić poza przycisk. */
 .site-theme .l-btn.l-btn-wrap { white-space: normal; text-align: center; line-height: 1.25; padding-block: 0.6rem; }
-.site-theme .l-btn-primary { background-image: linear-gradient(180deg, #4a69f0, #2747d6); color: #fff; box-shadow: 0 0 0 1px rgba(163, 180, 255, 0.4) inset, 0 10px 30px -12px rgba(39, 71, 214, 0.9); }
-.site-theme .l-btn-primary:hover { background-image: linear-gradient(180deg, #5b78f3, #3050dc); }
+.site-theme .l-btn-primary { background-image: linear-gradient(180deg, #ffcd3c, #f2b705); color: var(--l-night); box-shadow: 0 0 0 1px rgba(255, 231, 163, 0.55) inset, 0 10px 30px -12px rgba(242, 183, 5, 0.75); }
+.site-theme .l-btn-primary:hover { background-image: linear-gradient(180deg, #ffd85f, #f7c321); }
 .site-theme .l-btn-ghost { color: #fff; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.28) inset; }
 .site-theme .l-btn-ghost:hover { background-color: rgba(255, 255, 255, 0.07); }
 .site-theme .l-btn-plain { color: var(--l-ink); box-shadow: 0 0 0 1px var(--l-line) inset; background: #fff; }
@@ -164,7 +165,7 @@ h1, h2, h3 { overflow-wrap: break-word; hyphens: auto; }
 /* Karty schematu kroków (równoległoboki). */
 .site-theme .l-step { transform: skewX(-18deg); transition: border-color 420ms ease, background-color 420ms ease, box-shadow 420ms ease, color 420ms ease; }
 .site-theme .l-step > span { transform: skewX(18deg); }
-.site-theme .l-step[data-active='true'] { border-color: var(--l-accent); background-color: rgba(163, 180, 255, 0.12); box-shadow: 0 0 0 1px rgba(163, 180, 255, 0.4), 0 0 34px -6px rgba(76, 110, 245, 0.7); color: #fff; }
+.site-theme .l-step[data-active='true'] { border-color: var(--l-accent); background-color: rgba(242, 183, 5, 0.1); box-shadow: 0 0 0 1px rgba(242, 183, 5, 0.4), 0 0 34px -6px rgba(242, 183, 5, 0.55); color: #fff; }
 
 @media (prefers-reduced-motion: reduce) {
   .site-theme .l-sweep { animation: none; background-position: 0 0; }

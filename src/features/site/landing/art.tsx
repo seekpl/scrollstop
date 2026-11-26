@@ -4,7 +4,7 @@ import type { ReactElement } from 'react';
  * ikony problemów na jasnym tle i znaczniki momentów na wykresie. Wszystkie dekoracyjne
  * (`aria-hidden`) — znaczenie niesie podpis obok.
  */
-const ACCENT = '#a3b4ff';
+const ACCENT = '#f2b705';
 const W = { stroke: '#ffffff', strokeOpacity: 0.85, strokeWidth: 1.6, fill: 'rgba(255,255,255,0.06)' } as const;
 
 export type FormatId = 'reel' | 'video' | 'feed' | 'thumbnail' | 'carousel' | 'versions';
@@ -40,7 +40,7 @@ const FORMAT_ART: Record<FormatId, ReactElement> = {
       <Shadow />
       <rect x="64" y="5" width="28" height="54" rx="6" {...W} strokeOpacity={0.3} />
       <rect x="54" y="10" width="28" height="56" rx="6" {...W} strokeOpacity={0.5} />
-      <rect x="40" y="14" width="30" height="58" rx="6.5" fill="rgba(163,180,255,0.10)" stroke={ACCENT} strokeWidth="1.8" />
+      <rect x="40" y="14" width="30" height="58" rx="6.5" fill="rgba(242,183,5,0.10)" stroke={ACCENT} strokeWidth="1.8" />
       <path d="M50.5 34l8.5 5-8.5 5z" fill="#fff" fillOpacity="0.92" />
       <path d="M33 30v18M29.5 33.5L33 30l3.5 3.5" fill="none" stroke="#fff" strokeOpacity="0.6" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </>
@@ -52,7 +52,7 @@ const FORMAT_ART: Record<FormatId, ReactElement> = {
       {[0, 1, 2].map((c) =>
         [0, 1].map((r) => {
           const active = c === 1 && r === 0;
-          return <rect key={`${c}-${r}`} x={24 + c * 25.5} y={15 + r * 24} width="22" height="19" rx="2.5" fill={active ? 'rgba(163,180,255,0.22)' : 'rgba(255,255,255,0.10)'} stroke={active ? ACCENT : 'none'} strokeWidth="1.6" />;
+          return <rect key={`${c}-${r}`} x={24 + c * 25.5} y={15 + r * 24} width="22" height="19" rx="2.5" fill={active ? 'rgba(242,183,5,0.22)' : 'rgba(255,255,255,0.10)'} stroke={active ? ACCENT : 'none'} strokeWidth="1.6" />;
         }),
       )}
       <circle cx="60.5" cy="24.5" r="3.2" fill="none" stroke={ACCENT} strokeWidth="1.5" />
@@ -76,7 +76,7 @@ const FORMAT_ART: Record<FormatId, ReactElement> = {
     <>
       <Shadow />
       <rect x="18" y="12" width="38" height="50" rx="5" {...W} />
-      <rect x="64" y="12" width="38" height="50" rx="5" fill="rgba(163,180,255,0.10)" stroke={ACCENT} strokeWidth="1.7" />
+      <rect x="64" y="12" width="38" height="50" rx="5" fill="rgba(242,183,5,0.10)" stroke={ACCENT} strokeWidth="1.7" />
       <path d="M23 46c5 0 6-9 11-9s6 12 11 12 5-4 7-4" fill="none" stroke="#fff" strokeOpacity="0.8" strokeWidth="2" strokeLinecap="round" />
       <path d="M69 40c5 0 6-6 11-6s6 3 11 3 5-2 7-2" fill="none" stroke={ACCENT} strokeWidth="2" strokeLinecap="round" />
       <text x="24" y="25" fontSize="10" fontWeight="700" fill="#fff" fillOpacity="0.85" fontFamily="inherit">
@@ -98,7 +98,7 @@ export function FormatArt({ id }: { id: FormatId }) {
 }
 
 const INK = '#1f2a44';
-const ACCENT_INK = '#2747d6';
+const ACCENT_INK = '#a67800';
 
 /** Ikony problemów: statystyki bez odpowiedzi, opinia znajomych, wersje na żywym koncie. */
 export function ProblemIcon({ i }: { i: number }) {

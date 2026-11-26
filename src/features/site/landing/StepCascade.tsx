@@ -35,7 +35,7 @@ export function StepCascade({ steps, label }: { steps: string[]; label: string }
       <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full" aria-hidden focusable="false">
         {ARM.slice(0, -1).map((p, i) => {
           const n = ARM[i + 1];
-          return <line key={i} x1={p.left + CARD_W * 0.62} y1={p.top + CARD_H} x2={n.left + CARD_W * 0.5} y2={n.top} stroke={i < active ? '#a3b4ff' : '#ffffff'} strokeOpacity={i < active ? 0.7 : 0.18} strokeWidth="1" vectorEffect="non-scaling-stroke" />;
+          return <line key={i} x1={p.left + CARD_W * 0.62} y1={p.top + CARD_H} x2={n.left + CARD_W * 0.5} y2={n.top} stroke={i < active ? '#f2b705' : '#ffffff'} strokeOpacity={i < active ? 0.7 : 0.18} strokeWidth="1" vectorEffect="non-scaling-stroke" />;
         })}
         <path d={`M${ARM[4].left + CARD_W - 2} ${ARM[4].top}L${RIGHT[0].left + 3} ${RIGHT[0].top + CARD_H}`} stroke="#fff" strokeOpacity="0.14" strokeWidth="1" vectorEffect="non-scaling-stroke" fill="none" />
       </svg>

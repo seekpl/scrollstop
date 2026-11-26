@@ -121,7 +121,7 @@ export function PricingPage() {
             const per = interval === 'yearly' ? p.perYear : p.perMonth;
             const current = account?.plan === id;
             return (
-              <li key={id} className={`flex min-w-0 flex-col bg-[var(--l-light-2)] p-5 sm:p-7 ${highlight === id ? 'relative ring-2 ring-inset ring-[var(--l-accent-ink)]' : ''}`} aria-labelledby={`plan-${id}`}>
+              <li key={id} className={`flex min-w-0 flex-col bg-[var(--l-light-2)] p-5 sm:p-7 ${highlight === id ? 'relative ring-2 ring-inset ring-[var(--l-accent)]' : ''}`} aria-labelledby={`plan-${id}`}>
                 <div className="flex items-center justify-between gap-2">
                   <h2 id={`plan-${id}`} className="text-[22px] font-normal tracking-[-0.02em] text-[var(--l-ink)]">
                     {name}

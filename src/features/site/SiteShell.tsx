@@ -71,7 +71,7 @@ export function SiteShell({
           {night ? (
             <nav aria-label={t.site.nav.mainNav} className="hidden items-stretch overflow-hidden rounded-[10px] border border-white/15 bg-white/[0.03] lg:flex">
               {nav.map((n, i) => (
-                <a key={n.href} href={n.href} aria-current={isCurrent(n)} className={`inline-flex min-h-10 items-center px-4 text-[14px] font-medium hover:bg-white/[0.07] hover:text-white aria-[current=page]:bg-white/[0.1] aria-[current=page]:text-white ${i ? 'border-l border-white/15' : ''} ${isCurrent(n) ? '' : 'text-white/85'}`}>
+                <a key={n.href} href={n.href} aria-current={isCurrent(n)} className={`inline-flex min-h-10 items-center px-4 text-[14px] font-medium hover:bg-white/[0.07] hover:text-white aria-[current=page]:bg-white/[0.1] aria-[current=page]:text-white aria-[current=page]:shadow-[inset_0_-2px_0_var(--l-accent)] ${i ? 'border-l border-white/15' : ''} ${isCurrent(n) ? '' : 'text-white/85'}`}>
                   {n.label}
                 </a>
               ))}

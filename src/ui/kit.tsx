@@ -221,7 +221,7 @@ export function Stepper({ steps, current, label, tone = 'light' }: { steps: Arra
           const on = s.id === current;
           const inner = (
             <>
-              <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-[12px] font-bold ${on ? 'bg-cobalt text-white' : night ? 'bg-white/[0.12] text-white' : 'bg-ink/[0.07] text-ink'}`}>{i + 1}</span>
+              <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-[12px] font-bold ${on ? (night ? 'bg-marker text-ink' : 'bg-cobalt text-white') : night ? 'bg-white/[0.12] text-white' : 'bg-ink/[0.07] text-ink'}`}>{i + 1}</span>
               <span>{s.title}</span>
               {s.count !== undefined && <span className={`tabular ${on || !night ? 'text-muted' : 'text-white/65'}`}>{s.count}</span>}
             </>

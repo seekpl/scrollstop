@@ -97,7 +97,7 @@ export function AttentionStory() {
         <div className="overflow-hidden rounded-[14px] border border-[var(--l-line)] bg-[var(--l-light)]">
           <div className="grid md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
             <div className="flex min-w-0 flex-col gap-5 p-6 sm:p-8">
-              <span className="inline-flex w-fit items-center rounded-md bg-[#dfe5ff] px-2.5 py-1 text-[12.5px] font-semibold text-[#1d36a8]">{l.storyChip}</span>
+              <span className="inline-flex w-fit items-center rounded-md bg-[#fdf0c4] px-2.5 py-1 text-[12.5px] font-semibold text-[#6b4e00]">{l.storyChip}</span>
               <h2 id="story" className="text-[26px] font-normal leading-tight tracking-[-0.025em] sm:text-[32px]">
                 {l.chartTitle}
               </h2>
@@ -146,7 +146,7 @@ export function AttentionStory() {
                 const align = x < 18 ? 'left-0' : x > 82 ? 'right-0' : 'left-1/2 -translate-x-1/2';
                 return (
                   <div key={m.kind} aria-hidden className="pointer-events-none absolute" style={{ left: `${x}%`, top: `${y}%` }}>
-                    <span className={`absolute left-0 top-0 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[var(--l-light)] bg-[var(--l-accent-ink)] transition-[opacity,transform] duration-500 ${shown ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`} />
+                    <span className={`absolute left-0 top-0 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[var(--l-light)] bg-[var(--l-accent)] transition-[opacity,transform] duration-500 ${shown ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`} />
                     <span
                       className={`absolute ${align} flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-[var(--l-ink)] px-2.5 py-1.5 text-[12.5px] font-semibold text-white shadow-[0_8px_20px_-10px_rgba(31,42,68,0.6)] transition-[opacity,transform] duration-500 ${m.below ? 'top-4' : 'bottom-4'} ${shown ? 'translate-y-0 opacity-100' : `${m.below ? '-translate-y-1' : 'translate-y-1'} opacity-0`}`}
                     >

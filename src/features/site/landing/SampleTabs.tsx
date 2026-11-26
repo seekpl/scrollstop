@@ -54,7 +54,7 @@ function SamplePanel({ id }: { id: SampleId }) {
   return (
     <div className="grid overflow-hidden rounded-b-[12px] rounded-tr-[12px] bg-[var(--l-light-2)] text-[var(--l-ink)] md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <div className="flex min-w-0 flex-col gap-5 p-6 sm:p-8">
-        <span className="inline-flex w-fit items-center gap-1.5 rounded-md bg-[#dfe5ff] px-2.5 py-1 text-[12.5px] font-semibold text-[#1d36a8]">{l.sampleKinds[id]}</span>
+        <span className="inline-flex w-fit items-center gap-1.5 rounded-md bg-[#fdf0c4] px-2.5 py-1 text-[12.5px] font-semibold text-[#6b4e00]">{l.sampleKinds[id]}</span>
         <h3 className="text-[24px] font-normal leading-tight tracking-[-0.02em] sm:text-[28px]">{t.site.samplePage.tabs[id]}</h3>
         <p className="min-h-[3em] max-w-[52ch] text-[15.5px] leading-relaxed text-[var(--l-muted)]">{data?.lead ?? ''}</p>
         <dl className="grid grid-cols-3 gap-4 border-t border-[var(--l-line)] pt-5">
