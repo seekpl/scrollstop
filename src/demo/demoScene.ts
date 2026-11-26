@@ -1,10 +1,12 @@
 /**
- * Klipy demo rysowane proceduralnie na canvasie (§23) — bez licencji, deterministyczne (ta sama
- * klatka dla tego samego czasu). Napisy to „pseudotekst” (paski słów), więc klipy działają
- * w każdym języku interfejsu. Każdy klip ma strefy zainteresowania (do raportów przykładowych)
- * i funkcję celu wzroku (do symulacji widzów).
+ * Klipy demo na canvasie (§23): fotografie wygenerowane w Higgsfield (`photos.ts`) z nakładkami
+ * rysowanymi w kodzie (napis hooka, napisy, przycisk, logo), deterministyczne (ta sama klatka dla
+ * tego samego czasu). Dopóki fotografie się nie wczytają, scena rysuje się z kształtów. Napisy to
+ * „pseudotekst” (paski słów), więc klipy działają w każdym języku interfejsu. Każdy klip ma strefy
+ * zainteresowania (do raportów przykładowych) i funkcję celu wzroku (do symulacji widzów).
  */
 import type { AoiType } from '../research/model';
+import { drawPhoto, photo, preloadPhotos, type PhotoId } from './photos';
 
 export type DemoId =
   | 'reel'
@@ -64,6 +66,8 @@ export interface DemoSpec {
   aois: DemoAoi[];
   /** Hook: od tej sekundy wersje są identyczne (§4.2). */
   sharedFrom?: number;
+  /** Fotografie używane przez klip (do wczytania przed rysowaniem klatek raportu). */
+  photos?: PhotoId[];
   draw(ctx: CanvasRenderingContext2D, t: number, w: number, h: number): void;
   target(t: number): GazeTarget;
 }
@@ -203,6 +207,26 @@ function ctaButton(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
 
 // ——— rolka 9:16 (15 s) ———
 
+/** Ujęcia rolki (po 3 s): fotografia, powiększenie i położenie twarzy na płótnie (twarz w kadrze: 0,51 × 0,43). */
+const REEL_SHOTS: Array<{ photo: PhotoId; zoom: number; ay: number }> = [
+  { photo: 'reelTalk', zoom: 1.75, ay: 0.42 },
+  { photo: 'reelTalk', zoom: 1.2, ay: 0.42 },
+  { photo: 'reelProduct', zoom: 1, ay: 0.43 },
+  { photo: 'reelTalk', zoom: 1.9, ay: 0.44 },
+  { photo: 'reelPoint', zoom: 1.1, ay: 0.38 },
+];
+const REEL_PHOTOS: PhotoId[] = ['reelTalk', 'reelProduct', 'reelPoint'];
+
+/** Ujęcie z fotografii z powolnym najazdem; false, gdy fotografia jeszcze się nie wczytała. */
+function reelPhoto(ctx: CanvasRenderingContext2D, t: number, w: number, h: number, scene: number): boolean {
+  const shot = REEL_SHOTS[scene];
+  const img = photo(shot.photo);
+  if (!img) return false;
+  const local = Math.min(3, t - scene * 3);
+  drawPhoto(ctx, img, w, h, { zoom: shot.zoom * (1 + 0.035 * (local / 3)), fx: 0.51, fy: 0.43, ax: 0.5, ay: shot.ay });
+  return true;
+}
+
 const REEL_SCENES: Array<[string, string]> = [
   ['#F46A4E', '#FFC9A8'],
   ['#2F5FD0', '#A8C5FF'],
@@ -223,10 +247,13 @@ function drawReel(ctx: CanvasRenderingContext2D, t: number, w: number, h: number
     pseudoText(ctx, w * 0.3, h * 0.58, w * 0.4, u * 4, [4, 5], 'rgba(31,42,68,0.55)', 2);
     return;
   }
-  const close = scene === 3 || (scene === 0 && strongHook);
-  const r = u * (close ? 23 : 17);
-  const cy = h * (close ? 0.47 : 0.43);
-  presenter(ctx, w / 2, cy, r, t, { shirt: scene === 4 ? '#F2B705' : '#24324F' });
+  const real = reelPhoto(ctx, t, w, h, scene);
+  if (!real) {
+    const close = scene === 3 || (scene === 0 && strongHook);
+    const r = u * (close ? 23 : 17);
+    const cy = h * (close ? 0.47 : 0.43);
+    presenter(ctx, w / 2, cy, r, t, { shirt: scene === 4 ? '#F2B705' : '#24324F' });
+  }
   if (scene === 0) {
     // Napis hooka u góry (w B od pierwszej klatki, w A po planszy).
     ctx.fillStyle = 'rgba(31,42,68,0.86)';
@@ -241,7 +268,8 @@ function drawReel(ctx: CanvasRenderingContext2D, t: number, w: number, h: number
     ctx.fill();
     pseudoText(ctx, w * 0.14, h * 0.848, w * 0.72, u * 4, [4, 3, 5, 4, 3, 6, 4], '#ffffff', 7);
   }
-  if (scene === 2) product(ctx, w * 0.7, h * 0.6, u * 11, '#E63946');
+  // Na fotografii produkt jest w dłoni prowadzącego; w wersji z kształtów — rysowany.
+  if (scene === 2 && !real) product(ctx, w * 0.78, h * 0.6, u * 11, '#E63946');
   if (scene === 4) {
     ctaButton(ctx, w * 0.2, h * 0.7, w * 0.6, h * 0.075, t);
     logoMark(ctx, w * 0.86, h * 0.08, u * 5, '#E63946');
@@ -249,42 +277,73 @@ function drawReel(ctx: CanvasRenderingContext2D, t: number, w: number, h: number
 }
 
 const REEL_AOIS: DemoAoi[] = [
-  { key: 'face', type: 'face', x: 0.3, y: 0.3, w: 0.4, h: 0.26, t0: 0, t1: 15 },
+  { key: 'face', type: 'face', x: 0.3, y: 0.26, w: 0.4, h: 0.32, t0: 0, t1: 15 },
   { key: 'hook', type: 'text', x: 0.08, y: 0.1, w: 0.84, h: 0.12, t0: 0, t1: 3, words: 6 },
   { key: 'captions', type: 'subtitle', x: 0.1, y: 0.83, w: 0.8, h: 0.075, t0: 3, t1: 6, words: 9 },
-  { key: 'product', type: 'product', x: 0.56, y: 0.47, w: 0.28, h: 0.3, t0: 6, t1: 9 },
+  { key: 'product', type: 'product', x: 0.66, y: 0.47, w: 0.26, h: 0.26, t0: 6, t1: 9 },
   { key: 'cta', type: 'cta', x: 0.2, y: 0.7, w: 0.6, h: 0.075, t0: 12, t1: 15, words: 2 },
   { key: 'logo', type: 'logo', x: 0.81, y: 0.05, w: 0.1, h: 0.06, t0: 12, t1: 15 },
 ];
 
 function reelTarget(t: number, strongHook: boolean): GazeTarget {
   const scene = Math.min(4, Math.floor(t / 3));
-  const face = (dy = 0): GazeTarget => ({ x: 0.5 + 0.02 * Math.sin(t * 1.3), y: (scene === 3 ? 0.45 : 0.41) + dy, key: 'face' });
+  const face = (dy = 0): GazeTarget => ({ x: 0.5 + 0.02 * Math.sin(t * 1.3), y: REEL_SHOTS[scene].ay - 0.01 + dy, key: 'face' });
   if (scene === 0) {
     if (!strongHook && t < 1.5) return { x: 0.5, y: 0.46, key: 'background' };
     if (t < (strongHook ? 1.6 : 2.4)) return { x: 0.45 + 0.1 * ((t * 1.7) % 1), y: 0.16, key: 'hook' };
     return face();
   }
   if (scene === 1) return t > 4.3 && t < 5.3 ? { x: 0.35 + 0.3 * ((t - 4.3) / 1), y: 0.865, key: 'captions' } : face();
-  if (scene === 2) return t > 6.3 && t < 8.4 ? { x: 0.7, y: 0.6, key: 'product' } : face();
+  if (scene === 2) return t > 6.3 && t < 8.4 ? { x: 0.79, y: 0.6, key: 'product' } : face();
   if (scene === 4) return t > 12.4 && t < 14.2 ? { x: 0.5, y: 0.737, key: 'cta' } : face();
   return face();
 }
 
 // ——— film 16:9 (60 s, 5 scen po 12 s) ———
 
+const VIDEO_PHOTOS: PhotoId[] = ['videoHost', 'videoBroll'];
+/** Twarz prowadzącej na fotografii (ułamki kadru). */
+const HOST_FACE = { x: 0.31, y: 0.3 };
+
+/** Panel z tytułem na prawej połowie kadru (strefa „title”). */
+function titlePanel(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+  const u = h / 100;
+  ctx.fillStyle = 'rgba(17,24,44,0.78)';
+  rr(ctx, w * 0.5, h * 0.26, w * 0.44, h * 0.42, u * 2.2);
+  ctx.fill();
+  ctx.fillStyle = '#F2B705';
+  rr(ctx, w * 0.53, h * 0.31, w * 0.06, u * 0.9, u * 0.45);
+  ctx.fill();
+  pseudoText(ctx, w * 0.53, h * 0.36, w * 0.38, u * 5.6, [4, 6, 3, 5], '#FFFFFF', 11);
+  pseudoText(ctx, w * 0.53, h * 0.53, w * 0.36, u * 2.8, [5, 4, 6, 3, 5, 4, 5], 'rgba(255,255,255,0.6)', 12);
+}
+
 function drawVideo(ctx: CanvasRenderingContext2D, t: number, w: number, h: number): void {
   const scene = Math.min(4, Math.floor(t / 12));
   const local = t - scene * 12;
   const u = h / 100;
-  if (scene === 0) {
+  const host = photo('videoHost');
+  const broll = photo('videoBroll');
+  if (scene === 0 && host) {
+    drawPhoto(ctx, host, w, h, { zoom: 1 + 0.03 * (local / 12), fx: HOST_FACE.x, fy: HOST_FACE.y });
+    titlePanel(ctx, w, h);
+  } else if (scene === 2 && broll) {
+    drawPhoto(ctx, broll, w, h, { zoom: 1.12, fx: 0.4 + 0.2 * (local / 12), fy: 0.5 });
+  } else if (scene === 3 && host) {
+    drawPhoto(ctx, host, w, h, { zoom: 2 + 0.06 * (local / 12), fx: HOST_FACE.x, fy: HOST_FACE.y, ax: 0.5, ay: 0.4 });
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    rr(ctx, w * 0.25, h * 0.86, w * 0.5, h * 0.08, u * 1.5);
+    ctx.fill();
+    pseudoText(ctx, w * 0.27, h * 0.88, w * 0.46, u * 3.4, [4, 5, 3, 6, 4, 5], '#ffffff', 31);
+  } else if (scene === 0) {
     gradient(ctx, w, h, '#EEF2F7', '#D2DCEA');
     presenter(ctx, w * 0.3, h * 0.42, u * 15, t);
     ctx.fillStyle = '#1F2A44';
     pseudoText(ctx, w * 0.52, h * 0.3, w * 0.4, u * 7, [4, 6, 3, 5], '#1F2A44', 11);
     pseudoText(ctx, w * 0.52, h * 0.55, w * 0.38, u * 3.6, [5, 4, 6, 3, 5, 4, 5], 'rgba(31,42,68,0.5)', 12);
   } else if (scene === 1) {
-    gradient(ctx, w, h, '#FFD166', '#FFE8A3');
+    // Plansza z wykresem (grafika, nie zdjęcie).
+    gradient(ctx, w, h, '#F4F6F9', '#E3E8F0');
     pseudoText(ctx, w * 0.08, h * 0.1, w * 0.6, u * 6, [5, 4, 6], '#1F2A44', 21);
     const bars = [0.35, 0.5, 0.42, 0.68, 0.84];
     const grow = Math.min(1, local / 4);
@@ -318,15 +377,15 @@ function drawVideo(ctx: CanvasRenderingContext2D, t: number, w: number, h: numbe
     ctx.fill();
     pseudoText(ctx, w * 0.27, h * 0.88, w * 0.46, u * 3.4, [4, 5, 3, 6, 4, 5], '#ffffff', 31);
   } else {
-    gradient(ctx, w, h, '#0F3D3A', '#1B5E57');
+    gradient(ctx, w, h, '#141C30', '#2B3A60');
     logoMark(ctx, w * 0.5, h * 0.32, u * 9, '#2747D6');
     ctaButton(ctx, w * 0.36, h * 0.56, w * 0.28, h * 0.12, t);
   }
 }
 
 const VIDEO_AOIS: DemoAoi[] = [
-  { key: 'face', type: 'face', x: 0.2, y: 0.2, w: 0.2, h: 0.36, t0: 0, t1: 12 },
-  { key: 'title', type: 'text', x: 0.5, y: 0.27, w: 0.44, h: 0.4, t0: 0, t1: 12, words: 18 },
+  { key: 'face', type: 'face', x: 0.2, y: 0.06, w: 0.21, h: 0.4, t0: 0, t1: 12 },
+  { key: 'title', type: 'text', x: 0.5, y: 0.26, w: 0.44, h: 0.42, t0: 0, t1: 12, words: 18 },
   { key: 'chart', type: 'center', x: 0.14, y: 0.3, w: 0.74, h: 0.56, t0: 12, t1: 24 },
   { key: 'face', type: 'face', x: 0.37, y: 0.12, w: 0.26, h: 0.56, t0: 36, t1: 48 },
   { key: 'captions', type: 'subtitle', x: 0.25, y: 0.86, w: 0.5, h: 0.08, t0: 36, t1: 48, words: 6 },
@@ -336,7 +395,7 @@ const VIDEO_AOIS: DemoAoi[] = [
 function videoTarget(t: number): GazeTarget {
   const scene = Math.min(4, Math.floor(t / 12));
   const local = t - scene * 12;
-  if (scene === 0) return local % 4 < 2.6 ? { x: 0.3, y: 0.38, key: 'face' } : { x: 0.7, y: 0.42, key: 'title' };
+  if (scene === 0) return local % 4 < 2.6 ? { x: 0.31, y: 0.27, key: 'face' } : { x: 0.7, y: 0.42, key: 'title' };
   if (scene === 1) return { x: 0.3 + 0.12 * Math.min(4, Math.floor(local / 2)), y: 0.62, key: 'chart' };
   if (scene === 2) return { x: 0.2 + 0.4 * Math.sin(local * 0.3) ** 2, y: 0.35, key: 'background' };
   if (scene === 3) return local % 5 < 3.8 ? { x: 0.5, y: 0.37, key: 'face' } : { x: 0.5, y: 0.9, key: 'captions' };
@@ -345,18 +404,35 @@ function videoTarget(t: number): GazeTarget {
 
 // ——— wypełniacze feedu (9:16, 6–10 s) ———
 
-const FILLERS: Array<{ id: DemoId; duration: number; colors: [string, string, string]; motif: 'bubbles' | 'stripes' | 'orbit' | 'wave' | 'blocks' }> = [
-  { id: 'filler_1', duration: 8, colors: ['#FF9F1C', '#FFE8C2', '#E4572E'], motif: 'bubbles' },
-  { id: 'filler_2', duration: 10, colors: ['#118AB2', '#C9F1FF', '#073B4C'], motif: 'stripes' },
-  { id: 'filler_3', duration: 7, colors: ['#8338EC', '#EBDDFF', '#3A0CA3'], motif: 'orbit' },
-  { id: 'filler_4', duration: 9, colors: ['#06A77D', '#D1F7EA', '#005F44'], motif: 'wave' },
-  { id: 'filler_5', duration: 6, colors: ['#EF476F', '#FFE0E8', '#9E1F43'], motif: 'blocks' },
+const FILLERS: Array<{ id: DemoId; duration: number; photo: PhotoId; colors: [string, string, string]; motif: 'bubbles' | 'stripes' | 'orbit' | 'wave' | 'blocks' }> = [
+  { id: 'filler_1', duration: 8, photo: 'feedFood', colors: ['#FF9F1C', '#FFE8C2', '#E4572E'], motif: 'bubbles' },
+  { id: 'filler_2', duration: 10, photo: 'feedLake', colors: ['#118AB2', '#C9F1FF', '#073B4C'], motif: 'stripes' },
+  { id: 'filler_3', duration: 7, photo: 'feedYoga', colors: ['#8338EC', '#EBDDFF', '#3A0CA3'], motif: 'orbit' },
+  { id: 'filler_4', duration: 9, photo: 'feedDog', colors: ['#06A77D', '#D1F7EA', '#005F44'], motif: 'wave' },
+  { id: 'filler_5', duration: 6, photo: 'feedCity', colors: ['#EF476F', '#FFE0E8', '#9E1F43'], motif: 'blocks' },
 ];
 
+/** Przyciemnienie dołu kadru pod podpisem posta. */
+function bottomShade(ctx: CanvasRenderingContext2D, w: number, h: number, from = 0.62): void {
+  const g = ctx.createLinearGradient(0, h * from, 0, h);
+  g.addColorStop(0, 'rgba(0,0,0,0)');
+  g.addColorStop(1, 'rgba(0,0,0,0.6)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, h * from, w, h * (1 - from));
+}
+
 function drawFiller(ctx: CanvasRenderingContext2D, t: number, w: number, h: number, f: (typeof FILLERS)[number]): void {
+  const u = w / 100;
+  const img = photo(f.photo);
+  if (img) {
+    // Post z fotografią: powolny najazd i podpis na przyciemnionym dole.
+    drawPhoto(ctx, img, w, h, { zoom: 1 + 0.08 * (t / f.duration) });
+    bottomShade(ctx, w, h);
+    pseudoText(ctx, w * 0.08, h * 0.86, w * 0.7, u * 3.6, [5, 3, 6, 4], 'rgba(255,255,255,0.92)', f.id.length);
+    return;
+  }
   const [a, b, c] = f.colors;
   gradient(ctx, w, h, a, b);
-  const u = w / 100;
   ctx.fillStyle = c;
   if (f.motif === 'bubbles') {
     for (let i = 0; i < 9; i++) {
@@ -398,16 +474,44 @@ function drawFiller(ctx: CanvasRenderingContext2D, t: number, w: number, h: numb
 
 // ——— miniatury (16:9, obraz) ———
 
-const THUMBS: Array<{ id: DemoId; bg: [string, string]; layout: 'face-left' | 'face-right' | 'big-text' | 'object' }> = [
-  { id: 'thumb_1', bg: ['#E63946', '#FF8FA3'], layout: 'face-left' },
-  { id: 'thumb_2', bg: ['#1D3557', '#457B9D'], layout: 'big-text' },
-  { id: 'thumb_3', bg: ['#2A9D8F', '#A8E6CF'], layout: 'object' },
-  { id: 'thumb_4', bg: ['#F4A261', '#FFE5B4'], layout: 'face-right' },
-  { id: 'thumb_5', bg: ['#6A4C93', '#C3A6FF'], layout: 'big-text' },
-  { id: 'thumb_6', bg: ['#264653', '#6B9080'], layout: 'object' },
+/** `title` — gdzie na fotografii jest wolne miejsce na tytuł (x lewej krawędzi tytułu). */
+const THUMBS: Array<{ id: DemoId; photo: PhotoId; title: number; bg: [string, string]; layout: 'face-left' | 'face-right' | 'big-text' | 'object' }> = [
+  { id: 'thumb_1', photo: 'thumbFaceLeft', title: 0.6, bg: ['#E63946', '#FF8FA3'], layout: 'face-left' },
+  { id: 'thumb_2', photo: 'thumbCity', title: 0.07, bg: ['#1D3557', '#457B9D'], layout: 'big-text' },
+  { id: 'thumb_3', photo: 'thumbSneaker', title: 0.06, bg: ['#2A9D8F', '#A8E6CF'], layout: 'object' },
+  { id: 'thumb_4', photo: 'thumbFaceRight', title: 0.06, bg: ['#F4A261', '#FFE5B4'], layout: 'face-right' },
+  { id: 'thumb_5', photo: 'thumbMountain', title: 0.07, bg: ['#6A4C93', '#C3A6FF'], layout: 'big-text' },
+  { id: 'thumb_6', photo: 'thumbHeadphones', title: 0.56, bg: ['#264653', '#6B9080'], layout: 'object' },
 ];
 
+/** Miniatura z fotografią: tytuł (pseudotekst) po stronie wolnej od twarzy lub przedmiotu. */
+function drawThumbPhoto(ctx: CanvasRenderingContext2D, w: number, h: number, th: (typeof THUMBS)[number], img: HTMLImageElement): void {
+  const u = h / 100;
+  const seed = Number(th.id.slice(-1));
+  drawPhoto(ctx, img, w, h);
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.45)';
+  ctx.shadowBlur = u * 2;
+  ctx.shadowOffsetY = u * 0.6;
+  if (th.layout === 'big-text') {
+    ctx.fillStyle = 'rgba(10,14,28,0.38)';
+    ctx.fillRect(0, 0, w, h);
+    pseudoText(ctx, w * 0.07, h * 0.2, w * 0.86, u * 15, [4, 3, 5, 2], '#FFFFFF', seed);
+  } else {
+    // Tytuł po stronie wolnej od osoby lub przedmiotu (przy twarzy z lewej — za wskazującą dłonią).
+    const x = w * th.title;
+    pseudoText(ctx, x, h * 0.26, w * 0.36, u * 11, [3, 4, 2], '#FFFFFF', seed);
+    ctx.shadowColor = 'transparent';
+    ctx.fillStyle = '#F2B705';
+    rr(ctx, x, h * 0.72, w * 0.16, u * 2.4, u);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
 function drawThumb(ctx: CanvasRenderingContext2D, w: number, h: number, th: (typeof THUMBS)[number]): void {
+  const img = photo(th.photo);
+  if (img) return drawThumbPhoto(ctx, w, h, th, img);
   gradient(ctx, w, h, th.bg[0], th.bg[1]);
   const u = h / 100;
   const seed = Number(th.id.slice(-1));
@@ -491,6 +595,7 @@ const reelSpec = (id: 'reel' | 'reel_b'): DemoSpec => ({
   cuts: [0, 3, 6, 9, 12],
   aois: id === 'reel' ? REEL_AOIS.map((a) => (a.key === 'hook' ? { ...a, t0: 1.5 } : a)) : REEL_AOIS,
   sharedFrom: 3,
+  photos: REEL_PHOTOS,
   draw: (ctx, t, w, h) => drawReel(ctx, t, w, h, id === 'reel_b'),
   target: (t) => reelTarget(t, id === 'reel_b'),
 });
@@ -498,7 +603,7 @@ const reelSpec = (id: 'reel' | 'reel_b'): DemoSpec => ({
 export const DEMO_SPECS = {
   reel: reelSpec('reel'),
   reel_b: reelSpec('reel_b'),
-  video: { id: 'video', kind: 'video', duration: 60, w: 1920, h: 1080, cuts: [0, 12, 24, 36, 48], aois: VIDEO_AOIS, draw: drawVideo, target: videoTarget },
+  video: { id: 'video', kind: 'video', duration: 60, w: 1920, h: 1080, cuts: [0, 12, 24, 36, 48], aois: VIDEO_AOIS, photos: VIDEO_PHOTOS, draw: drawVideo, target: videoTarget },
   ...(Object.fromEntries(
     FILLERS.map((f) => [
       f.id,
@@ -510,6 +615,7 @@ export const DEMO_SPECS = {
         h: 1920,
         cuts: [0],
         aois: [],
+        photos: [f.photo],
         draw: (ctx: CanvasRenderingContext2D, t: number, w: number, h: number) => drawFiller(ctx, t, w, h, f),
         target: (t: number): GazeTarget => ({ x: 0.5 + 0.15 * Math.sin(t), y: 0.45, key: 'background' }),
       } satisfies DemoSpec,
@@ -542,12 +648,16 @@ export const DEMO_SPECS = {
         h: 720,
         cuts: [0],
         aois: [],
+        photos: [th.photo],
         draw: (ctx: CanvasRenderingContext2D, _t: number, w: number, h: number) => drawThumb(ctx, w, h, th),
         target: (): GazeTarget => ({ x: 0.5, y: 0.45, key: 'background' }),
       } satisfies DemoSpec,
     ]),
   ) as Record<string, DemoSpec>),
 } as Record<DemoId, DemoSpec>;
+
+/** Wczytuje fotografie klipu (przed klatkami raportu, miniaturą albo odtwarzaniem u widza). */
+export const preloadDemo = (spec: DemoSpec): Promise<void> => preloadPhotos(spec.photos ?? []);
 
 export const isDemoId = (x: unknown): x is DemoId => typeof x === 'string' && (DEMO_IDS as string[]).includes(x);
 

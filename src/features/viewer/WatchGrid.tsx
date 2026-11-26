@@ -3,7 +3,7 @@ import { apiBase } from '../../api/base';
 import type { GazeSample } from '../../core/contracts/types';
 import { SampleBuilder } from '../../core/pipeline/sampleBuilder';
 import { ManualClock } from '../../core/time/playbackClock';
-import { DEMO_SPECS, drawDemoScene, type GazeTarget } from '../../demo/demoScene';
+import { DEMO_SPECS, drawDemoScene, preloadDemo, type GazeTarget } from '../../demo/demoScene';
 import { useT } from '../../i18n';
 import { DEFAULT_GRID, gridCells, type GridCellBox } from '../../research/grid';
 import { detectDevice } from '../../research/link';
@@ -42,12 +42,22 @@ function Still({ media, label }: { media: MediaSource | null; label: string }) {
     const c = ref.current;
     if (!c || media?.kind !== 'demo') return;
     const spec = DEMO_SPECS[media.demo];
-    const r = c.getBoundingClientRect();
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    c.width = Math.max(1, Math.round(r.width * dpr));
-    c.height = Math.max(1, Math.round(r.height * dpr));
-    const ctx = c.getContext('2d');
-    if (ctx) drawDemoScene(ctx, Math.min(1, spec.duration), c.width, c.height, spec);
+    let alive = true;
+    const draw = () => {
+      if (!alive) return;
+      const r = c.getBoundingClientRect();
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      c.width = Math.max(1, Math.round(r.width * dpr));
+      c.height = Math.max(1, Math.round(r.height * dpr));
+      const ctx = c.getContext('2d');
+      if (ctx) drawDemoScene(ctx, Math.min(1, spec.duration), c.width, c.height, spec);
+    };
+    draw();
+    // Po wczytaniu fotografii — jeszcze raz, już ze zdjęciem.
+    void preloadDemo(spec).then(draw);
+    return () => {
+      alive = false;
+    };
   }, [media]);
   if (media?.kind === 'demo') return <canvas ref={ref} className="h-full w-full rounded-lg" role="img" aria-label={label} />;
   const url = playableUrl(media, apiBase());

@@ -91,7 +91,11 @@ describe('demo mode', () => {
     const reel = DEMO_SPECS.reel_b;
     expect(demoTargetAt(1, reel).key).toBe('hook');
     expect(demoTargetAt(4, reel).key).toBe('face');
-    expect(demoTargetAt(7, reel)).toMatchObject({ key: 'product', x: 0.7, y: 0.6 });
+    // Produkt w dłoni prowadzącego (fotografia rolki) — cel wzroku leży w strefie produktu.
+    const product = demoTargetAt(7, reel);
+    const zone = reel.aois.find((a) => a.key === 'product');
+    expect(product).toMatchObject({ key: 'product', x: 0.79, y: 0.6 });
+    expect(zone && product.x > zone.x && product.x < zone.x + zone.w && product.y > zone.y && product.y < zone.y + zone.h).toBe(true);
     expect(demoTargetAt(13, reel).key).toBe('cta');
     // Słaby hook (wersja A): plansza z logo przez pierwsze 1,5 s.
     expect(demoTargetAt(0.5, DEMO_SPECS.reel).key).toBe('background');

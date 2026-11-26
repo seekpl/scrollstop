@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { hrefOf } from '../../app/router';
-import { DEMO_SPECS, drawDemoScene } from '../../demo/demoScene';
+import { DEMO_SPECS, drawDemoScene, preloadDemo } from '../../demo/demoScene';
 import { useI18n } from '../../i18n';
 import { formatPct } from '../../i18n/format';
 import { RESEARCH_TEXT } from '../../i18n/research';
@@ -79,7 +79,11 @@ export function HeroDemo({ compact = false }: { compact?: boolean } = {}) {
     if (reducedMotion()) {
       drawDemoScene(ctx, 3, W, H, spec);
       setNow(spec.duration);
-      return;
+      let alive = true;
+      void preloadDemo(spec).then(() => alive && drawDemoScene(ctx, 3, W, H, spec));
+      return () => {
+        alive = false;
+      };
     }
     let raf = 0;
     const start = performance.now();

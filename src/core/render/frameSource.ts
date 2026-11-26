@@ -1,7 +1,7 @@
 import { CodedError } from '../errors';
 import type { VideoInfo } from '../contracts/types';
 import { coverCrop } from '../geometry/coords';
-import { drawDemoScene, type DemoSpec } from '../../demo/demoScene';
+import { drawDemoScene, preloadDemo, type DemoSpec } from '../../demo/demoScene';
 
 /** Źródło klatek materiału do analiz (heat mapa, ścieżka wzroku, sceny). */
 export interface FrameSource {
@@ -73,13 +73,16 @@ export function createVideoFrameSource(url: string, opts: { crossOrigin?: boolea
 }
 
 export function createDemoFrameSource(spec: DemoSpec): FrameSource {
+  // Klatki raportu dopiero po wczytaniu fotografii klipu (inaczej heat mapa leżałaby na szkicu).
+  const ready = preloadDemo(spec);
   return {
     kind: 'demo',
     duration: spec.duration,
     width: spec.w,
     height: spec.h,
-    ready: Promise.resolve(),
+    ready,
     async drawFrame(ctx, t, w, h) {
+      await ready;
       drawDemoScene(ctx, t, w, h, spec);
     },
     dispose() {},

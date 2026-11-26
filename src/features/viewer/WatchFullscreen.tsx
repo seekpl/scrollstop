@@ -5,7 +5,7 @@ import { containRect } from '../../core/geometry/coords';
 import { SampleBuilder } from '../../core/pipeline/sampleBuilder';
 import { WebcamGazeEstimator } from '../../core/pipeline/webcamEstimator';
 import { trackingHub } from '../../core/tracking/trackingHub';
-import { DEMO_SPECS } from '../../demo/demoScene';
+import { DEMO_SPECS, preloadDemo } from '../../demo/demoScene';
 import { wanderingTarget } from '../../demo/simulator';
 import { useT } from '../../i18n';
 import { detectDevice } from '../../research/link';
@@ -83,9 +83,15 @@ export function WatchFullscreen({ config, calibration, simulated, muted, onFinis
       };
     }
     if (media.kind === 'demo') {
-      const c = createDemoController(canvasRef.current as HTMLCanvasElement, DEMO_SPECS[media.demo]);
-      setCtrl(c);
-      return () => c.dispose();
+      const spec = DEMO_SPECS[media.demo];
+      const c = createDemoController(canvasRef.current as HTMLCanvasElement, spec);
+      // Odtwarzanie dopiero z wczytanymi fotografiami klipu (widz nie widzi szkicu zastępczego).
+      let alive = true;
+      void preloadDemo(spec).then(() => alive && setCtrl(c));
+      return () => {
+        alive = false;
+        c.dispose();
+      };
     }
     if (!url) {
       setError('local_media');
